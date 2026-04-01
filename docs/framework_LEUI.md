@@ -124,5 +124,5 @@ Investor tidak bilang "hukum buruk", tapi mereka merespons lewat **price channel
 |---|---|
 | **Legal Risk Pricing Index** | Indeks komposit dari 5 dimensi (H1–H5) |
 | **Heatmap Risiko Hukum Investasi** | Peta risiko per provinsi/sektor |
-| **Policy Brief** | Reformasi penegakan hukum — rekomendasi |
+| **Policy Paper** | Reformasi penegakan hukum — rekomendasi |
 | **Early Warning System** | Dashboard untuk investor & pemerintah |

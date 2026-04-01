@@ -5,7 +5,7 @@
 
 
 > [!IMPORTANT]
-> Seluruh isi dokumen ini mengikuti **100% struktur brief.pdf**. Section numbering, hipotesis, indikator, dan kerangka konseptual diambil langsung dari brief tanpa improvisasi.
+> Dokumen ini menyajikan kerangka riset LEUI secara lengkap — premis, hipotesis, indikator, kerangka konseptual, dan arah analisis data.
 
 ---
 
@@ -24,7 +24,7 @@
 ### H1 — Inconsistency Risk
 > Ketidakkonsistenan penegakan hukum antar wilayah, sektor, dan waktu meningkatkan ketidakpastian investasi.
 
-**Contoh dari brief:**
+**Contoh kasus:**
 - Kasus serupa → hasil putusan berbeda
 - Izin yang sah → tetap dikriminalisasi
 - Tafsir pusat ≠ daerah ≠ aparat
@@ -34,7 +34,7 @@
 ### H2 — Selective Enforcement Risk
 > Penegakan hukum yang selektif dan transaksional menciptakan risiko non-teknis bagi investor.
 
-**Contoh dari brief:**
+**Contoh kasus:**
 - Penindakan hanya muncul saat konflik politik
 - Hukum dipakai sebagai alat negosiasi
 - "Aman" selama ada kedekatan kekuasaan
@@ -44,7 +44,7 @@
 ### H3 — Procedural Uncertainty Risk
 > Proses hukum yang panjang, tidak pasti, dan mahal menciptakan biaya laten bagi investasi.
 
-**Contoh dari brief:**
+**Contoh kasus:**
 - Kasus pidana berjalan paralel dengan PTUN/perdata
 - Penyitaan aset sebelum putusan inkracht
 - Overlapping kewenangan penegak hukum
@@ -54,7 +54,7 @@
 ### H4 — Regulatory Reversal Risk
 > Penegakan hukum yang berubah karena perubahan regulasi atau kebijakan mendadak meningkatkan risiko stranded asset.
 
-**Contoh dari brief:**
+**Contoh kasus:**
 - Perizinan sah → tiba-tiba melanggar aturan baru
 - Pencabutan izin retroaktif
 - Kriminalisasi pasca pergantian pejabat
@@ -64,7 +64,7 @@
 ### H5 — Criminalization Risk
 > Kriminalisasi keputusan bisnis atau kebijakan administratif meningkatkan risiko personal bagi investor & manajemen.
 
-**Contoh dari brief:**
+**Contoh kasus:**
 - Direksi dijerat pidana
 - Pejabat daerah takut tanda tangan
 - Investor asing khawatir personal liability
@@ -75,7 +75,7 @@
 
 ## 3. Mengubah Ketidakpastian → Risiko yang Bisa Di-Price
 
-### Prinsip Dasar (dari brief)
+### Prinsip Dasar
 Investor tidak bilang "hukum buruk", tapi mereka:
 - Minta **higher return**
 - Minta **risk premium**
@@ -110,14 +110,14 @@ flowchart TD
     style E fill:#1565C0,color:#fff
 ```
 
-**Versi teknis (dari brief):**
+**Versi teknis:**
 ```
 Legal Enforcement Quality Index → Legal Uncertainty Score → Legal Risk Premium → Investment Behavior
 ```
 
 ---
 
-## 5. Indikator yang Bisa Dibangun (dari brief)
+## 5. Indikator yang Bisa Dibangun
 
 ### A. Legal Uncertainty Indicators
 
@@ -141,7 +141,7 @@ Legal Enforcement Quality Index → Legal Uncertainty Score → Legal Risk Premi
 
 ---
 
-## 6. Asumsi Kunci (dari brief)
+## 6. Asumsi Kunci
 
 1. Investor bersifat **risk-averse**
 2. Ketidakpastian hukum **≠** buruknya hukum substantif
@@ -151,7 +151,7 @@ Legal Enforcement Quality Index → Legal Uncertainty Score → Legal Risk Premi
 
 ---
 
-## 7. Kebutuhan Data (dari brief)
+## 7. Kebutuhan Data
 
 ### Data Hukum
 - Putusan MA/PT/PTUN
@@ -177,7 +177,7 @@ Legal Enforcement Quality Index → Legal Uncertainty Score → Legal Risk Premi
 
 ---
 
-## 8. Pertanyaan Besar Penelitian (dari brief)
+## 8. Pertanyaan Besar Penelitian
 
 ### Utama:
 > Bagaimana penegakan hukum di Indonesia menciptakan risiko yang di-price dalam keputusan investasi?
@@ -191,23 +191,23 @@ Legal Enforcement Quality Index → Legal Uncertainty Score → Legal Risk Premi
 
 ---
 
-## 9. Output Riset (dari brief)
+## 9. Output Riset
 
 - **Legal Risk Pricing Index Indonesia**
 - **Heatmap Risiko Hukum Investasi**
-- **Policy brief**: Reformasi Penegakan Hukum
+- **Policy Paper**: Reformasi Penegakan Hukum
 - **Early Warning System** untuk investor & pemerintah
 
 ---
 
-## 10. Mapping Data Tersedia → Indikator Brief
+## 10. Mapping Data Tersedia → Indikator LEUI
 
 > [!NOTE]
-> Bagian ini adalah **satu-satunya tambahan** dari kami — memetakan indikator dari brief ke data yang sudah ada di `ref/datamentah/`.
+> Bagian ini memetakan indikator LEUI ke dataset yang tersedia.
 
 ### A. Legal Uncertainty Indicators → Status Data
 
-| Dimensi (brief) | Indikator (brief) | Data Tersedia? | Keterangan |
+| Dimensi | Indikator Kuantitatif | Data Tersedia? | Keterangan |
 |---|---|---|---|
 | Inconsistency | Variansi putusan kasus sejenis | ❌ | Butuh data putusan MA/PT |
 | Selectivity | Rasio kasus vs momentum politik | ❌ | Butuh data kasus + kalender politik |
@@ -217,7 +217,7 @@ Legal Enforcement Quality Index → Legal Uncertainty Score → Legal Risk Premi
 
 ### B. Risk Pricing Indicators → Status Data
 
-| Risiko (brief) | Proxy Harga (brief) | Data Tersedia? | File Sumber |
+| Risiko | Proxy Harga | Data Tersedia? | Sumber Data |
 |---|---|---|---|
 | Legal risk premium | Spread bunga pinjaman | ❌ | — |
 | Country risk | CDS Indonesia | ❌ | — |
@@ -227,14 +227,14 @@ Legal Enforcement Quality Index → Legal Uncertainty Score → Legal Risk Premi
 
 ### C. Data Ekonomi → Status Data
 
-| Kebutuhan (brief) | Data Tersedia? | File Sumber |
+| Kebutuhan Data | Status | Sumber Data |
 |---|---|---|
 | PMA/PMDN per sektor | ✅ | `Data Realisasi Investasi.xlsx` (394 kab/kota) |
 | Cost of capital | ✅ (proxy: ICOR) | `Biaya Investasi (ICOR).xlsx` |
 | CDS Indonesia | ❌ | — |
 | Data investasi daerah | ✅ | `Indeks Kepercayaan Konsumen.xlsx` (sub-nasional) |
 
-### D. Data Tambahan yang Tersedia (di luar brief)
+### D. Data Tambahan yang Tersedia
 
 | Data | File | Relevansi |
 |---|---|---|
@@ -246,7 +246,7 @@ Legal Enforcement Quality Index → Legal Uncertainty Score → Legal Risk Premi
 ## 11. Narasi per Hipotesis (H1–H5)
 
 > [!NOTE]
-> Narasi dibangun **langsung turunan dari hipotesis brief**. Masing-masing H dipasangkan dengan data yang tersedia.
+> Narasi dibangun langsung dari hipotesis LEUI. Masing-masing H dipasangkan dengan data yang tersedia.
 
 ### Narasi H1 — Inconsistency: "Kasus Sama, Putusan Beda"
 - **Data ideal**: Variansi putusan → **belum tersedia**
@@ -292,8 +292,7 @@ Legal Enforcement Quality Index → Legal Uncertainty Score → Legal Risk Premi
 
 ## Status & Next Steps
 
-- [x] Brief.pdf diparsing 100% (pdfplumber, 7 halaman)
-- [x] Framework, hipotesis, indikator diambil verbatim dari brief
-- [x] Mapping data tersedia ↔ indikator brief
+- [x] Framework, hipotesis, dan indikator tersusun
+- [x] Mapping data tersedia ↔ indikator LEUI
 - [ ] Parsing & cleaning data Excel → CSV
 - [ ] Dashboard development berdasarkan hipotesis H1–H5

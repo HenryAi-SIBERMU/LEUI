@@ -138,7 +138,7 @@
 
 ## 4. Data Gap — Yang Belum Tersedia
 
-| Dibutuhkan (dari brief) | Status | Keterangan |
+| Kategori Data yang Dibutuhkan | Status | Keterangan |
 |---|---|---|
 | Putusan MA/PT/PTUN | ❌ Belum ada | Data hukum primer — sulit diakses |
 | Data kriminalisasi bisnis | ❌ Belum ada | Jumlah kasus pidana direksi/investor |
@@ -148,7 +148,7 @@
 | Waktu proses perkara | ❌ Belum ada | Process risk metric |
 
 > [!CAUTION]
-> Dari 12 kategori data yang dicanangkan di brief, baru **5 yang tersedia** (ekonomi/makro). Semua data **hukum primer** dan **persepsi** belum ada. Ini berarti dashboard pertama akan fokus pada **Risk Pricing Channel** (cost of capital, capital flight, sentimen) bukan Legal Enforcement Quality Index secara langsung.
+> Dari 12 kategori data yang dicanangkan dalam kerangka LEUI, baru **5 yang tersedia** (ekonomi/makro). Semua data **hukum primer** dan **persepsi** belum ada. Ini berarti dashboard pertama akan fokus pada **Risk Pricing Channel** (cost of capital, capital flight, sentimen) bukan Legal Enforcement Quality Index secara langsung.
 
 ---
 
