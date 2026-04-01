@@ -89,11 +89,6 @@ docs_map = {
         "desc": _("Audit 5 file Excel, mapping data ke framework, identifikasi data gap"),
         "tags": [_("Data Report"), _("5 Datasets"), _("Gap Analysis")]
     },
-    _("Metodologi Teknis"): {
-        "file": "metodologi_teknis_report.md",
-        "desc": _("Pipeline data: parsing, cleaning, konstruksi indikator, analisis statistik, dashboard"),
-        "tags": [_("Technical"), _("Pipeline"), _("6 Steps")]
-    },
 }
 
 # --- Sidebar doc selector ---

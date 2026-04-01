@@ -2,7 +2,7 @@
 
 ### CELIOS — Legal Enforcement Uncertainty Index
 ### 1 April 2026
-### Sumber: brief.pdf (7 halaman)
+
 
 > [!IMPORTANT]
 > Seluruh isi dokumen ini mengikuti **100% struktur brief.pdf**. Section numbering, hipotesis, indikator, dan kerangka konseptual diambil langsung dari brief tanpa improvisasi.
