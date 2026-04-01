@@ -147,7 +147,7 @@ G = (Σᵢ Σⱼ |xᵢ - xⱼ|) / (2n² × μ)
 
 ## Step 6: Interpretasi & Narasi
 
-### Kriteria Seleksi Insight (sama dengan 8.1 EBT)
+### Kriteria Seleksi Insight
 
 ```
 1. MAGNITUDE    — angka yang besar secara absolut (ICOR > 10, Net Sell > 15 IDR tn)
@@ -171,4 +171,4 @@ G = (Σᵢ Σⱼ |xᵢ - xⱼ|) / (2n² × μ)
 | 6. Interpretasi | Editorial judgement | ❌ Tidak | Belum |
 
 > [!IMPORTANT]
-> Dibanding projek 8.1 EBT (mayoritas LLM reasoning), pipeline LEUI ini **sepenuhnya komputasional** di Step 1–5. Data sudah dalam format tabular (Excel from CEIC), bukan PDF yang butuh extraction. Ini memungkinkan akurasi dan reprodusibilitas yang jauh lebih tinggi.
+> Pipeline LEUI ini **sepenuhnya komputasional** di Step 1–5. Data sudah dalam format tabular (Excel from CEIC), bukan PDF yang butuh extraction. Ini memungkinkan akurasi dan reprodusibilitas yang tinggi.
