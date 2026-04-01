@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Streamlit
+.streamlit/config.toml
+# Keep config.toml for theme + sidebar config
+!.streamlit/config.toml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large Data (Optional - if excel is large)
+*.xlsx
+*.csv
+!data/processed/*.csv
+
+# Claude skills (local only)
+.claude/

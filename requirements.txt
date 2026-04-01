@@ -1,0 +1,12 @@
+streamlit
+pandas
+plotly
+openpyxl
+scipy
+scikit-learn
+requests
+networkx
+matplotlib
+instructor
+openai
+pydantic

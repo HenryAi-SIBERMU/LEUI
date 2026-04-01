@@ -1,0 +1,109 @@
+{
+  "biaya_investasi_icor": {
+    "source": "Biaya Investasi (ICOR).xlsx",
+    "sheet": "Chart",
+    "rows": 15,
+    "cols": [
+      "date",
+      "investasi_pmdn",
+      "investasi_pma",
+      "gdp_growth_pct",
+      "icor_pmdn",
+      "icor_pma"
+    ],
+    "range": [
+      "2010-12-01 00:00:00",
+      "2024-12-01 00:00:00"
+    ],
+    "unit": "IDR Billion (investasi), ratio (ICOR)",
+    "freq": "Yearly"
+  },
+  "data_realisasi_investasi_domestik": {
+    "source": "Data Realisasi Investasi.xlsx",
+    "sheet": "Domestik",
+    "rows": 16444,
+    "unique_provinsi": 38,
+    "unique_kabupaten": 411,
+    "range": [
+      "1990-03-01 00:00:00",
+      "2025-09-01 00:00:00"
+    ],
+    "unit": "IDR Billion",
+    "freq": "Quarterly"
+  },
+  "data_realisasi_investasi_asing": {
+    "source": "Data Realisasi Investasi.xlsx",
+    "sheet": "Asing",
+    "rows": 16701,
+    "unique_provinsi": 38,
+    "unique_kabupaten": 385,
+    "range": [
+      "1990-03-01 00:00:00",
+      "2025-09-01 00:00:00"
+    ],
+    "unit": "IDR Billion",
+    "freq": "Quarterly"
+  },
+  "ikk_expect_vs_present": {
+    "source": "Indeks Kepercayaan Konsumen (Expect vs Present).xlsx",
+    "sheet": "My Series",
+    "rows": 296,
+    "cols": [
+      "date",
+      "ikk_expectation",
+      "ikk_present",
+      "ikk_gap"
+    ],
+    "range": [
+      "2001-04-01 00:00:00",
+      "2025-11-01 00:00:00"
+    ],
+    "unit": "Index",
+    "freq": "Monthly"
+  },
+  "indeks_kepercayaan_konsumen": {
+    "source": "Indeks Kepercayaan Konsumen.xlsx",
+    "sheet": "My Series",
+    "rows": 16701,
+    "unique_provinsi": 38,
+    "range": [
+      "1990-03-01 00:00:00",
+      "2025-09-01 00:00:00"
+    ],
+    "note": "File labeled as IKK but contains investment realization data",
+    "unit": "IDR Billion",
+    "freq": "Quarterly"
+  },
+  "pmi_dan_capital_outflow_pmi": {
+    "source": "PMI dan Capital Outflow.xlsx",
+    "sheet": "PMI Manufaktur S&P",
+    "rows": 36,
+    "cols": [
+      "date",
+      "pmi_index"
+    ],
+    "range": [
+      "2023-02-01 00:00:00",
+      "2026-01-01 00:00:00"
+    ],
+    "unit": "Index (50=neutral)",
+    "freq": "Monthly",
+    "data_source": "S&P Global"
+  },
+  "pmi_dan_capital_outflow_outflow": {
+    "source": "PMI dan Capital Outflow.xlsx",
+    "sheet": "Capital Outflow",
+    "rows": 32,
+    "cols": [
+      "date",
+      "net_sell_idr_tn"
+    ],
+    "range": [
+      "2024-12-05 00:00:00",
+      "2026-01-29 00:00:00"
+    ],
+    "unit": "IDR tn",
+    "freq": "Daily, \"5 observation\"",
+    "data_source": "Bank Indonesia"
+  }
+}
