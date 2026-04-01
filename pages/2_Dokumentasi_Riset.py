@@ -76,17 +76,17 @@ DOCS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "docs")
 docs_map = {
     _("Framework LEUI"): {
         "file": "framework_LEUI.md",
-        "desc": _("Premis dasar, causal chain, 5 hipotesis (H1-H5), mekanisme risk pricing"),
+        "desc": _("Kerangka konseptual LEUI: causal chain, 5 hipotesis (H1-H5), dan mekanisme risk pricing investasi"),
         "tags": [_("Framework"), _("5 Hipotesis"), _("Causal Chain")]
     },
     _("Strategi Narasi & Arah Analisis"): {
         "file": "strategi_narasi_LEUI.md",
-        "desc": _("100% dari brief: premis, hipotesis, indikator, narasi per H1-H5, metode olah data"),
-        "tags": [_("Strategy"), _("Brief-based"), _("5 Narasi")]
+        "desc": _("Premis, hipotesis, indikator, dan arah analisis per dimensi ketidakpastian hukum"),
+        "tags": [_("Strategy"), _("Research Design"), _("5 Narasi")]
     },
     _("Laporan Insight Data"): {
         "file": "report_insight_data_LEUI.md",
-        "desc": _("Audit 5 file Excel, mapping data ke framework, identifikasi data gap"),
+        "desc": _("Audit 5 dataset ekonomi makro, pemetaan ke framework LEUI, dan identifikasi data gap"),
         "tags": [_("Data Report"), _("5 Datasets"), _("Gap Analysis")]
     },
 }
