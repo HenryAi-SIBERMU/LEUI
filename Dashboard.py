@@ -10,7 +10,7 @@ from src.utils.i18n import _
 # --- Page Config ---
 st.set_page_config(
     page_title="Dashboard LEUI — CELIOS",
-    page_icon="📊",
+    page_icon="ref/Celios China-Indonesia Energy Transition.png",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -25,7 +25,7 @@ st.markdown("""
 .main-title {
     font-size: 2.8rem;
     font-weight: 800;
-    background: linear-gradient(135deg, #1565C0, #42A5F5, #90CAF9);
+    background: linear-gradient(135deg, #43A047, #66BB6A, #81C784);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: 0;
@@ -42,7 +42,7 @@ st.markdown("""
 
 .org-badge {
     display: inline-block;
-    background: linear-gradient(135deg, #0D47A1, #1565C0);
+    background: linear-gradient(135deg, #1B5E20, #2E7D32);
     color: white;
     padding: 6px 16px;
     border-radius: 20px;
@@ -55,7 +55,7 @@ st.markdown("""
 
 .stat-card {
     background: linear-gradient(135deg, #1A1F2B, #232B3B);
-    border: 1px solid #1565C033;
+    border: 1px solid #2E7D3233;
     border-radius: 16px;
     padding: 24px;
     text-align: center;
@@ -63,12 +63,12 @@ st.markdown("""
 }
 .stat-card:hover {
     transform: translateY(-2px);
-    border-color: #42A5F5;
+    border-color: #43A047;
 }
 .stat-number {
     font-size: 2.2rem;
     font-weight: 800;
-    color: #42A5F5;
+    color: #66BB6A;
     margin: 8px 0;
 }
 .stat-label {
@@ -90,7 +90,7 @@ st.markdown("""
     margin-bottom: 8px;
     transition: border-color 0.2s;
 }
-.nav-card:hover { border-color: #42A5F5; }
+.nav-card:hover { border-color: #43A047; }
 .nav-icon { font-size: 1.6rem; margin-bottom: 8px; }
 .nav-title { font-size: 1rem; font-weight: 600; color: #E0E0E0; }
 .nav-desc { font-size: 0.8rem; color: #757575; margin-top: 4px; }
@@ -170,7 +170,7 @@ def load_summary():
 stats = load_summary()
 
 # --- KPI Cards ---
-st.markdown("### 📊 Snapshot Indikator Terkini")
+st.markdown("### Snapshot Indikator Terkini")
 
 col1, col2, col3, col4 = st.columns(4)
 
@@ -222,7 +222,7 @@ st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
 
 # --- Framework Summary ---
 st.markdown("---")
-st.markdown("### 📐 Kerangka Riset LEUI")
+st.markdown("### Kerangka Riset LEUI")
 
 st.markdown("""
 > **Premis:** Bukan hukum buruk yang paling mahal, tapi **hukum yang tak bisa diprediksi.**
@@ -258,7 +258,7 @@ with col_h2:
 
 # --- Data inventory ---
 st.markdown("---")
-st.markdown("### 📁 Inventaris Data")
+st.markdown("### Inventaris Data")
 
 inv_data = [
     {"Dataset": "Biaya Investasi (ICOR)", "Rows": "15", "Period": "2010–2024", "Freq": "Yearly"},
@@ -272,13 +272,12 @@ st.dataframe(pd.DataFrame(inv_data), use_container_width=True, hide_index=True)
 
 # --- Navigation Cards ---
 st.markdown("---")
-st.markdown("### 🔗 Navigasi")
+st.markdown("### Navigasi")
 
 col_nav1, col_nav2 = st.columns(2)
 with col_nav1:
     st.markdown("""
     <div class="nav-card">
-        <div class="nav-icon">📂</div>
         <div class="nav-title">Eksplorasi Data</div>
         <div class="nav-desc">Akses langsung ke semua dataset CSV — filter, preview, dan download</div>
     </div>
@@ -287,7 +286,6 @@ with col_nav1:
 with col_nav2:
     st.markdown("""
     <div class="nav-card">
-        <div class="nav-icon">📑</div>
         <div class="nav-title">Dokumentasi Riset</div>
         <div class="nav-desc">Framework LEUI, strategi narasi, metodologi teknis, dan insight data</div>
     </div>

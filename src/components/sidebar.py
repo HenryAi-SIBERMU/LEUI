@@ -9,7 +9,7 @@ def render_sidebar():
     .sidebar-title {
         font-size: 1.1rem;
         font-weight: 600;
-        color: #42A5F5;
+        color: #66BB6A;
         text-align: center;
         padding-bottom: 20px;
         margin-bottom: 0px;
@@ -20,15 +20,16 @@ def render_sidebar():
 
     with st.sidebar:
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        logo_path = os.path.join(base_dir, "ref", "celios_logo.png")
+        logo_path = os.path.join(base_dir, "ref", "Celios China-Indonesia Energy Transition.png")
         if os.path.exists(logo_path):
             st.image(logo_path, use_container_width=True)
 
         st.markdown('<div class="sidebar-title">CELIOS — Riset LEUI</div>', unsafe_allow_html=True)
+        st.caption("Legal Enforcement Uncertainty Index")
         st.markdown("---")
 
         init_lang()
-        st.markdown("🌐 **Language** / **Bahasa**")
+        st.markdown("**Language** / **Bahasa**")
 
         lang_options = {"id": "ID", "en": "EN"}
         current_lang = st.session_state.get('lang', 'id')
@@ -51,8 +52,8 @@ def render_sidebar():
         st.markdown("---")
 
         # Navigation
-        st.page_link("Dashboard.py", label=_("Dashboard"), icon=None)
+        st.page_link("Dashboard.py", label="Dashboard", icon=None)
 
-        st.markdown("### " + _("Resources"))
-        st.page_link("pages/1_Eksplorasi_Data.py", label=_("Eksplorasi Data"), icon=None)
-        st.page_link("pages/2_Dokumentasi_Riset.py", label=_("Dokumentasi Riset"), icon=None)
+        st.markdown("### Resources")
+        st.page_link("pages/1_Eksplorasi_Data.py", label="Eksplorasi Data", icon=None)
+        st.page_link("pages/2_Dokumentasi_Riset.py", label="Dokumentasi Riset", icon=None)

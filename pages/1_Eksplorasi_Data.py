@@ -9,14 +9,14 @@ from src.utils.i18n import _
 
 st.set_page_config(
     page_title="Eksplorasi Data — CELIOS LEUI",
-    page_icon="📂",
+    page_icon="ref/Celios China-Indonesia Energy Transition.png",
     layout="wide"
 )
 
 render_sidebar()
 
 # --- Main Content ---
-st.title(_("📂 Eksplorasi Data (Repository)"))
+st.title(_("Eksplorasi Data (Repository)"))
 st.markdown(_("""
 <div style="background-color:#1E1E1E; padding:15px; border-radius:10px; border-left: 5px solid #2196F3; margin-bottom: 20px;">
     <strong>Pusat Data & Download:</strong><br>
@@ -33,7 +33,7 @@ if not csv_files:
 
 # --- Dataset selector ---
 selected_file = st.selectbox(
-    _("📋 Pilih Dataset:"),
+    _("Pilih Dataset:"),
     list(csv_files.keys()),
     format_func=lambda x: x.replace('.csv', '').replace('_', ' ').title()
 )
@@ -52,7 +52,7 @@ with col_info3:
     st.metric(_("Size"), f"{size_kb:.0f} KB")
 
 # Column info
-with st.expander(_("ℹ️ Info Kolom"), expanded=False):
+with st.expander(_("Info Kolom"), expanded=False):
     col_info = pd.DataFrame({
         'Kolom': df.columns,
         'Tipe': [str(df[c].dtype) for c in df.columns],
@@ -62,17 +62,17 @@ with st.expander(_("ℹ️ Info Kolom"), expanded=False):
     st.dataframe(col_info, use_container_width=True, hide_index=True)
 
 # Statistics
-with st.expander(_("📊 Statistik Deskriptif"), expanded=False):
+with st.expander(_("Statistik Deskriptif"), expanded=False):
     st.dataframe(df.describe(), use_container_width=True)
 
 # Data viewer
-st.subheader(_("📋 Data"))
+st.subheader(_("Data"))
 st.dataframe(df, use_container_width=True)
 
 # Download
 csv_data = df.to_csv(index=False).encode('utf-8')
 st.download_button(
-    _("📥 Download CSV"),
+    _("Download CSV"),
     csv_data,
     selected_file,
     "text/csv",

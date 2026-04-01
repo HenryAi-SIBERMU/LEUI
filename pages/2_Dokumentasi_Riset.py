@@ -6,7 +6,7 @@ from src.utils.i18n import _
 
 st.set_page_config(
     page_title="Dokumentasi Riset — CELIOS LEUI",
-    page_icon="📑",
+    page_icon="ref/Celios China-Indonesia Energy Transition.png",
     layout="wide"
 )
 render_sidebar()
@@ -36,8 +36,8 @@ st.markdown("""
     margin-bottom: 1rem;
 }
 .meta-chip {
-    background: #1565C022;
-    color: #42A5F5;
+    background: #2E7D3222;
+    color: #66BB6A;
     padding: 4px 12px;
     border-radius: 8px;
     font-size: 0.75rem;
@@ -55,7 +55,7 @@ st.markdown("""
     text-align: left;
     font-weight: 600;
     font-size: 0.85rem;
-    border-bottom: 2px solid #1565C0;
+    border-bottom: 2px solid #2E7D32;
 }
 .doc-content td {
     padding: 8px 14px;
@@ -74,22 +74,22 @@ DOCS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "docs")
 
 # --- Available documents ---
 docs_map = {
-    _("📐 Framework LEUI"): {
+    _("Framework LEUI"): {
         "file": "framework_LEUI.md",
         "desc": _("Premis dasar, causal chain, 5 hipotesis (H1-H5), mekanisme risk pricing"),
         "tags": [_("Framework"), _("5 Hipotesis"), _("Causal Chain")]
     },
-    _("📑 Strategi Narasi & Arah Analisis"): {
+    _("Strategi Narasi & Arah Analisis"): {
         "file": "strategi_narasi_LEUI.md",
         "desc": _("100% dari brief: premis, hipotesis, indikator, narasi per H1-H5, metode olah data"),
         "tags": [_("Strategy"), _("Brief-based"), _("5 Narasi")]
     },
-    _("📊 Laporan Insight Data"): {
+    _("Laporan Insight Data"): {
         "file": "report_insight_data_LEUI.md",
         "desc": _("Audit 5 file Excel, mapping data ke framework, identifikasi data gap"),
         "tags": [_("Data Report"), _("5 Datasets"), _("Gap Analysis")]
     },
-    _("🔬 Metodologi Teknis"): {
+    _("Metodologi Teknis"): {
         "file": "metodologi_teknis_report.md",
         "desc": _("Pipeline data: parsing, cleaning, konstruksi indikator, analisis statistik, dashboard"),
         "tags": [_("Technical"), _("Pipeline"), _("6 Steps")]
@@ -98,7 +98,7 @@ docs_map = {
 
 # --- Sidebar doc selector ---
 with st.sidebar:
-    st.markdown(_("### 📂 Pilih Dokumen"))
+    st.markdown(_("### Pilih Dokumen"))
     selected_doc = st.radio(
         _("Dokumen:"),
         list(docs_map.keys()),
