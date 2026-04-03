@@ -1,14 +1,14 @@
 """
 Parse & reshape all ref/datamentah/*.xlsx → data/processed/*.csv
-CSV names match source Excel file names.
+Corrected version: proper CSV names, removed duplicate IKK file.
 """
 import pandas as pd
 from openpyxl import load_workbook
 import os, json
 from datetime import datetime
 
-SRC = r'c:\Users\yooma\OneDrive\Desktop\duniahub\client\10. Celios5-LEUI\ref\datamentah'
-OUT = r'c:\Users\yooma\OneDrive\Desktop\duniahub\client\10. Celios5-LEUI\data\processed'
+SRC = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'ref', 'datamentah')
+OUT = os.path.join(os.path.dirname(__file__), 'processed')
 os.makedirs(OUT, exist_ok=True)
 
 # Clean old CSVs
@@ -20,7 +20,6 @@ metadata = {}
 
 
 def find_data_start(df_raw):
-    """Find first row with a datetime value in column 0."""
     for i in range(len(df_raw)):
         val = df_raw.iloc[i, 0]
         if isinstance(val, datetime):
@@ -29,7 +28,6 @@ def find_data_start(df_raw):
 
 
 def extract_ceic_meta(df_raw, max_rows=25):
-    """Extract CEIC metadata from header rows."""
     meta = {}
     for i in range(min(max_rows, len(df_raw))):
         key = str(df_raw.iloc[i, 0]) if pd.notna(df_raw.iloc[i, 0]) else ''
@@ -40,7 +38,6 @@ def extract_ceic_meta(df_raw, max_rows=25):
 
 
 def melt_investment_data(df_raw, data_start, headers):
-    """Melt wide investment data to long format."""
     records = []
     for idx in range(data_start, len(df_raw)):
         date_val = df_raw.iloc[idx, 0]
@@ -51,12 +48,10 @@ def melt_investment_data(df_raw, data_start, headers):
             header = str(headers[col_idx]) if pd.notna(headers[col_idx]) else ''
             if pd.notna(val):
                 parts = header.split(':')
-                tipe = parts[1].strip() if len(parts) > 1 else ''
                 provinsi = parts[2].strip() if len(parts) > 2 else ''
                 kabupaten = parts[3].strip() if len(parts) > 3 else ''
                 records.append({
                     'date': date_val,
-                    'tipe': tipe,
                     'provinsi': provinsi,
                     'kabupaten': kabupaten,
                     'nilai_idr_bn': val
@@ -71,10 +66,10 @@ def melt_investment_data(df_raw, data_start, headers):
 
 
 # ──────────────────────────────────────────────────────────────
-# 1. Biaya Investasi (ICOR).xlsx → biaya_investasi_icor.csv
+# 1. Biaya Investasi (ICOR).xlsx → icor_nasional.csv
 # ──────────────────────────────────────────────────────────────
 print("=" * 60)
-print("1. Biaya Investasi (ICOR).xlsx")
+print("1. Biaya Investasi (ICOR).xlsx → icor_nasional.csv")
 wb = load_workbook(os.path.join(SRC, 'Biaya Investasi (ICOR).xlsx'), data_only=True)
 ws = wb['Chart']
 rows = []
@@ -94,10 +89,10 @@ df['date'] = pd.to_datetime(df['date'])
 for c in ['investasi_pmdn', 'investasi_pma', 'gdp_growth_pct', 'icor_pmdn', 'icor_pma']:
     df[c] = pd.to_numeric(df[c], errors='coerce')
 df = df.sort_values('date').reset_index(drop=True)
-out = os.path.join(OUT, 'biaya_investasi_icor.csv')
+out = os.path.join(OUT, 'icor_nasional.csv')
 df.to_csv(out, index=False)
-print(f"  → biaya_investasi_icor.csv | {df.shape} | {df['date'].min()} to {df['date'].max()}")
-metadata['biaya_investasi_icor'] = {
+print(f"  → icor_nasional.csv | {df.shape} | {df['date'].min()} to {df['date'].max()}")
+metadata['icor_nasional'] = {
     'source': 'Biaya Investasi (ICOR).xlsx', 'sheet': 'Chart',
     'rows': len(df), 'cols': list(df.columns),
     'range': [str(df['date'].min()), str(df['date'].max())],
@@ -105,7 +100,9 @@ metadata['biaya_investasi_icor'] = {
 }
 
 # ──────────────────────────────────────────────────────────────
-# 2. Data Realisasi Investasi.xlsx → 2 files (Domestik + Asing)
+# 2. Data Realisasi Investasi.xlsx → 2 files
+#    → realisasi_investasi_asing.csv
+#    → realisasi_investasi_domestik.csv
 # ──────────────────────────────────────────────────────────────
 print("\n" + "=" * 60)
 print("2. Data Realisasi Investasi.xlsx")
@@ -115,20 +112,9 @@ for sn in xl.sheet_names:
     df_raw = pd.read_excel(xl, sheet_name=sn, header=None)
 
     if 'CAPITAL' in sn.upper() or 'OUTFLOW' in sn.upper():
-        # Capital Outflow sheet — parse separately
-        data_start = find_data_start(df_raw)
-        ceic = extract_ceic_meta(df_raw)
-        if data_start:
-            df = df_raw.iloc[data_start:, :2].copy()
-            df.columns = ['date', 'net_sell_idr_tn']
-            df['date'] = pd.to_datetime(df['date'], errors='coerce')
-            df['net_sell_idr_tn'] = pd.to_numeric(df['net_sell_idr_tn'], errors='coerce')
-            df = df.dropna(subset=['date']).sort_values('date').reset_index(drop=True)
-            # This is a duplicate — will be handled in file #5
-            print(f"  [{sn}] Capital Outflow (duplicate of PMI file, skipping)")
+        print(f"  [{sn}] Capital Outflow (will be parsed from PMI file, skipping)")
         continue
 
-    # Investment sheets: Domestik or Asing
     data_start = find_data_start(df_raw)
     if data_start is None:
         print(f"  [{sn}] No data found, skipping")
@@ -137,13 +123,16 @@ for sn in xl.sheet_names:
     headers = df_raw.iloc[0].tolist()
     df = melt_investment_data(df_raw, data_start, headers)
 
-    safe_name = sn.lower().replace(' ', '_')
-    csv_name = f'data_realisasi_investasi_{safe_name}.csv'
+    # Determine if Foreign or Domestic from headers
+    is_foreign = any('Foreign' in str(h) for h in headers[:10] if pd.notna(h))
+    csv_name = 'realisasi_investasi_asing.csv' if is_foreign else 'realisasi_investasi_domestik.csv'
+    key_name = csv_name.replace('.csv', '')
+
     out = os.path.join(OUT, csv_name)
     df.to_csv(out, index=False)
     print(f"  [{sn}] → {csv_name} | {df.shape} | prov={df['provinsi'].nunique()} | kab={df['kabupaten'].nunique()}")
 
-    metadata[csv_name.replace('.csv', '')] = {
+    metadata[key_name] = {
         'source': 'Data Realisasi Investasi.xlsx', 'sheet': sn,
         'rows': len(df), 'unique_provinsi': int(df['provinsi'].nunique()),
         'unique_kabupaten': int(df['kabupaten'].nunique()),
@@ -156,7 +145,7 @@ for sn in xl.sheet_names:
 #    → ikk_expect_vs_present.csv
 # ──────────────────────────────────────────────────────────────
 print("\n" + "=" * 60)
-print("3. Indeks Kepercayaan Konsumen (Expect vs Present).xlsx")
+print("3. Indeks Kepercayaan Konsumen (Expect vs Present).xlsx → ikk_expect_vs_present.csv")
 df_raw = pd.read_excel(os.path.join(SRC, 'Indeks Kepercayaan Konsumen (Expect vs Present).xlsx'),
                         sheet_name='My Series', header=None)
 data_start = find_data_start(df_raw)
@@ -180,50 +169,21 @@ if data_start:
 
 # ──────────────────────────────────────────────────────────────
 # 4. Indeks Kepercayaan Konsumen.xlsx
-#    → indeks_kepercayaan_konsumen.csv
+#    → SKIPPED (duplikat: berisi Investment Realization Foreign,
+#      bukan IKK. Sama persis dengan file #2 sheet Foreign)
 # ──────────────────────────────────────────────────────────────
 print("\n" + "=" * 60)
-print("4. Indeks Kepercayaan Konsumen.xlsx")
-df_raw = pd.read_excel(os.path.join(SRC, 'Indeks Kepercayaan Konsumen.xlsx'),
-                        sheet_name='My Series', header=None)
-
-# Check what content type
-sample_h = [str(df_raw.iloc[0, c])[:60] for c in range(1, min(5, df_raw.shape[1])) if pd.notna(df_raw.iloc[0, c])]
-print(f"  Content check: {sample_h[:3]}")
-
-data_start = find_data_start(df_raw)
-if data_start:
-    headers = df_raw.iloc[0].tolist()
-    is_invest = any('Investment' in str(h) for h in headers if pd.notna(h))
-
-    if is_invest:
-        print("  Note: Contains investment realization data (file label != content)")
-        df = melt_investment_data(df_raw, data_start, headers)
-        out = os.path.join(OUT, 'indeks_kepercayaan_konsumen.csv')
-        df.to_csv(out, index=False)
-        print(f"  → indeks_kepercayaan_konsumen.csv | {df.shape} | prov={df['provinsi'].nunique()}")
-        metadata['indeks_kepercayaan_konsumen'] = {
-            'source': 'Indeks Kepercayaan Konsumen.xlsx', 'sheet': 'My Series',
-            'rows': len(df), 'unique_provinsi': int(df['provinsi'].nunique()),
-            'range': [str(df['date'].min()), str(df['date'].max())],
-            'note': 'File labeled as IKK but contains investment realization data',
-            'unit': 'IDR Billion', 'freq': 'Quarterly'
-        }
-    else:
-        # Actual IKK data
-        df = df_raw.iloc[data_start:].copy()
-        df.columns = range(df.shape[1])
-        df = df.rename(columns={0: 'date'})
-        df['date'] = pd.to_datetime(df['date'], errors='coerce')
-        df = df.dropna(subset=['date']).sort_values('date').reset_index(drop=True)
-        out = os.path.join(OUT, 'indeks_kepercayaan_konsumen.csv')
-        df.to_csv(out, index=False)
-        print(f"  → indeks_kepercayaan_konsumen.csv | {df.shape}")
+print("4. Indeks Kepercayaan Konsumen.xlsx → SKIPPED (duplikat Investment Realization Foreign)")
+metadata['_skipped_indeks_kepercayaan_konsumen'] = {
+    'source': 'Indeks Kepercayaan Konsumen.xlsx',
+    'reason': 'File mislabeled. Contains Investment Realization: Foreign data, identical to Data Realisasi Investasi.xlsx sheet Foreign.',
+    'action': 'Skipped — no CSV generated'
+}
 
 # ──────────────────────────────────────────────────────────────
 # 5. PMI dan Capital Outflow.xlsx
-#    → pmi_dan_capital_outflow_pmi.csv
-#    → pmi_dan_capital_outflow_outflow.csv
+#    → pmi_manufaktur.csv
+#    → capital_outflow.csv
 # ──────────────────────────────────────────────────────────────
 print("\n" + "=" * 60)
 print("5. PMI dan Capital Outflow.xlsx")
@@ -245,8 +205,8 @@ for sn in xl.sheet_names:
 
     if 'PMI' in sn.upper() or 'MANUFAKTUR' in sn.upper():
         df.columns = ['date', 'pmi_index']
-        csv_name = 'pmi_dan_capital_outflow_pmi.csv'
-        metadata[csv_name.replace('.csv', '')] = {
+        csv_name = 'pmi_manufaktur.csv'
+        metadata['pmi_manufaktur'] = {
             'source': 'PMI dan Capital Outflow.xlsx', 'sheet': sn,
             'rows': len(df), 'cols': list(df.columns),
             'range': [str(df['date'].min()), str(df['date'].max())],
@@ -255,8 +215,8 @@ for sn in xl.sheet_names:
         }
     else:
         df.columns = ['date', 'net_sell_idr_tn']
-        csv_name = 'pmi_dan_capital_outflow_outflow.csv'
-        metadata[csv_name.replace('.csv', '')] = {
+        csv_name = 'capital_outflow.csv'
+        metadata['capital_outflow'] = {
             'source': 'PMI dan Capital Outflow.xlsx', 'sheet': sn,
             'rows': len(df), 'cols': list(df.columns),
             'range': [str(df['date'].min()), str(df['date'].max())],
@@ -283,7 +243,7 @@ for f in sorted(os.listdir(OUT)):
     if f.endswith('.csv'):
         fp = os.path.join(OUT, f)
         sz = os.path.getsize(fp)
-        df_tmp = pd.read_csv(fp, nrows=0)
         nrows = sum(1 for _ in open(fp, encoding='utf-8')) - 1
         print(f"  {f:<50s} {nrows:>7,} rows  ({sz/1024:.0f} KB)")
 print(f"  {'metadata.json':<50s}")
+print(f"\nTotal CSV files: {len([f for f in os.listdir(OUT) if f.endswith('.csv')])}")

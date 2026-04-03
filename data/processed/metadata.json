@@ -1,5 +1,5 @@
 {
-  "biaya_investasi_icor": {
+  "icor_nasional": {
     "source": "Biaya Investasi (ICOR).xlsx",
     "sheet": "Chart",
     "rows": 15,
@@ -18,7 +18,7 @@
     "unit": "IDR Billion (investasi), ratio (ICOR)",
     "freq": "Yearly"
   },
-  "data_realisasi_investasi_domestik": {
+  "realisasi_investasi_domestik": {
     "source": "Data Realisasi Investasi.xlsx",
     "sheet": "Domestik",
     "rows": 16444,
@@ -31,7 +31,7 @@
     "unit": "IDR Billion",
     "freq": "Quarterly"
   },
-  "data_realisasi_investasi_asing": {
+  "realisasi_investasi_asing": {
     "source": "Data Realisasi Investasi.xlsx",
     "sheet": "Asing",
     "rows": 16701,
@@ -61,20 +61,12 @@
     "unit": "Index",
     "freq": "Monthly"
   },
-  "indeks_kepercayaan_konsumen": {
+  "_skipped_indeks_kepercayaan_konsumen": {
     "source": "Indeks Kepercayaan Konsumen.xlsx",
-    "sheet": "My Series",
-    "rows": 16701,
-    "unique_provinsi": 38,
-    "range": [
-      "1990-03-01 00:00:00",
-      "2025-09-01 00:00:00"
-    ],
-    "note": "File labeled as IKK but contains investment realization data",
-    "unit": "IDR Billion",
-    "freq": "Quarterly"
+    "reason": "File mislabeled. Contains Investment Realization: Foreign data, identical to Data Realisasi Investasi.xlsx sheet Foreign.",
+    "action": "Skipped — no CSV generated"
   },
-  "pmi_dan_capital_outflow_pmi": {
+  "pmi_manufaktur": {
     "source": "PMI dan Capital Outflow.xlsx",
     "sheet": "PMI Manufaktur S&P",
     "rows": 36,
@@ -90,7 +82,7 @@
     "freq": "Monthly",
     "data_source": "S&P Global"
   },
-  "pmi_dan_capital_outflow_outflow": {
+  "capital_outflow": {
     "source": "PMI dan Capital Outflow.xlsx",
     "sheet": "Capital Outflow",
     "rows": 32,

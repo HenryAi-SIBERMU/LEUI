@@ -209,10 +209,10 @@ Legal Enforcement Quality Index → Legal Uncertainty Score → Legal Risk Premi
 
 | Dimensi | Indikator Kuantitatif Ideal | Data Pengganti Sementara (Proxy) | Sumber File (dari `data/processed/`) |
 |---|---|---|---|
-| Inconsistency | Variansi putusan kasus sejenis | ✅ Variansi ICOR & Realisasi Daerah | `biaya_investasi_icor.csv`<br>`data_realisasi_investasi_asing.csv` |
-| Selectivity | Rasio kasus vs momentum politik | ✅ Event Study: Drop IKK & PMI | `indeks_kepercayaan_konsumen.csv`<br>`pmi_dan_capital_outflow_pmi.csv` |
-| Procedural | Rata-rata lama penyelesaian kasus | ✅ Lag/Delay Cost dari ICOR Nasional | `biaya_investasi_icor.csv`<br>`data_realisasi_investasi_domestik.csv` |
-| Reversal | Jumlah pencabutan izin | ✅ Spike Capital Outflow (Net Sell) | `pmi_dan_capital_outflow_outflow.csv` |
+| Inconsistency | Variansi putusan kasus sejenis | ✅ Variansi ICOR & Realisasi Daerah | `icor_nasional.csv`<br>`realisasi_investasi_asing.csv` |
+| Selectivity | Rasio kasus vs momentum politik | ✅ Event Study: Drop IKK & PMI | `ikk_expect_vs_present.csv`<br>`pmi_manufaktur.csv` |
+| Procedural | Rata-rata lama penyelesaian kasus | ✅ Lag/Delay Cost dari ICOR Nasional | `icor_nasional.csv`<br>`realisasi_investasi_domestik.csv` |
+| Reversal | Jumlah pencabutan izin | ✅ Spike Capital Outflow (Net Sell) | `capital_outflow.csv` |
 | Criminalization | Jumlah kasus pidana bisnis | ✅ *Collapse* Ekspektasi IKK | `ikk_expect_vs_present.csv` |
 
 ### B. Risk Pricing Indicators → Status Data
@@ -222,24 +222,24 @@ Legal Enforcement Quality Index → Legal Uncertainty Score → Legal Risk Premi
 | Legal risk premium | Spread bunga pinjaman | ❌ | — |
 | Country risk | CDS Indonesia | ❌ | — |
 | Investment delay | Time-to-invest | ❌ | — |
-| Exit risk | Capital flight | ✅ | `PMI dan Capital Outflow.xlsx` (Bond Net Sell) |
+| Exit risk | Capital flight | ✅ | `capital_outflow.csv` (Bond Net Sell) |
 | Insurance cost | Political risk insurance | ❌ | — |
 
 ### C. Data Ekonomi → Status Data
 
 | Kebutuhan Data | Status | Sumber Data |
 |---|---|---|
-| PMA/PMDN per sektor | ✅ | `Data Realisasi Investasi.xlsx` (394 kab/kota) |
-| Cost of capital | ✅ (proxy: ICOR) | `Biaya Investasi (ICOR).xlsx` |
+| PMA/PMDN per sektor | ✅ | `realisasi_investasi_asing.csv` / `realisasi_investasi_domestik.csv` |
+| Cost of capital | ✅ (proxy: ICOR) | `icor_nasional.csv` |
 | CDS Indonesia | ❌ | — |
-| Data investasi daerah | ✅ | `Indeks Kepercayaan Konsumen.xlsx` (sub-nasional) |
+| Data investasi daerah | ✅ | `realisasi_investasi_asing.csv` (394 kab/kota) |
 
 ### D. Data Tambahan yang Tersedia
 
 | Data | File | Relevansi |
 |---|---|---|
-| Consumer Confidence (IKK) | `IKK (Expect vs Present).xlsx` | Proxy sentimen/persepsi investor |
-| Manufacturing PMI | `PMI dan Capital Outflow.xlsx` | Leading indicator aktivitas ekonomi |
+| Consumer Confidence (IKK) | `ikk_expect_vs_present.csv` | Proxy sentimen/persepsi investor |
+| Manufacturing PMI | `pmi_manufaktur.csv` | Leading indicator aktivitas ekonomi |
 
 ---
 
@@ -296,10 +296,10 @@ Dashboard LEUI akan memecahkan kelima hipotesis (H1-H5) ke dalam halaman-halaman
 
 | Halaman | Narasi & Hipotesis | Data Ideal (Hukum Primer) | Data Proxy Tersedia | Sumber File (dari `data/processed/`) | Metode Analisis |
 |---------|--------------------|---------------------------|----------------------|---------------------------------------|-----------------|
-| **1. Inconsistency Risk** | **H1:** Kasus sama, putusan beda — Inkosistensi hukum wilayah | ❌ *Data Putusan/Vonis Pengadilan (Belum Ada)* | ✅ Biaya Investasi (ICOR) & Realisasi Investasi PMA/PMDN | `biaya_investasi_icor.csv`<br>`data_realisasi_investasi_asing.csv`<br>`data_realisasi_investasi_domestik.csv` | Distribusi Gini & Variansi Standard Deviation antar daerah |
-| **2. Selective Enforcement** | **H2:** Hukum bertindak sesuai momentum politik | ❌ *Rasio Kasus terhadap Event Politik (Belum Ada)* | ✅ IKK Nasional/Daerah & PMI Manufaktur | `indeks_kepercayaan_konsumen.csv`<br>`pmi_dan_capital_outflow_pmi.csv` | Event Study (Overlay timeline krisis politik terhadap drop IKK/PMI) |
-| **3. Procedural Uncertainty** | **H3:** Proses pengadilan berlarut-larut menciptakan delay cost | ❌ *Durasi Rata-Rata Proses Peradilan (Belum Ada)* | ✅ ICOR Nasional & Realisasi PMA/PMDN | `biaya_investasi_icor.csv`<br>`data_realisasi_investasi_asing.csv`<br>`data_realisasi_investasi_domestik.csv` | Time Series Lag Correlation (Mengukur efek delay/perlambatan) |
-| **4. Regulatory Reversal** | **H4:** Izin/regulasi dicabut mendadak, modal langsung kabur | ❌ *Jumlah Pencabutan Izin Eksplorasi/Bisnis (Belum Ada)* | ✅ Capital Outflow (Net Sell Obligasi Harian) | `pmi_dan_capital_outflow_outflow.csv` | Anomaly Detection (Pendeteksian Spike Z-Score mingguan) |
+| **1. Inconsistency Risk** | **H1:** Kasus sama, putusan beda — Inkosistensi hukum wilayah | ❌ *Data Putusan/Vonis Pengadilan (Belum Ada)* | ✅ Biaya Investasi (ICOR) & Realisasi Investasi PMA/PMDN | `icor_nasional.csv`<br>`realisasi_investasi_asing.csv`<br>`realisasi_investasi_domestik.csv` | Distribusi Gini & Variansi Standard Deviation antar daerah |
+| **2. Selective Enforcement** | **H2:** Hukum bertindak sesuai momentum politik | ❌ *Rasio Kasus terhadap Event Politik (Belum Ada)* | ✅ IKK Nasional & PMI Manufaktur | `ikk_expect_vs_present.csv`<br>`pmi_manufaktur.csv` | Event Study (Overlay timeline krisis politik terhadap drop IKK/PMI) |
+| **3. Procedural Uncertainty** | **H3:** Proses pengadilan berlarut-larut menciptakan delay cost | ❌ *Durasi Rata-Rata Proses Peradilan (Belum Ada)* | ✅ ICOR Nasional & Realisasi PMA/PMDN | `icor_nasional.csv`<br>`realisasi_investasi_asing.csv`<br>`realisasi_investasi_domestik.csv` | Time Series Lag Correlation (Mengukur efek delay/perlambatan) |
+| **4. Regulatory Reversal** | **H4:** Izin/regulasi dicabut mendadak, modal langsung kabur | ❌ *Jumlah Pencabutan Izin Eksplorasi/Bisnis (Belum Ada)* | ✅ Capital Outflow (Net Sell Obligasi Harian) | `capital_outflow.csv` | Anomaly Detection (Pendeteksian Spike Z-Score mingguan) |
 | **5. Criminalization Risk** | **H5:** Kriminalisasi direksi/pejabat jatuh memicu kepanikan | ❌ *Kasus Pidana Korporasi/Eksekutif (Belum Ada)* | ✅ IKK Ekspektasi vs IKK Kondisi Saat Ini | `ikk_expect_vs_present.csv` | Gap Analysis (Pelebaran terbalik antara ekspektasi dan realitas) |
 
 ---
