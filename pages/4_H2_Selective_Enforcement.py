@@ -189,7 +189,7 @@ st.markdown(
 st.caption(_("📊 Visualisasi: Empat panel — (1) IKK Time Series + Anomali, (2) IKK Gap Analysis, (3) PMI Kontraksi, (4) Tabel Episode Anomali. Semua threshold dihitung dari data, tidak ada event hardcoded."))
 
 
-# ── KPI Cards ──
+# ── KPI Cards — Semua warna advokasi (oranye/merah), TIDAK ADA hijau ──
 col1, col2, col3, col4 = st.columns(4)
 with col1:
     anom_color = C_ANOMALY if n_exp_anomaly > 5 else C_WARN
@@ -200,7 +200,7 @@ with col1:
         <div class="metric-delta" style="color:#AAA">Z-Score < -2</div>
     </div>""", unsafe_allow_html=True)
 with col2:
-    gap_color = C_ANOMALY if abs(ikk_latest_gap) > ikk_avg_gap * 1.5 else "#4CAF50"
+    gap_color = C_ANOMALY if abs(ikk_latest_gap) > ikk_avg_gap * 1.5 else C_WARN
     st.markdown(f"""
     <div class="metric-card">
         <div class="metric-label">IKK Gap (Terakhir)</div>
@@ -208,8 +208,8 @@ with col2:
         <div class="metric-delta" style="color:#AAA">Rata-rata: {ikk_avg_gap:.1f}</div>
     </div>""", unsafe_allow_html=True)
 with col3:
-    pmi_color = C_ANOMALY if pmi_latest < 50 else "#4CAF50"
-    pmi_status = "Kontraksi" if pmi_latest < 50 else "Ekspansi"
+    pmi_color = C_ANOMALY if pmi_latest < 50 else C_WARN
+    pmi_status = "Kontraksi" if pmi_latest < 50 else "Rentan Kontraksi"
     st.markdown(f"""
     <div class="metric-card">
         <div class="metric-label">PMI Terakhir</div>
@@ -221,8 +221,8 @@ with col4:
     st.markdown(f"""
     <div class="metric-card">
         <div class="metric-label">Bulan Kontraksi PMI</div>
-        <div class="metric-value" style="color:{C_WARN}">{n_kontraksi}/{n_pmi_months}</div>
-        <div class="metric-delta" style="color:#AAA">{kon_pct:.0f}% dari total periode</div>
+        <div class="metric-value" style="color:{C_ANOMALY}">{n_kontraksi}/{n_pmi_months}</div>
+        <div class="metric-delta" style="color:{C_WARN}">{kon_pct:.0f}% dari total periode</div>
     </div>""", unsafe_allow_html=True)
 
 st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
