@@ -159,7 +159,7 @@ for cat in sorted(df_glos['Kategori'].unique()):
     st.markdown(f"### {cat}")
     cat_items = df_glos[df_glos['Kategori'] == cat].sort_values('Istilah')
 
-    for _, row in cat_items.iterrows():
+    for idx, row in cat_items.iterrows():
         st.markdown(f"""
 <div style="background:#1E1E1E; padding:14px 18px; border-radius:8px; margin-bottom:8px; border-left:3px solid #43A047;">
     <strong style="color:#66BB6A; font-size:1.05rem;">{row['Istilah']}</strong><br>
