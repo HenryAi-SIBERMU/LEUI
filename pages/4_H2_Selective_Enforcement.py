@@ -150,8 +150,11 @@ with st.expander(_("ℹ️ Metodologi: Analisis Selective Enforcement (H2)"), ex
        - PMI < 50 = sektor manufaktur berkontraksi
     4. **Rate of Change** — top-N bulan dengan perubahan terbesar
 
-    **Tidak ada event yang di-hardcode.** Semua tanggal dan threshold muncul dari
-    perhitungan statistik. Pembaca menghubungkan sendiri temuan ke peristiwa publik.
+    **Istilah "Episode":** Dalam analisis ini, istilah "episode" digunakan untuk merujuk 
+    pada bulan-bulan spesifik di mana algoritma mendeteksi adanya anomali statistik 
+    (jatuhnya IKK di luar batas fluktuasi wajar). Semua tanggal anomali ini diidentifikasi 
+    berdasarkan data, dan pembaca dapat menghubungkan sendiri temuan episode-episode 
+    tersebut terhadap berbagai peristiwa publik yang terjadi.
     """))
 
 
