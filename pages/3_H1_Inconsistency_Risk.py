@@ -21,13 +21,39 @@ st.set_page_config(
 )
 render_sidebar()
 
+# ── Styles ──
+st.markdown("""
+<style>
+.metric-card {
+    background: #1E1E1E;
+    border: 1px solid #333;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+}
+.metric-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #4CAF50;
+}
+.metric-label {
+    font-size: 0.9rem;
+    color: #AAA;
+    margin-bottom: 5px;
+}
+.metric-delta {
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # ── Color palette ──
 C_PRIMARY = "#43A047"
 C_ACCENT = "#66BB6A"
 C_WARN = "#FF9800"
 C_DANGER = "#E53935"
 C_BG_CARD = "#1E1E1E"
-C_BORDER = "#2E7D32"
 
 PLOTLY_TEMPLATE = "plotly_dark"
 PLOTLY_COLORS_ASING = "#42A5F5"
@@ -36,7 +62,6 @@ PLOTLY_COLORS_DOMESTIK = "#66BB6A"
 
 # ── Helper: Gini coefficient ──
 def gini_coefficient(values):
-    """Calculate Gini coefficient for a list of non-negative values."""
     arr = np.array(values, dtype=float)
     arr = arr[~np.isnan(arr)]
     arr = arr[arr >= 0]
@@ -61,37 +86,70 @@ def load_data():
 
 df_asing, df_domestik, df_icor = load_data()
 
-
-# ══════════════════════════════════════════════════════════════
-# HEADER
-# ══════════════════════════════════════════════════════════════
-st.title(_("H1: Inconsistency Risk"))
-st.markdown(f"""
-<div style="background:{C_BG_CARD}; padding:18px 22px; border-radius:12px;
-            border-left:5px solid {C_DANGER}; margin-bottom:28px;">
-    <h4 style="margin:0 0 8px 0; color:{C_DANGER};">Hipotesis</h4>
-    <p style="margin:0; font-size:1.05rem; line-height:1.6;">
-        Ketidakkonsistenan penegakan hukum antar wilayah, sektor, dan waktu
-        meningkatkan ketidakpastian investasi.<br>
-        <strong>Proxy:</strong> Variansi dan ketimpangan realisasi investasi
-        antar provinsi sebagai cerminan <em>inkonsistensi lingkungan usaha</em>
-        antar daerah.
-    </p>
-</div>
-""", unsafe_allow_html=True)
+# Pre-calculate stats for narrative
+n_prov_asing = df_asing['provinsi'].nunique()
+n_kab_asing = df_asing['kabupaten'].nunique()
+n_prov_domestik = df_domestik['provinsi'].nunique()
+n_kab_domestik = df_domestik['kabupaten'].nunique()
+date_range_start = df_asing['date'].min().strftime('%Y')
+date_range_end = df_asing['date'].max().strftime('%Y')
 
 
 # ══════════════════════════════════════════════════════════════
-# 1. STD DEVIATION PER KUARTAL
+# HEADER (mengikuti format EBT PODES)
 # ══════════════════════════════════════════════════════════════
-st.markdown("---")
-st.subheader(_("1. Volatilitas Investasi Antar Provinsi (Std. Deviation)"))
-st.caption(_(
-    "Standar deviasi realisasi investasi antar provinsi per kuartal. "
-    "Semakin tinggi → semakin timpang/inkonsisten distribusi investasi antar daerah."
-))
+st.title(_("H1: Inconsistency Risk — Ketidakkonsistenan Hukum Antar Wilayah"))
+subtitle = _("Analisis Distribusi & Ketimpangan Investasi (Proxy Inkonsistensi Lingkungan Usaha)")
+st.markdown(f'<p style="font-size: 1.1rem; color: #66BB6A; font-weight: 500; margin-top: -15px;">{subtitle}</p>', unsafe_allow_html=True)
 
-# Aggregate per province per quarter
+# ── Methodology Expander ──
+with st.expander(_("ℹ️ Metodologi: Analisis Inconsistency Risk (H1)"), expanded=False):
+    st.markdown(_("""
+    **Metode Analisis:** Halaman ini mengukur tingkat inkonsistensi lingkungan usaha/hukum antar wilayah
+    menggunakan proxy ekonomi — distribusi realisasi investasi antar provinsi.
+
+    **1. Standard Deviation per Kuartal:**
+    *   Mengukur volatilitas/sebaran investasi antar provinsi untuk setiap kuartal.
+    *   Formula: `SD = sqrt(Σ(xi - μ)² / N)` dimana xi = investasi provinsi i, μ = rata-rata.
+    *   SD tinggi → investasi sangat tidak merata → indikasi lingkungan usaha inkonsisten antar daerah.
+
+    **2. Gini Coefficient per Kuartal:**
+    *   Mengukur ketimpangan distribusi investasi (0 = merata sempurna, 1 = sangat timpang).
+    *   Gini > 0.4 dianggap ketimpangan moderat-tinggi.
+    *   Diaplikasikan ke realisasi investasi per provinsi, bukan ICOR (karena ICOR hanya data nasional).
+
+    **3. Distribusi per Provinsi (Top/Bottom):**
+    *   Rata-rata investasi (PMA + PMDN) per provinsi, disajikan sebagai bar chart horizontal.
+    *   Rasio Top/Bottom = indikasi kesenjangan extremitas.
+
+    **4. ICOR Nasional:**
+    *   Incremental Capital-Output Ratio: investasi yang dibutuhkan untuk 1 unit pertumbuhan PDB.
+    *   ICOR naik → efisiensi investasi menurun → salah satu penyebab: ketidakpastian hukum.
+    """))
+
+# ── Intro Narrative + Sumber ──
+intro_text = _("""Data realisasi investasi mencakup **{n_prov} provinsi** dan **{n_kab}+ kabupaten/kota**
+selama periode **{start}–{end}** (kuartalan). Analisis ini memetakan sejauh mana investasi
+terdistribusi secara merata antar daerah. Ketimpangan yang tinggi mengindikasikan bahwa beberapa
+wilayah memiliki lingkungan hukum/usaha yang jauh lebih kondusif dibanding wilayah lain —
+sebuah proxy dari *inconsistency risk* dalam penegakan hukum.""")
+
+sumber_text = _("Data dari <code>realisasi_investasi_asing.csv</code> ({n_row_a} baris, {n_prov_a} provinsi), "
+                "<code>realisasi_investasi_domestik.csv</code> ({n_row_d} baris, {n_prov_d} provinsi), "
+                "dan <code>icor_nasional.csv</code> ({n_row_i} baris). Sumber asli: CEIC/BKPM & BPS.")
+
+st.markdown(
+    intro_text.format(n_prov=n_prov_asing, n_kab=n_kab_asing, start=date_range_start, end=date_range_end) +
+    f"\n\n<small>📁 <b>Sumber:</b> {sumber_text.format(n_row_a=len(df_asing), n_prov_a=n_prov_asing, n_row_d=len(df_domestik), n_prov_d=n_prov_domestik, n_row_i=len(df_icor))}</small>",
+    unsafe_allow_html=True
+)
+st.caption(_("📊 Visualisasi: Empat panel analisis — (1) Volatilitas Std. Deviation, (2) Gini Coefficient, (3) Distribusi Top/Bottom Provinsi, (4) Tren ICOR Nasional. Semua dihitung dari agregasi level kabupaten ke provinsi per kuartal."))
+
+
+# ══════════════════════════════════════════════════════════════
+# KPI CARDS
+# ══════════════════════════════════════════════════════════════
+# Pre-calc KPI values
 def calc_std_per_quarter(df, label):
     prov_q = df.groupby([pd.Grouper(key="date", freq="QE"), "provinsi"])["nilai_idr_bn"].sum().reset_index()
     std_q = prov_q.groupby("date")["nilai_idr_bn"].std().reset_index()
@@ -99,8 +157,76 @@ def calc_std_per_quarter(df, label):
     std_q["tipe"] = label
     return std_q
 
+def calc_gini_per_quarter(df, label):
+    prov_q = df.groupby([pd.Grouper(key="date", freq="QE"), "provinsi"])["nilai_idr_bn"].sum().reset_index()
+    gini_q = prov_q.groupby("date")["nilai_idr_bn"].apply(gini_coefficient).reset_index()
+    gini_q.columns = ["date", "gini"]
+    gini_q["tipe"] = label
+    return gini_q
+
 std_asing = calc_std_per_quarter(df_asing, "Investasi Asing (PMA)")
 std_domestik = calc_std_per_quarter(df_domestik, "Investasi Domestik (PMDN)")
+gini_asing = calc_gini_per_quarter(df_asing, "Investasi Asing (PMA)")
+gini_domestik = calc_gini_per_quarter(df_domestik, "Investasi Domestik (PMDN)")
+
+latest_std_a = std_asing["std_dev"].iloc[-1] if len(std_asing) > 0 else 0
+latest_std_d = std_domestik["std_dev"].iloc[-1] if len(std_domestik) > 0 else 0
+latest_gini_a = gini_asing["gini"].dropna().iloc[-1] if len(gini_asing.dropna()) > 0 else 0
+latest_gini_d = gini_domestik["gini"].dropna().iloc[-1] if len(gini_domestik.dropna()) > 0 else 0
+latest_icor_d = df_icor["icor_pmdn"].iloc[-1] if len(df_icor) > 0 else 0
+latest_icor_a = df_icor["icor_pma"].iloc[-1] if len(df_icor) > 0 else 0
+
+col1, col2, col3, col4 = st.columns(4)
+with col1:
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-label">Gini PMA (Terakhir)</div>
+        <div class="metric-value">{latest_gini_a:.3f}</div>
+        <div class="metric-delta" style="color: {'#EF5350' if latest_gini_a > 0.4 else '#4CAF50'}">{'Timpang' if latest_gini_a > 0.4 else 'Moderat'}</div>
+    </div>
+    """, unsafe_allow_html=True)
+with col2:
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-label">Gini PMDN (Terakhir)</div>
+        <div class="metric-value">{latest_gini_d:.3f}</div>
+        <div class="metric-delta" style="color: {'#EF5350' if latest_gini_d > 0.4 else '#4CAF50'}">{'Timpang' if latest_gini_d > 0.4 else 'Moderat'}</div>
+    </div>
+    """, unsafe_allow_html=True)
+with col3:
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-label">Std. Dev PMA (Terakhir)</div>
+        <div class="metric-value">{latest_std_a:,.1f}</div>
+        <div class="metric-delta" style="color: #AAA">IDR Bn</div>
+    </div>
+    """, unsafe_allow_html=True)
+with col4:
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-label">ICOR PMA (Terakhir)</div>
+        <div class="metric-value">{latest_icor_a:.2f}</div>
+        <div class="metric-delta" style="color: #AAA">Rasio efisiensi</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
+
+
+# ══════════════════════════════════════════════════════════════
+# 1. STD DEVIATION PER KUARTAL
+# ══════════════════════════════════════════════════════════════
+st.markdown("---")
+st.subheader(_("1.1 Volatilitas Investasi Antar Provinsi (Std. Deviation)"))
+
+std_desc = _("""Grafik di bawah menunjukkan **standar deviasi** realisasi investasi antar provinsi per kuartal.
+Semakin tinggi nilai SD, semakin **timpang** sebaran investasi antar daerah — artinya beberapa provinsi
+menerima investasi jauh lebih besar dibanding yang lain. Perhatikan apakah tren SD meningkat dari waktu ke waktu,
+yang akan mengindikasikan kesenjangan yang makin melebar.""")
+std_src = _("Agregasi <code>realisasi_investasi_asing.csv</code> & <code>realisasi_investasi_domestik.csv</code> — di-groupby provinsi per kuartal, dihitung SD.")
+st.markdown(f"{std_desc}\n\n<small>📁 <b>Sumber:</b> {std_src}</small>", unsafe_allow_html=True)
+st.caption(_("📊 Visualisasi: Line chart — Std. Deviation realisasi investasi antar provinsi per kuartal, terpisah untuk PMA (biru) dan PMDN (hijau). Metode: groupby(kuartal, provinsi) → sum → std per kuartal."))
+
 std_combined = pd.concat([std_asing, std_domestik], ignore_index=True)
 
 fig_std = px.line(
@@ -120,35 +246,22 @@ fig_std.update_layout(
 )
 st.plotly_chart(fig_std, use_container_width=True)
 
-# Insight card
-latest_std_a = std_asing["std_dev"].iloc[-1] if len(std_asing) > 0 else 0
-latest_std_d = std_domestik["std_dev"].iloc[-1] if len(std_domestik) > 0 else 0
-col1, col2 = st.columns(2)
-with col1:
-    st.metric(_("Std. Dev Asing (Kuartal Terakhir)"), f"{latest_std_a:,.2f} IDR Bn")
-with col2:
-    st.metric(_("Std. Dev Domestik (Kuartal Terakhir)"), f"{latest_std_d:,.2f} IDR Bn")
-
 
 # ══════════════════════════════════════════════════════════════
 # 2. GINI COEFFICIENT PER KUARTAL
 # ══════════════════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("2. Ketimpangan Distribusi Investasi (Gini Coefficient)"))
-st.caption(_(
-    "Gini Coefficient mengukur ketimpangan distribusi investasi antar provinsi. "
-    "0 = merata sempurna, 1 = sangat timpang. Gini tinggi → investasi hanya terkonsentrasi di beberapa daerah."
-))
+st.subheader(_("1.2 Ketimpangan Distribusi Investasi (Gini Coefficient)"))
 
-def calc_gini_per_quarter(df, label):
-    prov_q = df.groupby([pd.Grouper(key="date", freq="QE"), "provinsi"])["nilai_idr_bn"].sum().reset_index()
-    gini_q = prov_q.groupby("date")["nilai_idr_bn"].apply(gini_coefficient).reset_index()
-    gini_q.columns = ["date", "gini"]
-    gini_q["tipe"] = label
-    return gini_q
+gini_desc = _("""Gini Coefficient mengukur ketimpangan distribusi investasi antar provinsi.
+Nilai **0** = merata sempurna, **1** = sangat timpang (semua investasi terkonsentrasi di satu provinsi).
+Garis putus-putus kuning pada **0.4** menandai batas ketimpangan moderat. Jika Gini secara konsisten
+berada di atas 0.4, ini mengindikasikan bahwa investasi **sangat terkonsentrasi** di beberapa provinsi saja —
+sebuah cerminan bahwa lingkungan usaha/hukum antar daerah **tidak konsisten**.""")
+gini_src = _("Agregasi per provinsi per kuartal dari <code>realisasi_investasi_asing.csv</code> & <code>realisasi_investasi_domestik.csv</code>.")
+st.markdown(f"{gini_desc}\n\n<small>📁 <b>Sumber:</b> {gini_src}</small>", unsafe_allow_html=True)
+st.caption(_("📊 Visualisasi: Line chart — Gini Coefficient per kuartal untuk PMA dan PMDN. Garis threshold 0.4 menandai batas ketimpangan moderat. Metode: sum investasi per provinsi → hitung Gini Lorenz per kuartal."))
 
-gini_asing = calc_gini_per_quarter(df_asing, "Investasi Asing (PMA)")
-gini_domestik = calc_gini_per_quarter(df_domestik, "Investasi Domestik (PMDN)")
 gini_combined = pd.concat([gini_asing, gini_domestik], ignore_index=True)
 
 fig_gini = px.line(
@@ -167,31 +280,23 @@ fig_gini.update_layout(
     margin=dict(l=20, r=20, t=40, b=20),
     hovermode="x unified"
 )
-# Threshold annotation
 fig_gini.add_hline(y=0.4, line_dash="dash", line_color=C_WARN, annotation_text="Batas ketimpangan moderat (0.4)")
 st.plotly_chart(fig_gini, use_container_width=True)
 
-# Insight
-latest_gini_a = gini_asing["gini"].dropna().iloc[-1] if len(gini_asing.dropna()) > 0 else 0
-latest_gini_d = gini_domestik["gini"].dropna().iloc[-1] if len(gini_domestik.dropna()) > 0 else 0
-col1, col2 = st.columns(2)
-with col1:
-    st.metric(_("Gini Asing (Terakhir)"), f"{latest_gini_a:.3f}")
-with col2:
-    st.metric(_("Gini Domestik (Terakhir)"), f"{latest_gini_d:.3f}")
-
 
 # ══════════════════════════════════════════════════════════════
-# 3. HEATMAP PROVINSI — TOP/BOTTOM
+# 3. DISTRIBUSI PER PROVINSI — TOP/BOTTOM
 # ══════════════════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("3. Distribusi Investasi per Provinsi"))
-st.caption(_(
-    "Rata-rata realisasi investasi (PMA + PMDN) per kuartal, dikelompokkan berdasarkan provinsi. "
-    "Ketimpangan antar provinsi mencerminkan inkonsistensi daya saing lingkungan usaha daerah."
-))
+st.subheader(_("1.3 Distribusi Investasi per Provinsi"))
 
-# Combine asing + domestik
+prov_desc = _("""Grafik di bawah menampilkan rata-rata realisasi investasi (PMA + PMDN) per kuartal,
+dikelompokkan berdasarkan provinsi. Perhatikan **rasio ketimpangan** antara provinsi teratas dan terbawah:
+jika rasio ini sangat besar, ini memperkuat argumen bahwa lingkungan usaha antar daerah sangat tidak merata.""")
+prov_src = _("Gabungan <code>realisasi_investasi_asing.csv</code> + <code>realisasi_investasi_domestik.csv</code>, di-groupby provinsi → mean per kuartal.")
+st.markdown(f"{prov_desc}\n\n<small>📁 <b>Sumber:</b> {prov_src}</small>", unsafe_allow_html=True)
+st.caption(_("📊 Visualisasi: Bar chart horizontal — Top 15 dan Bottom 15 provinsi berdasarkan rata-rata investasi. Warna menunjukkan besaran nilai. Metode: mean(nilai_idr_bn) per provinsi dari gabungan PMA+PMDN."))
+
 df_all = pd.concat([
     df_asing.assign(tipe="Asing"),
     df_domestik.assign(tipe="Domestik")
@@ -200,9 +305,7 @@ df_all = pd.concat([
 prov_avg = df_all.groupby("provinsi")["nilai_idr_bn"].mean().sort_values(ascending=True).reset_index()
 prov_avg.columns = ["provinsi", "rata_rata_idr_bn"]
 
-# Split top/bottom
 n_show = 15
-
 tab_top, tab_bottom = st.tabs([_("Top 15 Provinsi"), _("Bottom 15 Provinsi")])
 
 with tab_top:
@@ -231,15 +334,17 @@ with tab_bottom:
                              coloraxis_showscale=False)
     st.plotly_chart(fig_bottom, use_container_width=True)
 
-# Ratio
+# Rasio ketimpangan
 if len(prov_avg) > 1:
-    ratio = prov_avg["rata_rata_idr_bn"].iloc[-1] / prov_avg["rata_rata_idr_bn"].iloc[0] if prov_avg["rata_rata_idr_bn"].iloc[0] > 0 else 0
+    top_val = prov_avg["rata_rata_idr_bn"].iloc[-1]
+    bot_val = prov_avg["rata_rata_idr_bn"].iloc[0]
+    ratio = top_val / bot_val if bot_val > 0 else 0
     st.markdown(f"""
     <div style="background:{C_BG_CARD}; padding:14px 20px; border-radius:10px;
                 border-left:5px solid {C_WARN}; margin-top:10px;">
         <strong>Rasio Ketimpangan:</strong> Provinsi teratas menerima investasi
         <span style="color:{C_WARN}; font-size:1.3rem; font-weight:700;">{ratio:,.0f}x</span>
-        lebih besar dari provinsi terbawah.
+        lebih besar dari provinsi terbawah ({prov_avg.iloc[-1]['provinsi']} vs {prov_avg.iloc[0]['provinsi']}).
     </div>
     """, unsafe_allow_html=True)
 
@@ -248,12 +353,15 @@ if len(prov_avg) > 1:
 # 4. ICOR NASIONAL TREND
 # ══════════════════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("4. Tren ICOR Nasional (Efisiensi Investasi)"))
-st.caption(_(
-    "ICOR (Incremental Capital-Output Ratio) mengukur efisiensi investasi. "
-    "ICOR tinggi → butuh lebih banyak investasi untuk menghasilkan 1 unit pertumbuhan PDB. "
-    "Tren naik mengindikasikan lingkungan investasi yang makin tidak efisien."
-))
+st.subheader(_("1.4 Tren ICOR Nasional (Efisiensi Investasi)"))
+
+icor_desc = _("""ICOR (Incremental Capital-Output Ratio) mengukur efisiensi investasi di level nasional.
+ICOR **tinggi** berarti Indonesia membutuhkan **lebih banyak investasi** untuk menghasilkan 1 unit pertumbuhan PDB.
+Tren ICOR yang naik mengindikasikan lingkungan investasi yang makin tidak efisien — salah satu penyebabnya
+adalah **ketidakpastian hukum** yang meningkatkan biaya-biaya tersembunyi (legal fees, delays, risk premium).""")
+icor_src = _("Data dari <code>icor_nasional.csv</code> (15 baris tahunan, 2010-2024). Sumber asli: BPS.")
+st.markdown(f"{icor_desc}\n\n<small>📁 <b>Sumber:</b> {icor_src}</small>", unsafe_allow_html=True)
+st.caption(_("📊 Visualisasi: Line chart — ICOR PMDN (hijau) dan ICOR PMA (biru) per tahun. Metode: data langsung dari icor_nasional.csv tanpa transformasi."))
 
 fig_icor = go.Figure()
 fig_icor.add_trace(go.Scatter(
@@ -279,13 +387,10 @@ fig_icor.update_layout(
 )
 st.plotly_chart(fig_icor, use_container_width=True)
 
-# ICOR metrics
 col1, col2, col3 = st.columns(3)
 with col1:
-    latest_icor_d = df_icor["icor_pmdn"].iloc[-1] if len(df_icor) > 0 else 0
     st.metric(_("ICOR PMDN (Terakhir)"), f"{latest_icor_d:.2f}")
 with col2:
-    latest_icor_a = df_icor["icor_pma"].iloc[-1] if len(df_icor) > 0 else 0
     st.metric(_("ICOR PMA (Terakhir)"), f"{latest_icor_a:.2f}")
 with col3:
     avg_icor = (latest_icor_d + latest_icor_a) / 2 if latest_icor_a else latest_icor_d
@@ -293,24 +398,22 @@ with col3:
 
 
 # ══════════════════════════════════════════════════════════════
-# FOOTER — Narasi Penutup
+# FOOTER — Interpretasi
 # ══════════════════════════════════════════════════════════════
 st.markdown("---")
+st.subheader(_("Interpretasi & Temuan Utama"))
+
 st.markdown(f"""
-<div style="background:{C_BG_CARD}; padding:18px 22px; border-radius:12px;
-            border-left:5px solid {C_PRIMARY}; margin-top:10px;">
-    <h4 style="margin:0 0 8px 0; color:{C_ACCENT};">Interpretasi</h4>
-    <ul style="line-height:1.8; margin:0;">
-        <li><strong>Gini Coefficient tinggi (>0.4)</strong> menunjukkan investasi sangat terkonsentrasi
-            di beberapa provinsi saja — mencerminkan lingkungan hukum/usaha yang tidak merata.</li>
-        <li><strong>Std. Deviation yang meningkat</strong> menandakan semakin besarnya kesenjangan
-            investasi antar daerah dari waktu ke waktu.</li>
-        <li><strong>ICOR yang naik</strong> mengindikasikan efisiensi investasi menurun — biaya untuk
-            menghasilkan pertumbuhan ekonomi semakin mahal, salah satunya didorong oleh ketidakpastian hukum.</li>
-    </ul>
-    <p style="margin-top:12px; color:#999; font-size:0.9rem;">
-        <em>Catatan: Data ini menggunakan proxy ekonomi. Analisis ideal membutuhkan
-        data putusan pengadilan dan variansi vonis untuk mengukur inkonsistensi hukum secara langsung.</em>
-    </p>
-</div>
+**Analisis Temuan Utama:**
+- **Gini Coefficient tinggi (>0.4)** menunjukkan investasi sangat terkonsentrasi
+  di beberapa provinsi saja — mencerminkan lingkungan hukum/usaha yang tidak merata.
+- **Std. Deviation yang meningkat** menandakan semakin besarnya kesenjangan
+  investasi antar daerah dari waktu ke waktu.
+- **ICOR yang naik** mengindikasikan efisiensi investasi menurun — biaya untuk
+  menghasilkan pertumbuhan ekonomi semakin mahal, salah satunya didorong oleh ketidakpastian hukum.
+- **Rasio ketimpangan** antar provinsi yang sangat besar memperkuat argumen bahwa
+  penegakan hukum dan kebijakan investasi **tidak konsisten** antar daerah.
+
+<small><em>Catatan: Data ini menggunakan proxy ekonomi. Analisis ideal membutuhkan
+data putusan pengadilan dan variansi vonis untuk mengukur inkonsistensi hukum secara langsung.</em></small>
 """, unsafe_allow_html=True)
