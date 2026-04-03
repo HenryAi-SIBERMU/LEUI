@@ -54,11 +54,11 @@ def render_sidebar():
         # Navigation
         st.page_link("Dashboard.py", label="Dashboard", icon=None)
 
+        st.markdown("### Analisis")
+        st.page_link("pages/3_H1_Inconsistency_Risk.py", label="H1: Inconsistency Risk", icon=None)
+
         st.markdown("### Resources")
         st.page_link("pages/1_Eksplorasi_Data.py", label="Eksplorasi Data", icon=None)
         st.page_link("pages/2_Dokumentasi_Riset.py", label="Dokumentasi Riset", icon=None)
         st.page_link("pages/2.5_Glosarium.py", label="Glosarium", icon=None)
-
-        st.markdown("### Analisis")
-        st.page_link("pages/3_H1_Inconsistency_Risk.py", label="H1: Inconsistency Risk", icon=None)
 
