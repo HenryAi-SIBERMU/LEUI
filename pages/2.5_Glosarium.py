@@ -139,7 +139,7 @@ glossary = [
     {"Istilah": "Volatilitas / Volatile", "Kategori": "Istilah Teknis",
      "Definisi": "Ukuran seberapa cepat dan ekstrem suatu indikator berubah/berfluktuasi dari waktu ke waktu. Sangat volatile = sangat mudah berubah naik-turun secara drastis.",
      "Konteks": "Data gap IKK yang sangat volatile menandakan struktur perspesi risiko yang rapuh."},
-    {"Istilah": "IDR Bn (Indonesian Rupiah Billions)", "Kategori": "Investasi",
+    {"Istilah": "IDR Bn / Miliar", "Kategori": "Investasi",
      "Definisi": "Miliar Rupiah (Billion = Miliar). Digunakan untuk menstandarisasi pelaporan nilai finansial yang masif dengan cara menghilangkan sembilan angka nol di belakangnya.",
      "Konteks": "Satuan nilai untuk laporan realisasi investasi tingkat provinsi di LEUI."},
 ]

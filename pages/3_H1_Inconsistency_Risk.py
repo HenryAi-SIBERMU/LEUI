@@ -310,8 +310,8 @@ st.subheader(_("1.2 Volatilitas Investasi Antar Provinsi (Std. Deviation)"))
 
 std_narrative = _("""Standar deviasi memperkuat temuan Gini di atas. Jika Gini mengukur *seberapa timpang*,
 SD mengukur *seberapa jauh* kesenjangan itu dalam nilai absolut. SD PMA kuartal terakhir sebesar
-**{std_a:,.1f} IDR Bn** — artinya sebaran investasi antar provinsi sangat lebar, dengan beberapa
-provinsi menerima puluhan ribu miliar sementara yang lain nyaris nol. SD PMDN di **{std_d:,.1f} IDR Bn**
+**{std_a:,.1f} IDR Bn / Miliar** — artinya sebaran investasi antar provinsi sangat lebar, dengan beberapa
+provinsi menerima puluhan ribu miliar sementara yang lain nyaris nol. SD PMDN di **{std_d:,.1f} IDR Bn / Miliar**
 juga memperlihatkan volatilitas yang besar. Perhatikan *spike* pada grafik — lonjakan SD biasanya
 berkorelasi dengan kuartal di mana satu atau dua provinsi menerima mega-investasi, sementara
 daerah lain stagnan. Pola ini konsisten dengan hipotesis bahwa investor menghindari wilayah
@@ -327,7 +327,7 @@ fig_std = px.line(
     std_combined, x="date", y="std_dev", color="tipe",
     color_discrete_map={"Investasi Asing (PMA)": C_ASING, "Investasi Domestik (PMDN)": C_DOMESTIK},
     template=PLOTLY_TEMPLATE,
-    labels={"date": "Kuartal", "std_dev": "Std. Deviation (IDR Bn)", "tipe": "Tipe Investasi"}
+    labels={"date": "Kuartal", "std_dev": "Std. Deviation (IDR Bn / Miliar)", "tipe": "Tipe Investasi"}
 )
 fig_std.update_layout(
     height=420,
@@ -372,7 +372,7 @@ with tab_top:
         top, x="rata_rata", y="provinsi", orientation="h",
         color="rata_rata", color_continuous_scale=["#1B5E20", "#43A047", "#A5D6A7"],
         template=PLOTLY_TEMPLATE,
-        labels={"rata_rata": "Rata-rata (IDR Bn/kuartal)", "provinsi": ""}
+        labels={"rata_rata": "Rata-rata (IDR Bn / Miliar/kuartal)", "provinsi": ""}
     )
     fig_top.update_layout(height=500, margin=dict(l=20, r=20, t=20, b=20), showlegend=False, coloraxis_showscale=False)
     st.plotly_chart(fig_top, use_container_width=True)
@@ -383,7 +383,7 @@ with tab_bottom:
         bottom, x="rata_rata", y="provinsi", orientation="h",
         color="rata_rata", color_continuous_scale=["#B71C1C", "#E53935", "#EF9A9A"],
         template=PLOTLY_TEMPLATE,
-        labels={"rata_rata": "Rata-rata (IDR Bn/kuartal)", "provinsi": ""}
+        labels={"rata_rata": "Rata-rata (IDR Bn / Miliar/kuartal)", "provinsi": ""}
     )
     fig_bot.update_layout(height=500, margin=dict(l=20, r=20, t=20, b=20), showlegend=False, coloraxis_showscale=False)
     st.plotly_chart(fig_bot, use_container_width=True)
