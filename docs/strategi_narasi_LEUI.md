@@ -294,19 +294,13 @@ Legal Enforcement Quality Index → Legal Uncertainty Score → Legal Risk Premi
 
 Dashboard LEUI akan memecahkan kelima hipotesis (H1-H5) ke dalam halaman-halaman analitik khusus. Perhatikan bahwa **Data Hukum Ideal** belum tersedia di dataset saat ini, sehingga rancangan halaman menggunakan **Data Proxy Ekonomi** yang sudah diekstrak ke dalam folder `data/processed/`.
 
-| Halaman | Narasi & Hipotesis | Data Ideal (Hukum Primer) | Data Proxy Tersedia | Sumber File (dari `data/`) | Metode Analisis |
-|---------|--------------------|---------------------------|----------------------|----------------------------|-----------------|
-| **1. Inconsistency Risk** | **H1:** Kasus sama, putusan beda — Inkosistensi hukum wilayah | ❌ *Data Putusan/Vonis Pengadilan (Belum Ada)* | ✅ Biaya Investasi (ICOR) & Realisasi Investasi | `icor_provinsi.csv`<br>`realisasi_investasi_...csv` | Distribusi Gini & Variansi Standard Deviation antar daerah |
-| **2. Selective Enforcement** | **H2:** Hukum bertindak sesuai momentum politik | ❌ *Rasio Kasus terhadap Event Politik (Belum Ada)* | ✅ IKK Nasional/Daerah & PMI Manufaktur | `ikk_nasional.csv`<br>`pmi_manufaktur.csv` | Event Study (Overlay timeline krisis politik terhadap drop IKK/PMI) |
-| **3. Procedural Uncertainty** | **H3:** Proses pengadilan berlarut-larut menciptakan delay cost | ❌ *Durasi Rata-Rata Proses Peradilan (Belum Ada)* | ✅ ICOR Nasional & Realisasi PMA/PMDN | `icor_nasional.csv`<br>`realisasi_investasi_...csv` | Time Series Lag Correlation (Mengukur efek delay/perlambatan) |
-| **4. Regulatory Reversal** | **H4:** Izin/regulasi dicabut mendadak, modal langsung kabur | ❌ *Jumlah Pencabutan Izin Eksplorasi/Bisnis (Belum Ada)* | ✅ Capital Outflow (Net Sell Obligasi Harian) | `capital_outflow.csv` | Anomaly Detection (Pendeteksian Spike Z-Score mingguan) |
-| **5. Criminalization Risk** | **H5:** Kriminalisasi direksi/pejabat jatuh memicu kepanikan | ❌ *Kasus Pidana Korporasi/Eksekutif (Belum Ada)* | ✅ IKK Ekspektasi vs IKK Kondisi Saat Ini | `ikk_nasional.csv` | Gap Analysis (Pelebaran terbalik antara ekspektasi dan realitas) |
+| Halaman | Narasi & Hipotesis | Data Ideal (Hukum Primer) | Data Proxy Tersedia | Sumber File (dari `data/processed/`) | Metode Analisis |
+|---------|--------------------|---------------------------|----------------------|---------------------------------------|-----------------|
+| **1. Inconsistency Risk** | **H1:** Kasus sama, putusan beda — Inkosistensi hukum wilayah | ❌ *Data Putusan/Vonis Pengadilan (Belum Ada)* | ✅ Biaya Investasi (ICOR) & Realisasi Investasi PMA/PMDN | `biaya_investasi_icor.csv`<br>`data_realisasi_investasi_asing.csv`<br>`data_realisasi_investasi_domestik.csv` | Distribusi Gini & Variansi Standard Deviation antar daerah |
+| **2. Selective Enforcement** | **H2:** Hukum bertindak sesuai momentum politik | ❌ *Rasio Kasus terhadap Event Politik (Belum Ada)* | ✅ IKK Nasional/Daerah & PMI Manufaktur | `indeks_kepercayaan_konsumen.csv`<br>`pmi_dan_capital_outflow_pmi.csv` | Event Study (Overlay timeline krisis politik terhadap drop IKK/PMI) |
+| **3. Procedural Uncertainty** | **H3:** Proses pengadilan berlarut-larut menciptakan delay cost | ❌ *Durasi Rata-Rata Proses Peradilan (Belum Ada)* | ✅ ICOR Nasional & Realisasi PMA/PMDN | `biaya_investasi_icor.csv`<br>`data_realisasi_investasi_asing.csv`<br>`data_realisasi_investasi_domestik.csv` | Time Series Lag Correlation (Mengukur efek delay/perlambatan) |
+| **4. Regulatory Reversal** | **H4:** Izin/regulasi dicabut mendadak, modal langsung kabur | ❌ *Jumlah Pencabutan Izin Eksplorasi/Bisnis (Belum Ada)* | ✅ Capital Outflow (Net Sell Obligasi Harian) | `pmi_dan_capital_outflow_outflow.csv` | Anomaly Detection (Pendeteksian Spike Z-Score mingguan) |
+| **5. Criminalization Risk** | **H5:** Kriminalisasi direksi/pejabat jatuh memicu kepanikan | ❌ *Kasus Pidana Korporasi/Eksekutif (Belum Ada)* | ✅ IKK Ekspektasi vs IKK Kondisi Saat Ini | `ikk_expect_vs_present.csv` | Gap Analysis (Pelebaran terbalik antara ekspektasi dan realitas) |
 
 ---
 
-## Status & Next Steps
-
-- [x] Framework, hipotesis, dan indikator tersusun
-- [x] Mapping data tersedia ↔ indikator LEUI
-- [ ] Parsing & cleaning data Excel → CSV
-- [ ] Dashboard development berdasarkan hipotesis H1–H5
