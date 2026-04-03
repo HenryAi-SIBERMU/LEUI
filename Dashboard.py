@@ -121,7 +121,7 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "data", "processed")
 def load_summary():
     stats = {}
     # ICOR
-    path = os.path.join(DATA_DIR, "biaya_investasi_icor.csv")
+    path = os.path.join(DATA_DIR, "icor_nasional.csv")
     if os.path.exists(path):
         df = pd.read_csv(path)
         if not df.empty:
@@ -130,14 +130,14 @@ def load_summary():
             stats['icor_pma'] = latest.get('icor_pma', 0)
             stats['icor_year'] = str(latest.get('date', ''))[:4]
     # PMI
-    path = os.path.join(DATA_DIR, "pmi_dan_capital_outflow_pmi.csv")
+    path = os.path.join(DATA_DIR, "pmi_manufaktur.csv")
     if os.path.exists(path):
         df = pd.read_csv(path)
         if not df.empty:
             stats['pmi_latest'] = df.iloc[-1].get('pmi_index', 0)
             stats['pmi_date'] = str(df.iloc[-1].get('date', ''))[:7]
     # Capital Outflow
-    path = os.path.join(DATA_DIR, "pmi_dan_capital_outflow_outflow.csv")
+    path = os.path.join(DATA_DIR, "capital_outflow.csv")
     if os.path.exists(path):
         df = pd.read_csv(path)
         if not df.empty:
@@ -156,12 +156,12 @@ def load_summary():
             stats['ikk_date'] = str(latest.get('date', ''))[:7]
             stats['ikk_rows'] = len(df)
     # Investment
-    path = os.path.join(DATA_DIR, "data_realisasi_investasi_domestik.csv")
+    path = os.path.join(DATA_DIR, "realisasi_investasi_domestik.csv")
     if os.path.exists(path):
         df = pd.read_csv(path)
         stats['invest_domestik_rows'] = len(df)
         stats['invest_domestik_prov'] = df['provinsi'].nunique() if 'provinsi' in df.columns else 0
-    path = os.path.join(DATA_DIR, "data_realisasi_investasi_asing.csv")
+    path = os.path.join(DATA_DIR, "realisasi_investasi_asing.csv")
     if os.path.exists(path):
         df = pd.read_csv(path)
         stats['invest_asing_rows'] = len(df)
@@ -261,12 +261,12 @@ st.markdown("---")
 st.markdown("### Inventaris Data")
 
 inv_data = [
-    {"Dataset": "Biaya Investasi (ICOR)", "Rows": "15", "Period": "2010–2024", "Freq": "Yearly"},
-    {"Dataset": "Realisasi Investasi Domestik", "Rows": f"{stats.get('invest_domestik_rows', '—'):,}", "Period": "1990–2025", "Freq": "Quarterly"},
-    {"Dataset": "Realisasi Investasi Asing", "Rows": f"{stats.get('invest_asing_rows', '—'):,}", "Period": "1990–2025", "Freq": "Quarterly"},
-    {"Dataset": "IKK (Expect vs Present)", "Rows": f"{stats.get('ikk_rows', '—')}", "Period": "2001–2025", "Freq": "Monthly"},
-    {"Dataset": "PMI Manufaktur", "Rows": "36", "Period": "2023–2026", "Freq": "Monthly"},
-    {"Dataset": "Capital Outflow", "Rows": "32", "Period": "Dec 2024–Jan 2026", "Freq": "Daily"},
+    {"Dataset": "Biaya Investasi (ICOR)", "Rows": "15", "Period": "2010-2024", "Freq": "Yearly"},
+    {"Dataset": "Realisasi Investasi Domestik", "Rows": str(stats.get('invest_domestik_rows', '-')), "Period": "1990-2025", "Freq": "Quarterly"},
+    {"Dataset": "Realisasi Investasi Asing", "Rows": str(stats.get('invest_asing_rows', '-')), "Period": "1990-2025", "Freq": "Quarterly"},
+    {"Dataset": "IKK (Expect vs Present)", "Rows": str(stats.get('ikk_rows', '-')), "Period": "2001-2025", "Freq": "Monthly"},
+    {"Dataset": "PMI Manufaktur", "Rows": "36", "Period": "2023-2026", "Freq": "Monthly"},
+    {"Dataset": "Capital Outflow", "Rows": "32", "Period": "Dec 2024-Jan 2026", "Freq": "Daily"},
 ]
 st.dataframe(pd.DataFrame(inv_data), use_container_width=True, hide_index=True)
 
