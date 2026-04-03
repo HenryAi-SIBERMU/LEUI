@@ -1,4 +1,4 @@
-# 📐 Framework LEUI: Legal Enforcement Uncertainty Index
+# Framework LEUI: Legal Enforcement Uncertainty Index
 
 ### CELIOS — Center of Economic and Law Studies
 ### Disusun: 31 Maret 2026

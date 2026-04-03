@@ -1,4 +1,4 @@
-# 📊 Laporan Insight Data: Risk Pricing Investasi Indonesia
+# Laporan Insight Data: Risk Pricing Investasi Indonesia
 
 ### Sumber: CEIC / CDMNext / Bank Indonesia
 ### Disusun untuk: CELIOS — Center of Economic and Law Studies

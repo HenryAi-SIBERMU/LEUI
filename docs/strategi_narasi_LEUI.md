@@ -1,4 +1,4 @@
-# 📑 Strategi Narasi & Arah Analisis Data LEUI
+# Strategi Narasi & Arah Analisis Data LEUI
 
 ### CELIOS — Legal Enforcement Uncertainty Index
 ### 1 April 2026

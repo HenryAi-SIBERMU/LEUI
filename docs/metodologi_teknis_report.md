@@ -1,4 +1,4 @@
-# 🔬 Metodologi Teknis: Dashboard LEUI
+# Metodologi Teknis: Dashboard LEUI
 
 ### Dokumentasi Pipeline — Data → Analisis → Visualisasi
 ### 31 Maret 2026
