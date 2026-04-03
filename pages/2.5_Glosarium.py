@@ -133,6 +133,15 @@ glossary = [
     {"Istilah": "CDS (Credit Default Swap)", "Kategori": "Ekonomi",
      "Definisi": "Instrumen keuangan yang mengukur risiko gagal bayar suatu negara. CDS Indonesia yang tinggi = persepsi risiko negara tinggi.",
      "Konteks": "Data ideal untuk country risk, belum tersedia dalam dataset ini"},
+    {"Istilah": "Sporadis", "Kategori": "Istilah Teknis",
+     "Definisi": "Sesuatu yang terjadi secara tidak menentu, terpencar-pencar, dan jarang. Dalam konteks LEUI, merujuk pada shock (kejutan) ekonomi yang muncul mendadak tanpa pola reguler.",
+     "Konteks": "Penurunan kepercayaan publik terjadi secara sporadis (tiba-tiba), bukan gradual memburuk."},
+    {"Istilah": "Volatilitas / Volatile", "Kategori": "Istilah Teknis",
+     "Definisi": "Ukuran seberapa cepat dan ekstrem suatu indikator berubah/berfluktuasi dari waktu ke waktu. Sangat volatile = sangat mudah berubah naik-turun secara drastis.",
+     "Konteks": "Data gap IKK yang sangat volatile menandakan struktur perspesi risiko yang rapuh."},
+    {"Istilah": "IDR Bn (Indonesian Rupiah Billions)", "Kategori": "Investasi",
+     "Definisi": "Miliar Rupiah (Billion = Miliar). Digunakan untuk menstandarisasi pelaporan nilai finansial yang masif dengan cara menghilangkan sembilan angka nol di belakangnya.",
+     "Konteks": "Satuan nilai untuk laporan realisasi investasi tingkat provinsi di LEUI."},
 ]
 
 df_glos = pd.DataFrame(glossary)
