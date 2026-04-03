@@ -153,8 +153,8 @@ with st.expander(_("ℹ️ Metodologi: Analisis Selective Enforcement (H2)"), ex
     **Istilah "Episode":** Dalam analisis ini, istilah "episode" digunakan untuk merujuk 
     pada bulan-bulan spesifik di mana algoritma mendeteksi adanya anomali statistik 
     (jatuhnya IKK di luar batas fluktuasi wajar). Semua tanggal anomali ini diidentifikasi 
-    berdasarkan data, dan pembaca dapat menghubungkan sendiri temuan episode-episode 
-    tersebut terhadap berbagai peristiwa publik yang terjadi.
+    berdasarkan data, dan temuan episode-episode tersebut dapat dihubungkan 
+    secara langsung terhadap berbagai peristiwa publik yang terjadi.
     """))
 
 
@@ -380,7 +380,7 @@ st.subheader(_("2.4 Daftar Episode Anomali (Data-Driven)"))
 tbl_narr = _("""Tabel di bawah menyajikan **semua episode** dimana IKK Ekspektasi mengalami
 penurunan abnormal (Z-Score < -2), diurutkan dari yang terparah. Tanggal-tanggal ini
 **tidak dipilih secara manual** — semuanya muncul dari deteksi statistik otomatis.
-Pembaca dipersilakan mencocokkan tanggal-tanggal ini dengan peristiwa yang diketahui publik
+Tanggal-tanggal ini dapat dicocokkan dengan peristiwa yang diketahui publik
 untuk menguji apakah hipotesis *selective enforcement* memiliki basis empiris.""")
 st.markdown(tbl_narr)
 
@@ -430,7 +430,7 @@ yang diprediksi oleh model *selective enforcement*: aman lama, lalu tiba-tiba *e
 muncul di momentum tertentu, menciptakan shock yang disproportional.
 
 *Catatan: Dashboard ini menyajikan anomali statistik. Interpretasi kausal atas peristiwa
-yang berkorelasi dengan tanggal-tanggal anomali diserahkan kepada pembaca dan peneliti.*
+yang berkorelasi dengan tanggal-tanggal anomali diserahkan kepada proses analisis lanjutan.*
 """)
 
 st.markdown(temuan.format(
