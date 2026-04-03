@@ -290,6 +290,42 @@ Legal Enforcement Quality Index → Legal Uncertainty Score → Legal Risk Premi
 
 ---
 
+## 13. Strategi Struktur Halaman (Pages) Dashboard
+
+Dashboard LEUI akan memecahkan kelima hipotesis (H1-H5) ke dalam halaman-halaman analitik khusus, dengan rincian berikut:
+
+### 1. Halaman: Inconsistency Risk (H1)
+- **Narasi Utama:** Kasus sama, putusan beda — memotret ketidakkonsistenan biaya investasi antar wilayah sebagai *proxy* kepastian hukum daerah.
+- **Hipotesis:** H1 (Inconsistency Risk)
+- **Data:** Biaya Investasi (ICOR) & Realisasi Investasi Regional.
+- **Metode:** Variansi dan Distribusi (menggunakan Standard Deviation/Gini Ratio pada ICOR antar provinsi).
+
+### 2. Halaman: Selective Enforcement (H2)
+- **Narasi Utama:** Hukum tergantung momentum — pengaruh kalender dan event politik spesifik terhadap aktivitas ekonomi rill.
+- **Hipotesis:** H2 (Selective Enforcement Risk)
+- **Data:** IKK (Sub-nasional/Nasional) & PMI Manufaktur.
+- **Metode:** Event Study (*overlay* timeline krisis politik/hukum dengan pergerakan *drop* pada PMI/IKK).
+
+### 3. Halaman: Procedural Uncertainty (H3)
+- **Narasi Utama:** Proses hukum tak pasti, biaya laten (*delay*) membengkak.
+- **Hipotesis:** H3 (Procedural Uncertainty Risk)
+- **Data:** Realisasi Investasi PMA/PMDN & ICOR Nasional.
+- **Metode:** Time Series & Korelasi Lag (mengukur pengaruh perlambatan di satu periode terhadap investasi di kuartal berikutnya).
+
+### 4. Halaman: Regulatory Reversal (H4)
+- **Narasi Utama:** Keputusan/izin tiba-tiba dicabut, kejutan regulasi memicu modal kabur.
+- **Hipotesis:** H4 (Regulatory Reversal Risk)
+- **Data:** Capital Outflow (Harian: Net Sell Obligasi IDR).
+- **Metode:** Anomaly Detection (pendeteksian lewat hitungan Z-score untuk menemukan spike *capital flight* yang ekstrem secara mendadak).
+
+### 5. Halaman: Criminalization Risk (H5)
+- **Narasi Utama:** Otoritas ketakutan atau direksi dikriminalisasi memicu keruntuhan keyakinan seketika.
+- **Hipotesis:** H5 (Criminalization Risk)
+- **Data:** Indeks Kepercayaan Konsumen (Ekspektasi vs Kondisi Saat Ini).
+- **Metode:** Gap Analysis (identifikasi pelebaran *gap* terbalik antara ekspektasi yang tinggi dengan realitas present yang mendadak jatuh).
+
+---
+
 ## Status & Next Steps
 
 - [x] Framework, hipotesis, dan indikator tersusun
