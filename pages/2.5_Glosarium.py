@@ -164,7 +164,7 @@ for cat in sorted(df_glos['Kategori'].unique()):
 <div style="background:#1E1E1E; padding:14px 18px; border-radius:8px; margin-bottom:8px; border-left:3px solid #43A047;">
     <strong style="color:#66BB6A; font-size:1.05rem;">{row['Istilah']}</strong><br>
     <span style="color:#E0E0E0;">{row['Definisi']}</span><br>
-    <small style="color:#9E9E9E;">💡 {row['Konteks']}</small>
+    <small style="color:#9E9E9E;">{row['Konteks']}</small>
 </div>
 """, unsafe_allow_html=True)
 
