@@ -207,13 +207,13 @@ Legal Enforcement Quality Index → Legal Uncertainty Score → Legal Risk Premi
 
 ### A. Legal Uncertainty Indicators → Status Data
 
-| Dimensi | Indikator Kuantitatif | Data Tersedia? | Keterangan |
+| Dimensi | Indikator Kuantitatif Ideal | Data Pengganti Sementara (Proxy) | Sumber File (dari `data/processed/`) |
 |---|---|---|---|
-| Inconsistency | Variansi putusan kasus sejenis | ❌ | Butuh data putusan MA/PT |
-| Selectivity | Rasio kasus vs momentum politik | ❌ | Butuh data kasus + kalender politik |
-| Procedural | Rata-rata lama penyelesaian kasus | ❌ | Butuh data waktu perkara |
-| Reversal | Jumlah pencabutan izin | ❌ | Butuh data pencabutan |
-| Criminalization | Jumlah kasus pidana bisnis | ❌ | Butuh data kriminalisasi |
+| Inconsistency | Variansi putusan kasus sejenis | ✅ Variansi ICOR & Realisasi Daerah | `biaya_investasi_icor.csv`<br>`data_realisasi_investasi_asing.csv` |
+| Selectivity | Rasio kasus vs momentum politik | ✅ Event Study: Drop IKK & PMI | `indeks_kepercayaan_konsumen.csv`<br>`pmi_dan_capital_outflow_pmi.csv` |
+| Procedural | Rata-rata lama penyelesaian kasus | ✅ Lag/Delay Cost dari ICOR Nasional | `biaya_investasi_icor.csv`<br>`data_realisasi_investasi_domestik.csv` |
+| Reversal | Jumlah pencabutan izin | ✅ Spike Capital Outflow (Net Sell) | `pmi_dan_capital_outflow_outflow.csv` |
+| Criminalization | Jumlah kasus pidana bisnis | ✅ *Collapse* Ekspektasi IKK | `ikk_expect_vs_present.csv` |
 
 ### B. Risk Pricing Indicators → Status Data
 
