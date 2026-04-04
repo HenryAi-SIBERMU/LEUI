@@ -253,7 +253,7 @@ st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
 # 4.1 TIME SERIES + ANOMALI
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("4.1 Time Series Net Sell Obligasi + Deteksi Anomali"))
+st.subheader("4.1 Time Series Net Sell Obligasi + Deteksi Anomali")
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Anomaly Detection</span>', unsafe_allow_html=True)
 
 ts_narr = _("""Menggunakan metode **Z-Score Anomaly Detection** pada net sell obligasi per periode. Titik merah menandai **episode anomali**
@@ -301,7 +301,7 @@ st.plotly_chart(fig_ts, use_container_width=True)
 # 4.2 ROLLING BAND ANALYSIS
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("4.2 Rolling Band Analysis — Batas Fluktuasi Wajar"))
+st.subheader("4.2 Rolling Band Analysis — Batas Fluktuasi Wajar")
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Rolling Band Analysis</span>', unsafe_allow_html=True)
 
 band_narr = _("""Menggunakan metode **Rolling Band Analysis** — rolling mean (garis biru) dan upper band (+2σ, garis merah) memperlihatkan
@@ -346,7 +346,7 @@ st.plotly_chart(fig_band, use_container_width=True)
 # 4.3 AGREGASI KUARTAL
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("4.3 Agregasi Kuartal — Tren Makro Capital Outflow"))
+st.subheader("4.3 Agregasi Kuartal — Tren Makro Capital Outflow")
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Quarterly Aggregation</span>', unsafe_allow_html=True)
 
 q_narr = _("""Menggunakan metode **Quarterly Aggregation** untuk melihat tren makro yang lebih jelas dibanding data mingguan.
@@ -384,7 +384,7 @@ if len(q_agg) > 0:
 # 4.4 TABEL EPISODE ANOMALI
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("4.4 Episode Capital Flight — Deteksi Anomali"))
+st.subheader("4.4 Episode Capital Flight — Deteksi Anomali")
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Episode Detection</span>', unsafe_allow_html=True)
 
 tbl_narr = _("""Menggunakan metode **Z-Score Episode Detection** — tabel di bawah menampilkan seluruh episode yang terdeteksi secara algoritmik.
