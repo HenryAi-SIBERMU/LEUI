@@ -10,6 +10,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
+import plotly.express as px
 from scipy import stats
 from sklearn.ensemble import IsolationForest
 import sys, os
@@ -107,9 +108,10 @@ cv = (std_ns / mean_ns * 100) if mean_ns > 0 else 0
 iso_model = IsolationForest(contamination=0.15, random_state=42, n_estimators=100)
 df["iso_score"] = iso_model.fit_predict(df[["net_sell_idr_tn"]])
 df["iso_anomaly_score"] = iso_model.decision_function(df[["net_sell_idr_tn"]])
-df["is_iso_anomaly"] = df["iso_score"] == -1
+df["is_iso_anomaly"] = (df["iso_score"] == -1) & (df["net_sell_idr_tn"] > mean_ns)
 n_iso_anomaly = df["is_iso_anomaly"].sum()
-iso_threshold = df.loc[df["is_iso_anomaly"], "net_sell_idr_tn"].min() if n_iso_anomaly > 0 else max_ns
+iso_upper_anom = df.loc[df["is_iso_anomaly"], "net_sell_idr_tn"]
+iso_threshold = iso_upper_anom.min() if len(iso_upper_anom) > 0 else max_ns
 
 # Max Z-Score for tbl_narr
 max_z = df["z_score"].max()
@@ -313,54 +315,72 @@ st.plotly_chart(fig_ts, use_container_width=True)
 
 
 # ══════════════════════════════════════════════════
-# 4.2 ISOLATION FOREST — ML ANOMALY DETECTION
+# 4.2 ISOLATION FOREST — DETEKSI ANOMALI
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader("4.2 Isolation Forest — Deteksi Anomali Machine Learning")
-st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Isolation Forest (scikit-learn)</span>', unsafe_allow_html=True)
+st.subheader("4.2 Isolation Forest — Deteksi Anomali Capital Flight")
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Isolation Forest</span>', unsafe_allow_html=True)
 
-iso_narr = """Algoritma **Isolation Forest** (Liu et al., 2008) mengisolasi data outlier melalui partisi acak rekursif. Prinsipnya: data anomali lebih mudah dipisahkan karena jumlahnya sedikit dan nilainya ekstrem. Dari {n} observasi, model mendeteksi **{n_anom} episode anomali** (ditandai marker merah). Titik anomali terkonsentrasi pada net sell di atas **{threshold:.1f} IDR Tn** — titik batas di mana algoritma menilai penarikan modal sudah melampaui pola normal pasar. Semakin rendah *anomaly score* (sumbu kanan, warna lebih gelap), semakin kuat sinyal bahwa episode tersebut bukan bagian dari fluktuasi wajar melainkan pelarian modal institusional akibat guncangan regulasi."""
+iso_narr = """Algoritma **Isolation Forest** (Liu et al., 2008) mengisolasi data outlier melalui partisi acak rekursif. Prinsipnya: data anomali lebih mudah dipisahkan karena jumlahnya sedikit dan nilainya ekstrem. Dari {n} observasi, model mendeteksi **{n_anom} episode anomali** yang jatuh di dalam *zona merah* (decision boundary). Area merah pada grafik merepresentasikan wilayah di mana algoritma mengklasifikasikan observasi sebagai pelarian modal di luar pola normal — titik-titik di zona ini bukan fluktuasi wajar melainkan *capital flight episodes* yang dipicu guncangan regulasi."""
 
-iso_src = "Isolation Forest (n_estimators=100, contamination=0.15). Library: <code>sklearn.ensemble.IsolationForest</code>."
-st.markdown(iso_narr.format(n=n_obs, n_anom=n_iso_anomaly, threshold=iso_threshold) +
-            f"\n\n<small>\ud83d\udcc1 <b>Sumber:</b> {iso_src}</small>", unsafe_allow_html=True)
-st.caption("\ud83d\udcca Visualisasi: Scatter plot \u2014 ukuran dan warna marker menunjukkan anomaly score. Merah = anomali terdeteksi ML.")
+iso_src = f"Analisis Isolation Forest pada <code>capital_outflow.csv</code> ({n_obs} observasi, kontaminasi 15%)."
+st.markdown(iso_narr.format(n=n_obs, n_anom=n_iso_anomaly) +
+            f"\n\n<small>📁 <b>Sumber:</b> {iso_src}</small>", unsafe_allow_html=True)
+st.caption("📊 Visualisasi: Decision Boundary Scatter — zona merah = area anomali, zona biru = area normal. Diamond merah = episode anomali.")
 
-# Build scatter plot with anomaly score gradient
+# Decision Boundary Scatter Plot
 fig_iso = go.Figure()
+
+# Anomaly zone shading (red area above threshold)
+fig_iso.add_hrect(
+    y0=iso_threshold, y1=max_ns * 1.15,
+    fillcolor="rgba(229,57,53,0.12)", line_width=0,
+    annotation_text="ZONA ANOMALI", annotation_position="top left",
+    annotation=dict(font=dict(color="#E53935", size=12, family="Arial Black"))
+)
+
+# Normal zone shading (blue area below threshold)
+fig_iso.add_hrect(
+    y0=min_ns * 0.85, y1=iso_threshold,
+    fillcolor="rgba(66,165,245,0.06)", line_width=0
+)
+
+# Threshold line
+fig_iso.add_hline(
+    y=iso_threshold, line_dash="dash", line_color=C_WARN, line_width=2,
+    annotation_text=f"Decision Boundary: {iso_threshold:.1f} Tn",
+    annotation=dict(font=dict(color=C_WARN, size=11))
+)
 
 # Normal points
 df_normal = df[~df["is_iso_anomaly"]]
 fig_iso.add_trace(go.Scatter(
     x=df_normal["date"], y=df_normal["net_sell_idr_tn"],
-    mode="markers+lines", name="Normal",
-    marker=dict(size=8, color=df_normal["iso_anomaly_score"], colorscale="Blues",
-                cmin=df["iso_anomaly_score"].min(), cmax=df["iso_anomaly_score"].max(),
-                line=dict(width=1, color="#333")),
-    line=dict(color="rgba(66,165,245,0.3)", width=1),
-    hovertemplate="<b>%{x|%d %b %Y}</b><br>Net Sell: %{y:.2f} Tn<br>Score: %{customdata:.3f}<extra></extra>",
-    customdata=df_normal["iso_anomaly_score"]
+    mode="markers", name="Normal",
+    marker=dict(size=9, color=C_NET_SELL, opacity=0.8,
+                line=dict(width=1, color="#1565C0")),
+    hovertemplate="<b>%{x|%d %b %Y}</b><br>Net Sell: %{y:.2f} Tn<br>Status: Normal<extra></extra>"
 ))
 
 # Anomaly points
 df_anom = df[df["is_iso_anomaly"]]
 fig_iso.add_trace(go.Scatter(
     x=df_anom["date"], y=df_anom["net_sell_idr_tn"],
-    mode="markers", name="Anomali (ML)",
-    marker=dict(size=14, color=C_ANOMALY, symbol="diamond",
+    mode="markers+text", name="Anomali",
+    marker=dict(size=16, color=C_ANOMALY, symbol="diamond",
                 line=dict(width=2, color="#fff")),
-    hovertemplate="<b>%{x|%d %b %Y}</b><br>Net Sell: %{y:.2f} Tn<br>Score: %{customdata:.3f}<br><b>\u26a0\ufe0f ANOMALI</b><extra></extra>",
-    customdata=df_anom["iso_anomaly_score"]
+    text=[f"{v:.1f}" for v in df_anom["net_sell_idr_tn"]],
+    textposition="top center", textfont=dict(color=C_ANOMALY, size=10),
+    hovertemplate="<b>%{x|%d %b %Y}</b><br>Net Sell: %{y:.2f} Tn<br><b>ANOMALI</b><extra></extra>"
 ))
 
-# Threshold line
-fig_iso.add_hline(y=iso_threshold, line_dash="dash", line_color=C_WARN,
-                  annotation_text=f"Batas Anomali ML: {iso_threshold:.1f} Tn")
-fig_iso.add_hline(y=mean_ns, line_dash="dot", line_color="#666",
-                  annotation_text=f"Rata-rata: {mean_ns:.2f} Tn")
+# Mean reference line
+fig_iso.add_hline(y=mean_ns, line_dash="dot", line_color="#666", line_width=1,
+                  annotation_text=f"Rata-rata: {mean_ns:.1f} Tn",
+                  annotation=dict(font=dict(color="#888", size=10)))
 
 fig_iso.update_layout(
-    template=PLOTLY_TEMPLATE, height=450,
+    template=PLOTLY_TEMPLATE, height=480,
     yaxis_title="Net Sell (IDR Tn / Triliun)", xaxis_title="",
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
     margin=dict(l=20, r=20, t=40, b=20), hovermode="x unified"
@@ -380,27 +400,48 @@ q_narr = """Agregasi kuartalan menyaring *noise* mingguan untuk mengungkap daya 
 q_src = "Agregasi <code>capital_outflow.csv</code> per kuartal: sum, mean, max, dan count per kuartal."
 st.markdown(q_narr.format(worst_q=worst_q, worst_val=worst_q_val) +
             f"\n\n<small>📁 <b>Sumber:</b> {q_src}</small>", unsafe_allow_html=True)
-st.caption("📊 Visualisasi: Waterfall chart — kontribusi kumulatif tiap kuartal terhadap total capital flight.")
+st.caption("📊 Visualisasi: Bar + Line combo — batang = total net sell per kuartal, garis = rata-rata berjalan (standar BI/IMF).")
 
 if len(q_agg) > 0:
-    cumulative = q_agg["total_sell"].cumsum()
-    fig_q = go.Figure(go.Waterfall(
-        x=q_agg["quarter_str"],
-        y=q_agg["total_sell"],
-        measure=["relative"] * len(q_agg),
+    # Bar colors by severity
+    q_mean = q_agg["total_sell"].mean()
+    q_colors = [C_ANOMALY if v == q_agg["total_sell"].max()
+                else C_WARN if v > q_mean
+                else C_NET_SELL for v in q_agg["total_sell"]]
+
+    # Rolling average (2-quarter window)
+    q_agg["rolling_avg"] = q_agg["total_sell"].rolling(window=min(2, len(q_agg)), min_periods=1).mean()
+
+    fig_q = go.Figure()
+
+    # Bar: total sell per quarter
+    fig_q.add_trace(go.Bar(
+        x=q_agg["quarter_str"], y=q_agg["total_sell"],
+        marker_color=q_colors, name="Total Net Sell",
         text=[f"{v:.1f}" for v in q_agg["total_sell"]],
         textposition="outside",
-        increasing=dict(marker=dict(color=C_ANOMALY)),
-        decreasing=dict(marker=dict(color="#66BB6A")),
-        totals=dict(marker=dict(color=C_WARN)),
-        connector=dict(line=dict(color="#555", width=1, dash="dot")),
-        hovertemplate="<b>%{x}</b><br>Net Sell: %{y:.2f} Tn<br>Kumulatif: %{customdata:.2f} Tn<extra></extra>",
-        customdata=cumulative
+        hovertemplate="<b>%{x}</b><br>Total: %{y:.2f} Tn<extra></extra>"
     ))
+
+    # Line: rolling average overlay
+    fig_q.add_trace(go.Scatter(
+        x=q_agg["quarter_str"], y=q_agg["rolling_avg"],
+        mode="lines+markers", name="Rata-rata Berjalan",
+        line=dict(color="#66BB6A", width=3, dash="dot"),
+        marker=dict(size=8, color="#66BB6A", line=dict(width=1, color="#333")),
+        hovertemplate="<b>%{x}</b><br>Moving Avg: %{y:.2f} Tn<extra></extra>"
+    ))
+
+    # Mean reference line
+    fig_q.add_hline(y=q_mean, line_dash="dot", line_color="#888", line_width=1,
+                    annotation_text=f"Rata-rata Kuartal: {q_mean:.1f} Tn",
+                    annotation=dict(font=dict(color="#888", size=10)))
+
     fig_q.update_layout(
-        template=PLOTLY_TEMPLATE, height=430,
-        yaxis_title="Net Sell (IDR Tn / Triliun)", xaxis_title="",
-        margin=dict(l=20, r=20, t=40, b=20), showlegend=False
+        template=PLOTLY_TEMPLATE, height=450,
+        yaxis_title="Total Net Sell (IDR Tn / Triliun)", xaxis_title="",
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        margin=dict(l=20, r=20, t=40, b=20), barmode="group"
     )
     st.plotly_chart(fig_q, use_container_width=True)
 
