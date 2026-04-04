@@ -302,5 +302,29 @@ Dashboard LEUI akan memecahkan kelima hipotesis (H1-H5) ke dalam halaman-halaman
 | **4. Regulatory Reversal** | **H4:** Izin/regulasi dicabut mendadak, modal langsung kabur | ❌ *Jumlah Pencabutan Izin Eksplorasi/Bisnis (Belum Ada)* | ✅ Capital Outflow (Net Sell Obligasi Harian) | `capital_outflow.csv` | Anomaly Detection (Pendeteksian Spike Z-Score mingguan) |
 | **5. Criminalization Risk** | **H5:** Kriminalisasi direksi/pejabat jatuh memicu kepanikan | ❌ *Kasus Pidana Korporasi/Eksekutif (Belum Ada)* | ✅ IKK Ekspektasi vs IKK Kondisi Saat Ini | `ikk_expect_vs_present.csv` | Gap Analysis (Pelebaran terbalik antara ekspektasi dan realitas) |
 
----
 
+
+## 14. Mapping Rumus Statistik → Library & Method
+
+Seluruh rumus yang digunakan dalam dashboard LEUI adalah **rumus statistik standar** yang sudah established dan peer-reviewed — bukan rumus custom. Berikut mapping lengkap:
+
+| Rumus | Penemu / Asal | Tahun | Library Python | Method Exact | Dipakai di |
+|-------|--------------|-------|----------------|-------------|------------|
+| **Z-Score** | Carl Friedrich Gauss | ~1800-an | `pandas` | `(x - df.mean()) / df.std()` | H2, H4, H5 |
+| **Spearman Rank Correlation** | Charles Spearman | 1904 | `scipy.stats` | `scipy.stats.spearmanr(x, y)` | H1, H3 |
+| **ICOR (Incremental Capital-Output Ratio)** | Roy Harrod & Evsey Domar | 1939-1946 | Manual (dari CSV BPS) | `ICOR = Total Investasi / ΔGDP` | H1, H3 |
+| **Rate of Change (pct_change)** | Dasar matematika | — | `pandas` | `df["col"].pct_change()` | H2, H3, H4 |
+| **Rolling Standard Deviation** | Standar time series | — | `pandas` | `df["col"].rolling(window=N).std()` | H4, H5 |
+| **Rolling Mean (Moving Average)** | Standar time series | — | `pandas` | `df["col"].rolling(window=N).mean()` | H4, H5 |
+| **Gini Coefficient** | Corrado Gini | 1912 | `numpy` | `np.cumsum(sorted) / total` (Lorenz Curve) | H1 |
+| **Standard Deviation** | Karl Pearson | 1894 | `pandas` / `numpy` | `df["col"].std()` / `np.std()` | H1, H2 |
+| **Coefficient of Variation (CV)** | Karl Pearson | 1896 | Manual | `(std / mean) × 100%` | H4 |
+| **Lag Correlation** | Standar ekonometrika | — | `scipy.stats` | `spearmanr(ICOR[t], Investasi[t+lag])` via `df.shift()` | H3 |
+
+### Referensi Dokumentasi Resmi
+
+- **scipy.stats.spearmanr**: https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.spearmanr.html
+- **pandas.Series.pct_change**: https://pandas.pydata.org/docs/reference/api/pandas.Series.pct_change.html
+- **pandas.Series.rolling**: https://pandas.pydata.org/docs/reference/api/pandas.Series.rolling.html
+- **pandas.Series.std**: https://pandas.pydata.org/docs/reference/api/pandas.Series.std.html
+- **numpy.std**: https://numpy.org/doc/stable/reference/generated/numpy.std.html
