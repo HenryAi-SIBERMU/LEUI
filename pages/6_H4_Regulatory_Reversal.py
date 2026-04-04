@@ -264,12 +264,14 @@ st.markdown("---")
 st.subheader("4.1 Time Series Net Sell Obligasi + Deteksi Anomali")
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Anomaly Detection</span>', unsafe_allow_html=True)
 
-ts_narr = """Menggunakan metode **Z-Score Anomaly Detection** pada net sell obligasi per periode. Titik merah menandai **episode anomali**
-(Z-Score > 2) — minggu-minggu di mana investor menarik modal secara abnormal. Garis oranye
-putus-putus menunjukkan rata-rata ({mean:.2f} IDR Tn / Triliun). Perhatikan bahwa spike tidak tersebar merata —
-mereka **terkonsentrasi** di periode-periode tertentu, konsisten dengan pola *regulatory shock*
-di mana perubahan kebijakan mendadak memicu respons pelarian modal yang cepat dan masif.
-Streaks terpanjang di atas rata-rata: **{streak} periode berturut-turut**."""
+ts_narr = """Menggunakan metode **Z-Score Anomaly Detection** pada net sell obligasi per periode.
+**Cara Membaca Grafik:**
+*   **Sumbu Horizontal (X):** Menunjukkan timeline periode (mingguan/bulanan).
+*   **Sumbu Vertikal (Y):** Menunjukkan volume net sell (modal keluar) dalam Triliun Rupiah. Semakin tinggi batang, semakin banyak modal yang lari.
+*   **Garis Oranye Putus-putus:** Rata-rata historis sebesar **{mean:.2f} IDR Tn**.
+*   **Warna Batang:** Batang biru menunjukkan tingkat capital outflow normal. Batang oranye menunjukkan level waspada (Elevated, Z>1). **Batang merah** adalah fokus utama: ini adalah **episode anomali** (Z>2) di mana kepanikan investor terjadi secara tidak wajar.
+
+Perhatikan bahwa lonjakan merah tidak tersebar merata, melainkan **terkonsentrasi** di periode-periode tertentu. Ini menandakan *regulatory shock* — kepanikan yang dipicu oleh sentimen mendadak, bukan tren alami. Streaks terpanjang tanpa henti di atas rata-rata bertahan selama **{streak} periode berturut-turut**."""
 
 ts_src = "Data mentah <code>capital_outflow.csv</code>. Z-Score dihitung dari mean dan std. deviasi seluruh dataset."
 st.markdown(ts_narr.format(mean=mean_ns, streak=max_streak) +
@@ -312,13 +314,14 @@ st.markdown("---")
 st.subheader("4.2 Rolling Band Analysis — Batas Fluktuasi Wajar")
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Rolling Band Analysis</span>', unsafe_allow_html=True)
 
-band_narr = """Menggunakan metode **Rolling Band Analysis** — rolling mean (garis biru) dan upper band (+2σ, garis merah) memperlihatkan
-pola volatilitas yang berubah-ubah. Ketika net sell menembus upper band (area merah),
-itu menandakan **capital flight episode** yang melampaui fluktuasi wajar.
-Window = {win} periode. Perhatikan bagaimana band melebar di periode-periode tertentu —
-ini menunjukkan bahwa volatilitas itu sendiri berfluktuasi, sebuah pola yang disebut
-*volatility clustering*: ketika ketidakpastian regulasi muncul, bukan hanya volume outflow
-yang naik, tapi **ketidakpastian outflow itu sendiri** juga meningkat."""
+band_narr = """Menggunakan metode **Rolling Band Analysis** untuk melihat batas wajar dari kepanikan pasar.
+**Cara Membaca Grafik:**
+*   **Garis Biru Solid:** Volume net sell (arus modal keluar) aktual per periode.
+*   **Garis Hijau Titik-titik:** *Rolling mean* (rata-rata bergerak) selama {win} periode. Garis ini menunjukkan tren dasar.
+*   **Garis Merah Putus-putus:** *Upper Band* (+2 standar deviasi). Ini adalah "batas toleransi pasar" pada saat itu.
+
+**Titik Kritis:** Perhatikan setiap kali **garis biru menembus ke atas garis merah**. Ini berarti aliran modal keluar melampaui batas kewajaran fluktuasi saat itu (*capital flight episode*). 
+Selain itu, amati jarak antara garis hijau ke merah: saat jaraknya melebar, berarti pasar sedang mengalami *volatility clustering* — ketidakpastian memuncak sehingga batas fluktuasi wajar dipaksa melebar untuk mengakomodasi kepanikan."""
 
 band_src = "Rolling window = {win} periode. Upper band = rolling mean + 2 × rolling std."
 st.markdown(band_narr.format(win=window) +
@@ -357,12 +360,13 @@ st.markdown("---")
 st.subheader("4.3 Agregasi Kuartal — Tren Makro Capital Outflow")
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Quarterly Aggregation</span>', unsafe_allow_html=True)
 
-q_narr = """Menggunakan metode **Quarterly Aggregation** untuk melihat tren makro yang lebih jelas dibanding data mingguan.
-Kuartal terburuk: **{worst_q}** dengan total net sell **{worst_val:.2f} IDR Tn / Triliun**.
-Perbandingan antar kuartal menunjukkan apakah tekanan capital flight bersifat persisten
-(selalu tinggi) atau sporadis (melonjak di kuartal tertentu). Pola sporadis lebih konsisten
-dengan hipotesis regulatory reversal — perubahan kebijakan mendadak memicu lonjakan tajam
-yang kemudian mereda saat ketidakpastian berkurang."""
+q_narr = """Menggunakan metode **Quarterly Aggregation** untuk membersihkan "noise" dari fluktuasi jangka pendek dan melihat gambaran makro.
+**Cara Membaca Grafik:**
+*   Tiap batang mewakili total kumulatif arus modal keluar sepanjang 3 bulan (satu kuartal).
+*   **Batang Merah:** Kuartal dengan performa paling buruk secara historis, di mana total net sell mencapai **{worst_val:.2f} IDR Tn** (Kuartal **{worst_q}**).
+*   **Batang Oranye:** Kuartal dengan tekanan pelepas modal di atas rata-rata.
+
+Pola ini penting untuk melihat apakah *capital flight* bersifat persisten (berkepanjangan) atau sporadis (tiba-tiba melonjak karena shock, lalu mereda). Pola sporadis yang mendadak tinggi di tengah periode tenang sangat identik dengan *regulatory reversal*."""
 
 q_src = "Agregasi <code>capital_outflow.csv</code> per kuartal: sum, mean, max, dan count per kuartal."
 st.markdown(q_narr.format(worst_q=worst_q, worst_val=worst_q_val) +
@@ -395,10 +399,14 @@ st.markdown("---")
 st.subheader("4.4 Episode Capital Flight — Deteksi Anomali")
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Episode Detection</span>', unsafe_allow_html=True)
 
-tbl_narr = """Menggunakan metode **Z-Score Episode Detection** — tabel di bawah menampilkan seluruh episode yang terdeteksi secara algoritmik.
-Threshold Z > 2 digunakan untuk anomali, Z > 1 untuk elevated.
-Episode-episode ini dapat dihubungkan oleh analis ke berbagai peristiwa regulasi
-atau kebijakan yang terjadi pada periode tersebut."""
+tbl_narr = """Menggunakan metode **Z-Score Episode Detection**. 
+**Cara Membaca Tabel:**
+Tabel ini berisi **daftar hitam** periode di mana kepanikan investor mencapai level anomali statistik.
+*   **Kolom Tanggal:** Minggu atau bulan spesifik terjadinya *shock*.
+*   **Kolom Net Sell:** Nilai kejut aliran dana keluar (dalam Triliun Rupiah).
+*   **Kolom Anomali:** Status keparahan. Status **"Ya (Z > 2)"** adalah kejadian luar biasa ekstrem.
+
+Analisis lanjutan dapat mencocokkan tanggal-tanggal kritis di tabel ini dengan timeline pengesahan RUU, putusan pengadilan, atau pencabutan izin sektor spesifik untuk merumuskan bukti sebab-akibat."""
 
 st.markdown(tbl_narr)
 
