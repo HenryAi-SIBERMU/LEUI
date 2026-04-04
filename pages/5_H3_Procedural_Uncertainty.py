@@ -166,7 +166,7 @@ subtitle = _("Analisis Delay Cost & Inefisiensi Investasi melalui ICOR sebagai P
 st.markdown(f'<p style="font-size: 1.1rem; color: #66BB6A; font-weight: 500; margin-top: -15px;">{subtitle}</p>', unsafe_allow_html=True)
 
 # ── Methodology ──
-with st.expander(_("ℹ️ Metodologi: Analisis Procedural Uncertainty (H3)"), expanded=False):
+with st.expander(_("Metodologi: Analisis Procedural Uncertainty (H3)"), expanded=False):
     st.markdown(_("""
     **Premis:** Proses hukum yang berlarut-larut, tumpang tindih kewenangan, dan penyitaan aset
     sebelum putusan inkracht menciptakan **delay cost** — biaya laten yang tidak tercatat dalam
@@ -176,14 +176,21 @@ with st.expander(_("ℹ️ Metodologi: Analisis Procedural Uncertainty (H3)"), e
     `Procedural Uncertainty → Delay Cost → ICOR Naik → Investasi Makin Tidak Efisien → Growth Terhambat`
 
     **Metode — 100% Data-Driven:**
-    1. **ICOR sebagai Delay Cost Indicator** — ICOR (Incremental Capital-Output Ratio) mengukur
-       berapa unit investasi dibutuhkan untuk 1 unit pertumbuhan PDB. ICOR naik = investasi
-       makin tidak efisien, sebagian karena biaya-biaya tersembunyi (prosedural, hukum, birokrasi).
-    2. **Spearman Correlation** — Mengukur hubungan antara ICOR dan volume investasi.
-       Korelasi negatif = semakin mahal biaya investasi, semakin sedikit yang masuk.
-    3. **Lag Analysis** — Menguji apakah ICOR tinggi tahun ini memprediksi
-       investasi rendah di tahun berikutnya (efek delay).
-    4. **Rate of Change** — Tahun mana ICOR melonjak paling tajam.
+    1. **ICOR sebagai Delay Cost Indicator**
+       - ICOR = Incremental Capital-Output Ratio
+       - Formula: `ICOR = Total Investasi / ΔGDP`
+       - ICOR naik = investasi makin tidak efisien (lebih banyak modal untuk hasil yang sama)
+       - Threshold inefisiensi: `ICOR > 6.0` (standar internasional)
+    2. **Spearman Rank Correlation** — Mengukur hubungan ICOR ↔ volume investasi
+       - Formula: `ρ = 1 - (6 × Σdᵢ²) / (n × (n² - 1))`
+       - Korelasi negatif = semakin mahal biaya, semakin sedikit investasi masuk
+       - Signifikansi: `p-value < 0.05` = hubungan signifikan secara statistik
+    3. **Lag Analysis** — ICOR tahun T vs investasi tahun T+1, T+2, T+3
+       - Formula: `Spearman(ICOR[t], Investasi[t+lag])` untuk lag = 0, 1, 2, 3
+       - Jika korelasi makin negatif pada lag lebih panjang → delay cost bersifat kumulatif
+    4. **Rate of Change** — Lonjakan tahunan ICOR
+       - Formula: `RoC = (ICOR[t] - ICOR[t-1]) / ICOR[t-1] × 100%`
+       - Lonjakan tajam = procedural shock (bukan perlambatan gradual)
 
     **Istilah "Delay Cost":** Biaya yang muncul akibat keterlambatan — proses hukum berlarut-larut,
     izin tertahan, atau keputusan yang ditunda. Semakin lama proses, semakin besar delay cost
