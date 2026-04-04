@@ -70,6 +70,10 @@ df_icor, df_asing, df_domestik = load_data()
 df_icor = df_icor.sort_values("date").reset_index(drop=True)
 df_icor["year"] = df_icor["date"].dt.year
 
+# Clean: drop rows with NaN or negative ICOR (negative = COVID 2020 artefact)
+df_icor_clean = df_icor.dropna(subset=["icor_pma", "icor_pmdn"]).copy()
+df_icor_clean = df_icor_clean[(df_icor_clean["icor_pma"] > 0) & (df_icor_clean["icor_pmdn"] > 0)].copy()
+
 # Aggregate annual investment totals
 df_asing["year"] = df_asing["date"].dt.year
 df_domestik["year"] = df_domestik["date"].dt.year
@@ -79,34 +83,34 @@ inv_pma_yr.columns = ["year", "total_pma"]
 inv_pmdn_yr = df_domestik.groupby("year")["nilai_idr_bn"].sum().reset_index()
 inv_pmdn_yr.columns = ["year", "total_pmdn"]
 
-# Merge with ICOR
-df_merged = df_icor.merge(inv_pma_yr, on="year", how="inner").merge(inv_pmdn_yr, on="year", how="inner")
+# Merge with CLEANED ICOR (no NaN, no negatives)
+df_merged = df_icor_clean.merge(inv_pma_yr, on="year", how="inner").merge(inv_pmdn_yr, on="year", how="inner")
 df_merged["total_investasi"] = df_merged["total_pma"] + df_merged["total_pmdn"]
 df_merged["icor_avg"] = (df_merged["icor_pma"] + df_merged["icor_pmdn"]) / 2
 
-# --- ICOR trend ---
-icor_pma_first = df_icor["icor_pma"].iloc[0]
-icor_pma_last = df_icor["icor_pma"].iloc[-1]
-icor_pmdn_first = df_icor["icor_pmdn"].iloc[0]
-icor_pmdn_last = df_icor["icor_pmdn"].iloc[-1]
+# --- ICOR trend (using clean data) ---
+icor_pma_first = df_icor_clean["icor_pma"].iloc[0]
+icor_pma_last = df_icor_clean["icor_pma"].iloc[-1]
+icor_pmdn_first = df_icor_clean["icor_pmdn"].iloc[0]
+icor_pmdn_last = df_icor_clean["icor_pmdn"].iloc[-1]
 icor_pma_change = ((icor_pma_last - icor_pma_first) / icor_pma_first * 100)
 icor_pmdn_change = ((icor_pmdn_last - icor_pmdn_first) / icor_pmdn_first * 100)
-yr_first = df_icor["date"].iloc[0].strftime("%Y")
-yr_last = df_icor["date"].iloc[-1].strftime("%Y")
-n_years = len(df_icor)
+yr_first = df_icor_clean["date"].iloc[0].strftime("%Y")
+yr_last = df_icor_clean["date"].iloc[-1].strftime("%Y")
+n_years = len(df_icor_clean)
 
-# ICOR peak
-icor_pma_max = df_icor["icor_pma"].max()
-icor_pma_max_yr = df_icor.loc[df_icor["icor_pma"].idxmax(), "date"].strftime("%Y")
-icor_pmdn_max = df_icor["icor_pmdn"].max()
-icor_pmdn_max_yr = df_icor.loc[df_icor["icor_pmdn"].idxmax(), "date"].strftime("%Y")
+# ICOR peak (from clean data only)
+icor_pma_max = df_icor_clean["icor_pma"].max()
+icor_pma_max_yr = df_icor_clean.loc[df_icor_clean["icor_pma"].idxmax(), "date"].strftime("%Y")
+icor_pmdn_max = df_icor_clean["icor_pmdn"].max()
+icor_pmdn_max_yr = df_icor_clean.loc[df_icor_clean["icor_pmdn"].idxmax(), "date"].strftime("%Y")
 
 # GDP growth trend
-gdp_first = df_icor["gdp_growth_pct"].iloc[0] * 100
-gdp_last = df_icor["gdp_growth_pct"].iloc[-1] * 100
-gdp_avg = df_icor["gdp_growth_pct"].mean() * 100
+gdp_first = df_icor_clean["gdp_growth_pct"].iloc[0] * 100
+gdp_last = df_icor_clean["gdp_growth_pct"].iloc[-1] * 100
+gdp_avg = df_icor_clean["gdp_growth_pct"].mean() * 100
 
-# --- Correlation: ICOR vs Investment ---
+# --- Correlation: ICOR vs Investment (from clean merged data) ---
 if len(df_merged) >= 5:
     corr_pma, pval_pma = stats.spearmanr(df_merged["icor_pma"], df_merged["total_pma"])
     corr_pmdn, pval_pmdn = stats.spearmanr(df_merged["icor_pmdn"], df_merged["total_pmdn"])
@@ -124,13 +128,13 @@ for lag in range(0, 4):
     df_lag = df_lag.dropna(subset=["inv_lagged"])
     if len(df_lag) >= 4:
         r, p = stats.spearmanr(df_lag["icor_avg"], df_lag["inv_lagged"])
-        lag_results.append({"Lag (Tahun)": lag, "Spearman r": r, "p-value": p, "n": len(df_lag)})
+        lag_results.append({"Lag (Tahun)": lag, "Spearman r": round(r, 3), "p-value": round(p, 4), "n": len(df_lag)})
 
 df_lag_results = pd.DataFrame(lag_results)
 
-# Rate of change ICOR
-df_icor["icor_pma_pct"] = df_icor["icor_pma"].pct_change() * 100
-df_icor["icor_pmdn_pct"] = df_icor["icor_pmdn"].pct_change() * 100
+# Rate of change ICOR (from clean data)
+df_icor_clean["icor_pma_pct"] = df_icor_clean["icor_pma"].pct_change() * 100
+df_icor_clean["icor_pmdn_pct"] = df_icor_clean["icor_pmdn"].pct_change() * 100
 
 # ICOR efficiency classification
 icor_avg_last = (icor_pma_last + icor_pmdn_last) / 2
@@ -143,11 +147,12 @@ elif icor_avg_last > 3:
 else:
     efisiensi_status = "Efisien"
 
-# Worst year (biggest ICOR jump)
-worst_jump_idx = df_icor["icor_pma_pct"].idxmax()
-if pd.notna(worst_jump_idx):
-    worst_jump_yr = df_icor.loc[worst_jump_idx, "date"].strftime("%Y")
-    worst_jump_val = df_icor.loc[worst_jump_idx, "icor_pma_pct"]
+# Worst year (biggest ICOR jump, from clean data)
+roc_valid = df_icor_clean.dropna(subset=["icor_pma_pct"])
+if len(roc_valid) > 0:
+    worst_jump_idx = roc_valid["icor_pma_pct"].idxmax()
+    worst_jump_yr = roc_valid.loc[worst_jump_idx, "date"].strftime("%Y")
+    worst_jump_val = roc_valid.loc[worst_jump_idx, "icor_pma_pct"]
 else:
     worst_jump_yr = "—"
     worst_jump_val = 0
@@ -420,9 +425,8 @@ st.markdown(roc_narr.format(
 ) + f"\n\n<small>📁 <b>Sumber:</b> {roc_src}</small>", unsafe_allow_html=True)
 st.caption(_("📊 Visualisasi: Bar chart — perubahan ICOR PMA (%) per tahun. Merah = lonjakan, kuning = penurunan."))
 
-df_roc = df_icor.dropna(subset=["ikk_pma_pct" if "ikk_pma_pct" in df_icor.columns else "icor_pma_pct"]).copy()
+df_roc = df_icor_clean.dropna(subset=["icor_pma_pct"]).copy()
 roc_col = "icor_pma_pct"
-df_roc = df_icor.dropna(subset=[roc_col]).copy()
 bar_colors = [C_ANOMALY if v > 0 else "#FDD835" for v in df_roc[roc_col]]
 
 fig_roc = go.Figure()
