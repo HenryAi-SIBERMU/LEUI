@@ -66,6 +66,8 @@ df = df.sort_values("date").reset_index(drop=True)
 n_obs = len(df)
 date_start = df["date"].min().strftime("%d %B %Y")
 date_end = df["date"].max().strftime("%d %B %Y")
+year_start = df["date"].min().year
+year_end = df["date"].max().year
 
 # Basic stats
 mean_ns = df["net_sell_idr_tn"].mean()
@@ -116,14 +118,14 @@ if current_streak > 0:
 max_streak = max(streaks) if streaks else 0
 
 # Quarterly aggregation
-df["quarter"] = df["date"].dt.to_period("Q")
-q_agg = df.groupby("quarter").agg(
+df["quarter_str"] = df["date"].dt.year.astype(str) + "Q" + df["date"].dt.quarter.astype(str)
+q_agg = df.groupby("quarter_str").agg(
     total_sell=("net_sell_idr_tn", "sum"),
     avg_sell=("net_sell_idr_tn", "mean"),
     max_sell=("net_sell_idr_tn", "max"),
     n_obs=("net_sell_idr_tn", "count")
 ).reset_index()
-q_agg["quarter_str"] = q_agg["quarter"].astype(str)
+q_agg = q_agg.sort_values("quarter_str").reset_index(drop=True)
 
 # Worst quarter
 if len(q_agg) > 0:
@@ -241,7 +243,7 @@ with col4:
     <div class="metric-card">
         <div class="metric-label">Total Akumulasi</div>
         <div class="metric-value" style="color:{C_WARN}">{total_ns:.1f} Tn</div>
-        <div class="metric-delta" style="color:#AAA">{date_start[:4]}–{date_end[:4]}</div>
+        <div class="metric-delta" style="color:#AAA">{year_start}–{year_end}</div>
     </div>""", unsafe_allow_html=True)
 
 st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
