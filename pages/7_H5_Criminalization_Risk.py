@@ -228,14 +228,14 @@ with col1:
     st.markdown(f"""
     <div class="metric-card">
         <div class="metric-label">Episode Expectation Crash</div>
-        <div class="metric-value" style="color:{C_ANOMALY}">{n_exp_crashes}</div>
+        <div class="metric-value" style="color:{C_ANOMALY}">{n_exp_crashes}&nbsp;<span style="font-size:1.2rem;color:#888;">Bulan</span></div>
         <div class="metric-delta" style="color:{C_WARN}">Z < -2 (penurunan mendadak)</div>
     </div>""", unsafe_allow_html=True)
 with col2:
     st.markdown(f"""
     <div class="metric-card">
         <div class="metric-label">Gap Terlebar</div>
-        <div class="metric-value" style="color:{C_ANOMALY}">{gap_max:.1f}</div>
+        <div class="metric-value" style="color:{C_ANOMALY}">{gap_max:.1f}&nbsp;<span style="font-size:1.2rem;color:#888;">Poin</span></div>
         <div class="metric-delta" style="color:#AAA">{max_gap_date}</div>
     </div>""", unsafe_allow_html=True)
 with col3:
@@ -243,7 +243,7 @@ with col3:
     st.markdown(f"""
     <div class="metric-card">
         <div class="metric-label">Gap Terakhir</div>
-        <div class="metric-value" style="color:{gap_color}">{gap_latest:.1f}</div>
+        <div class="metric-value" style="color:{gap_color}">{gap_latest:.1f}&nbsp;<span style="font-size:1.2rem;color:#888;">Poin</span></div>
         <div class="metric-delta" style="color:#AAA">Rata-rata: {gap_mean:.1f}</div>
     </div>""", unsafe_allow_html=True)
 with col4:
@@ -251,7 +251,7 @@ with col4:
     st.markdown(f"""
     <div class="metric-card">
         <div class="metric-label">Crash Terburuk</div>
-        <div class="metric-value" style="color:{crash_color}">{worst_crash_val:.1f}</div>
+        <div class="metric-value" style="color:{crash_color}">{worst_crash_val:.1f}&nbsp;<span style="font-size:1.2rem;color:#888;">Poin</span></div>
         <div class="metric-delta" style="color:{C_WARN}">{worst_crash_date}</div>
     </div>""", unsafe_allow_html=True)
 
@@ -273,7 +273,7 @@ daripada kondisi saat ini** — sebuah pola yang sehat dalam ekonomi normal, nam
 **tanda bahaya** ketika gap terlalu lebar atau tiba-tiba melebar: itu artinya realita
 jauh lebih buruk dari harapan, atau harapan sedang runtuh."""
 
-ts_src = "Data mentah <code>ikk_expect_vs_present.csv</code>. Gap = IKK Expectation - IKK Present."
+ts_src = "Data IKK <code>ikk_expect_vs_present.csv</code> (Bank Indonesia). Gap = IKK Expectation - IKK Present."
 st.markdown(ts_narr.format(gap_mean=gap_mean) +
             f"\n\n<small>📁 <b>Sumber:</b> {ts_src}</small>", unsafe_allow_html=True)
 
@@ -321,7 +321,7 @@ Garis oranye putus-putus menunjukkan rata-rata perubahan bulanan ({avg_chg:.2f})
 
 st.markdown(crash_narr.format(
     worst_date=worst_crash_date, worst_val=worst_crash_val, avg_chg=exp_change_mean
-) + f"\n\n<small>📁 <b>Sumber:</b> Perubahan month-over-month IKK Ekspektasi.</small>", unsafe_allow_html=True)
+) + f"\n\n<small>📁 <b>Sumber:</b> Kalkulasi turunan <code>ikk_expect_vs_present.csv</code> (Bank Indonesia).</small>", unsafe_allow_html=True)
 st.caption("📊 Visualisasi: Bar chart perubahan bulanan IKK Ekspektasi. Merah = crash (Z<-2), Oranye = drop signifikan (Z<-1), Biru = normal.")
 
 df_chg = df.dropna(subset=["exp_change"]).copy()
@@ -367,9 +367,9 @@ secara sporadis dan tidak terprediksi, masyarakat kehilangan kemampuan untuk mem
 ekspektasi yang stabil. Pola ini disebut *expectation volatility* — bukan sekadar pesimisme,
 tapi **ketidakmampuan untuk memprediksi arah** yang jauh lebih berbahaya bagi investasi."""
 
-vol_src = "Rolling std. deviation dari IKK Gap dengan window {win} bulan."
+vol_src = "Kalkulasi rolling std. deviation IKK Gap dari <code>ikk_expect_vs_present.csv</code> (Bank Indonesia)."
 st.markdown(vol_narr.format(win=window) +
-            f"\n\n<small>📁 <b>Sumber:</b> {vol_src.format(win=window)}</small>", unsafe_allow_html=True)
+            f"\n\n<small>📁 <b>Sumber:</b> {vol_src}</small>", unsafe_allow_html=True)
 
 fig_vol = go.Figure()
 fig_vol.add_trace(go.Scatter(
@@ -398,7 +398,8 @@ tbl_narr = """Menggunakan metode **Z-Score Episode Detection** — tabel menampi
 Kolom menunjukkan tanggal, nilai IKK, gap, dan Z-Score. Episode ini dapat dihubungkan
 oleh analis ke berbagai peristiwa publik yang terjadi pada periode tersebut."""
 
-st.markdown(tbl_narr)
+tbl_src = "Deteksi algoritma Z-Score dari data <code>ikk_expect_vs_present.csv</code> (Bank Indonesia)."
+st.markdown(tbl_narr + f"\n\n<small>📁 <b>Sumber:</b> {tbl_src}</small>", unsafe_allow_html=True)
 
 # Combine crash + gap anomaly episodes
 crisis_episodes = df[df["is_crisis"]].copy()
