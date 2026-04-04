@@ -233,8 +233,9 @@ st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
 # ══════════════════════════════════════════════════
 st.markdown("---")
 st.subheader(_("2.1 IKK Ekspektasi vs Present — Deteksi Anomali"))
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Anomaly Detection</span>', unsafe_allow_html=True)
 
-ikk_narr = _("""Grafik menampilkan dua garis: IKK Ekspektasi (biru) dan IKK Present/Kondisi Saat Ini (hijau).
+ikk_narr = _("""Menggunakan metode **Z-Score Anomaly Detection** pada perubahan bulanan IKK Ekspektasi.
 Titik merah menandai bulan dimana IKK Ekspektasi **jatuh secara abnormal** (Z-Score < -2) —
 artinya penurunan tersebut secara statistik **bukan fluktuasi wajar**. Sepanjang {start}–{end},
 terdeteksi **{n_anom} episode** anomali. Perhatikan bahwa anomali-anomali ini cenderung
@@ -281,9 +282,10 @@ st.plotly_chart(fig_ikk, use_container_width=True)
 # 2.2 IKK GAP ANALYSIS
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("2.2 IKK Gap Analysis (Ekspektasi − Present)"))
+st.subheader(_("2.2 IKK Gap Analysis — Ukuran Kepanikan"))
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Gap Analysis + Z-Score</span>', unsafe_allow_html=True)
 
-gap_narr = _("""Gap antara IKK Ekspektasi dan Present mengukur seberapa besar \"kepanikan\" publik.
+gap_narr = _("""Menggunakan metode **Gap Analysis** (selisih Ekspektasi − Present) dan Z-Score pada perubahan gap.
 **Gap positif tinggi** = ekspektasi jauh di atas kenyataan (optimisme berlebih).
 **Gap menyempit/negatif** = kenyataan lebih buruk dari harapan (pesimisme akut).
 Perubahan gap yang **mendadak** (Z-Score > 2 atau < -2, ditandai titik oranye) menunjukkan bulan dimana
@@ -335,8 +337,9 @@ st.plotly_chart(fig_gap, use_container_width=True)
 # ══════════════════════════════════════════════════
 st.markdown("---")
 st.subheader(_("2.3 PMI Manufaktur — Zona Kontraksi"))
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: PMI Kontraksi Detection</span>', unsafe_allow_html=True)
 
-pmi_narr = _("""PMI Manufaktur sebagai *leading indicator* aktivitas ekonomi riil memperlihatkan pola yang menarik.
+pmi_narr = _("""Menggunakan metode **PMI Kontraksi Detection** (threshold PMI < 50 = kontraksi sektor manufaktur).
 Dari **{n_months} bulan** observasi ({start} – {end}), PMI mengalami kontraksi (<50) selama
 **{n_kon} bulan** — artinya **{pct:.0f}%** dari periode yang diamati, sektor manufaktur menyusut.
 PMI terendah tercatat pada **{min_date}** di level **{min_val:.1f}**, sementara rata-rata sepanjang
@@ -376,8 +379,9 @@ st.plotly_chart(fig_pmi, use_container_width=True)
 # ══════════════════════════════════════════════════
 st.markdown("---")
 st.subheader(_("2.4 Daftar Episode Anomali (Data-Driven)"))
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Episode Detection</span>', unsafe_allow_html=True)
 
-tbl_narr = _("""Tabel di bawah menyajikan **semua episode** dimana IKK Ekspektasi mengalami
+tbl_narr = _("""Menggunakan metode **Z-Score Episode Detection** untuk mengidentifikasi semua episode anomali secara algoritmik. Tabel di bawah menyajikan **semua episode** dimana IKK Ekspektasi mengalami
 penurunan abnormal (Z-Score < -2), diurutkan dari yang terparah. Tanggal-tanggal ini
 **tidak dipilih secara manual** — semuanya muncul dari deteksi statistik otomatis.
 Tanggal-tanggal ini dapat dicocokkan dengan peristiwa yang diketahui publik

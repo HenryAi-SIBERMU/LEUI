@@ -265,9 +265,10 @@ st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
 # ══════════════════════════════════════════════════
 st.markdown("---")
 st.subheader(_("1.1 Ketimpangan Distribusi Investasi (Gini Coefficient)"))
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Gini Coefficient</span>', unsafe_allow_html=True)
 
 gini_trend_word = "memburuk" if gini_a_change > 0 else "membaik"
-gini_narrative = _("""Grafik di bawah memperlihatkan **dua wajah ketimpangan** yang terjadi bersamaan. Gini PMA secara
+gini_narrative = _("""Menggunakan metode **Gini Coefficient** untuk mengukur ketimpangan distribusi investasi antar provinsi. Grafik di bawah memperlihatkan **dua wajah ketimpangan** yang terjadi bersamaan. Gini PMA secara
 konsisten berada di atas **{avg_a:.3f}** (rata-rata sepanjang periode), dengan kuartal terakhir di angka **{last_a:.3f}** —
 jauh melampaui ambang batas ketimpangan moderat (0.4, garis kuning putus-putus). Ini berarti investasi asing
 **terkonsentrasi di segelintir wilayah saja**. Lebih mengkhawatirkan, dibandingkan 4 kuartal pertama ({early:.3f})
@@ -307,8 +308,9 @@ st.plotly_chart(fig_gini, use_container_width=True)
 # ══════════════════════════════════════════════════
 st.markdown("---")
 st.subheader(_("1.2 Volatilitas Investasi Antar Provinsi (Std. Deviation)"))
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Standard Deviation</span>', unsafe_allow_html=True)
 
-std_narrative = _("""Standar deviasi memperkuat temuan Gini di atas. Jika Gini mengukur *seberapa timpang*,
+std_narrative = _("""Menggunakan metode **Standard Deviation** untuk mengukur volatilitas sebaran investasi.
 SD mengukur *seberapa jauh* kesenjangan itu dalam nilai absolut. SD PMA kuartal terakhir sebesar
 **{std_a:,.1f} IDR Bn / Miliar** — artinya sebaran investasi antar provinsi sangat lebar, dengan beberapa
 provinsi menerima puluhan ribu miliar sementara yang lain nyaris nol. SD PMDN di **{std_d:,.1f} IDR Bn / Miliar**
@@ -342,8 +344,9 @@ st.plotly_chart(fig_std, use_container_width=True)
 # ══════════════════════════════════════════════════
 st.markdown("---")
 st.subheader(_("1.3 Peta Konsentrasi Investasi per Provinsi"))
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Distribusi Top/Bottom Analysis</span>', unsafe_allow_html=True)
 
-prov_narrative = _("""Kedua grafik (Top 15 & Bottom 15) di bawah memperlihatkan skala kesenjangan yang mengejutkan.
+prov_narrative = _("""Menggunakan metode **Distribusi Top/Bottom Analysis** untuk mengidentifikasi konsentrasi investasi.
 **{top1}**, **{top2}**, dan **{top3}** mendominasi penerimaan investasi gabungan PMA+PMDN,
 sementara **{bot1}**, **{bot2}**, dan **{bot3}** nyaris tidak menerima apa-apa. Rasio Top/Bottom
 mencapai **{ratio:,.0f}x lipat** — provinsi teratas menerima investasi {ratio:,.0f} kali lebih besar
@@ -404,9 +407,10 @@ st.markdown(f"""
 # ══════════════════════════════════════════════════
 st.markdown("---")
 st.subheader(_("1.4 Tren ICOR Nasional: Biaya Ketidakpastian"))
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: ICOR Time Series</span>', unsafe_allow_html=True)
 
 icor_trend_word = "naik" if icor_pma_trend > 0 else "turun"
-icor_narrative = _("""ICOR mengukur **berapa mahal** biaya untuk menghasilkan pertumbuhan ekonomi. ICOR PMA pada
+icor_narrative = _("""Menggunakan metode **ICOR Time Series** untuk mengukur efisiensi investasi. ICOR PMA pada
 {yr_first} sebesar **{v_first:.2f}**, namun pada {yr_last} menjadi **{v_last:.2f}** — {trend} **{chg:.1f}%**.
 ICOR PMDN bahkan lebih buruk: dari **{d_first:.2f}** ke **{d_last:.2f}**. ICOR yang naik berarti
 Indonesia membutuhkan **semakin banyak investasi** untuk menghasilkan 1 unit pertumbuhan PDB — sebuah
