@@ -264,19 +264,10 @@ st.markdown("---")
 st.subheader("4.1 Time Series Net Sell Obligasi + Deteksi Anomali")
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Anomaly Detection</span>', unsafe_allow_html=True)
 
-ts_narr = """**Cara Membaca Grafik:** Grafik batang (bar chart) di bawah menampilkan volume net sell per periode. 
-Warna biru menunjukkan fluktuasi normal. Garis oranye (rata-rata historis **{mean:.2f} IDR Tn / Triliun**) adalah *baseline*. 
-Batang berwarna **oranye (Elevated)** dan **merah (Anomali)** menandakan penarikan modal yang secara statistik tidak wajar.
-
-**Narasi Kritis:** Menggunakan metode **Z-Score Anomaly Detection**, kita bisa memisahkan "noise" pasar dari kepanikan institusional. 
-Titik merah (Z > 2) menandai *capital flight episode*. Perhatikan bahwa spike merah ini tidak tersebar acak, melainkan 
-**terkonsentrasi (clustering)** pada periode tertentu. Ini konsisten dengan pola *regulatory shock*: ketika ada pencabutan 
-kebijakan sepihak (regulatory reversal), investor merespons seketika dengan menarik likuiditas besar-besaran. 
-Tren kepanikan ekstrem terpanjang mencapai **{streak} periode berturut-turut** di atas rata-rata — sebuah proksi kuat 
-krisis kepercayaan hukum."""
+ts_narr = """Grafik batang di bawah menampilkan fluktuasi ekstrem net sell per periode. Dari rata-rata historis **{mean:.2f} IDR Tn**, algoritma mendeteksi **{n_anom} minggu anomali** (batang merah, Z > 2) dan **{n_high} minggu elevated** (oranye, Z > 1) di mana kepanikan institusional memicu pelarian modal masif. Spike merah ini tidak tersebar acak melainkan **terkonsentrasi (clustering)** pada periode krisis kepercayaan hukum. Rekor kepanikan terpanjang mencapai **{streak} minggu berturut-turut** di atas rata-rata — mengonfirmasi bahwa *regulatory shock* memicu efek domino bagi penarikan likuiditas pasar."""
 
 ts_src = "Data mentah <code>capital_outflow.csv</code>. Z-Score dihitung dari mean dan std. deviasi seluruh dataset."
-st.markdown(ts_narr.format(mean=mean_ns, streak=max_streak) +
+st.markdown(ts_narr.format(mean=mean_ns, n_anom=n_anomaly, n_high=n_high, streak=max_streak) +
             f"\n\n<small>📁 <b>Sumber:</b> {ts_src}</small>", unsafe_allow_html=True)
 st.caption("📊 Visualisasi: Bar chart — net sell per periode. Merah = anomali (Z>2), Oranye = elevated (Z>1), Biru = normal.")
 
@@ -316,18 +307,10 @@ st.markdown("---")
 st.subheader("4.2 Rolling Band Analysis — Batas Fluktuasi Wajar")
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Rolling Band Analysis</span>', unsafe_allow_html=True)
 
-band_narr = """**Cara Membaca Grafik:** Garis biru solid adalah net sell aktual. Garis hijau putus-putus adalah *rolling mean*
-(rata-rata bergerak selama {win} periode) yang merepresentasikan tren kepanikan basis. Garis merah putus-putus adalah *Upper Band* 
-(+2 standar deviasi) — ini adalah batas toleransi volatilitas pasar. Area merah menyala menunjukkan titik "jebolnya" batas wajar.
-
-**Narasi Kritis:** Metode **Rolling Band Analysis** menangkap perubahan volatilitas dari waktu ke waktu. Ketika garis biru 
-menembus Upper Band merah, itu bukan sekadar capital outflow biasa, melainkan pelarian modal yang didorong oleh *fear factor*. 
-Perhatikan bagaimana jarak antara garis hijau dan merah (*band width*) terkadang melebar drastis. Pelebaran ini adalah visualisasi dari 
-**volatility clustering** — sebuah bukti bahwa ketidakpastian regulasi tidak hanya menaikkan *volume* uang yang keluar, 
-tetapi juga menciptakan **ketidakpastian ekstrem terhadap pergerakan pasar ke depan**. Investor bingung, dan *default action* mereka adalah kabur."""
+band_narr = """Ketika net sell aktual (garis biru) menembus batas toleransi Upper Band (garis merah putus-putus pada tingkat +2 standar deviasi, rata-rata di kisaran **{upper_band:.1f} IDR Tn**), ini mendeskripsikan jebolnya batas wajar volatilitas. Jarak antara *rolling mean* (hijau) dan batas merah yang melebar drastis secara visual membuktikan fenomena **volatility clustering**. Ketidakpastian regulasi tidak hanya memaksa modal keluar secara absolut, tetapi secara radikal melebarkan ketidakpastian pergerakan *yield* ke depan, membuat *default action* rasional investor adalah penyelamatan aset (flight to safety)."""
 
 band_src = "Rolling window = {win} periode. Upper band = rolling mean + 2 × rolling std."
-st.markdown(band_narr.format(win=window) +
+st.markdown(band_narr.format(upper_band=mean_ns + 2*std_ns) +
             f"\n\n<small>📁 <b>Sumber:</b> {band_src.format(win=window)}</small>", unsafe_allow_html=True)
 st.caption("📊 Visualisasi: Line chart — net sell aktual (biru), rolling mean (hijau), upper band (merah putus-putus).")
 
@@ -363,15 +346,7 @@ st.markdown("---")
 st.subheader("4.3 Agregasi Kuartal — Tren Makro Capital Outflow")
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Quarterly Aggregation</span>', unsafe_allow_html=True)
 
-q_narr = """**Cara Membaca Grafik:** Batang menampilkan total agregasi net sell (keluarnya modal) setiap kuartal.
-Tinggi batang dan intensitas warna (semakin merah/gelap) menekankan level keparahan capital outflow pada kuartal tersebut.
-
-**Narasi Kritis:** Melalui **Quarterly Aggregation**, kita menghilangkan *noise* harian/mingguan untuk melihat *big picture* ekonomi politik. 
-Kuartal paling destruktif adalah **{worst_q}** yang menyapu bersih **{worst_val:.2f} IDR Tn / Triliun**. 
-Kuartal merah ini menandakan bahwa *shock* kebijakan tidak terselesaikan dengan cepat; efek kerusakannya pada sentimen 
-mampu bertahan sepanjang tiga bulan penuh. Jika batang merah tinggi terjadi berulang (*persistent*), ini mengindikasikan bahwa 
-*regulatory reversal* telah mendarah daging sebagai iklim usaha yang cacat (structural baseline). Jika sporadis, ini 
-adalah reaksi syok terhadap kebijakan reaksioner sesaat."""
+q_narr = """Agregasi kuartalan menyaring *noise* mingguan untuk mengungkap daya rusak makroekonomi dari pencabutan kebijakan hukum. Kuartal terburuk berpusat pada **{worst_q}** yang menyapu bersih likuiditas hingga **{worst_val:.2f} IDR Tn / Triliun**. Jika lonjakan *outflow* tinggi pada satu kuartal namun segera mereda, itu terhitung reaksi syok sesaat. Namun, tinggi batang yang terus persisten di rasio atas mengindikasikan *regulatory reversal* bukan sekadar insiden tunggal, melainkan telah membeku menjadi iklim usaha yang struktural-destruktif bagi sentimen investasi."""
 
 q_src = "Agregasi <code>capital_outflow.csv</code> per kuartal: sum, mean, max, dan count per kuartal."
 st.markdown(q_narr.format(worst_q=worst_q, worst_val=worst_q_val) +
@@ -404,15 +379,9 @@ st.markdown("---")
 st.subheader("4.4 Episode Capital Flight — Deteksi Anomali")
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Episode Detection</span>', unsafe_allow_html=True)
 
-tbl_narr = """**Cara Membaca Tabel:** Tabel ini diurutkan dari nilai Z-Score tertinggi. Nilai Z-Score di atas 2 
-menandakan simpangan deviasi ekstrem (zona merah anomali). Semakin tinggi net sell (dalam Triliun), semakin masif pelarian modal.
+tbl_narr = """Deteksi anomali statistik mencatat titik nadir pelarian modal pada **{max_date}** dengan nilai fantastis **{max_val:.2f} IDR Tn** (Z-Score **{max_z:.2f}**). Tabel di bawah memetakan secara kronologis seluruh episode anomali (Z > 2) dan elevated (Z > 1) yang berfungsi sebagai **jejak forensik aliran modal**. Analis penegakan hukum dapat langsung melakukan *overlay* kalender kejadian—menguji korelasi persisnya jatuhnya triliunan rupiah dengan diumumkannya pencabutan izin tambang, perombakan mendadak pejabat kunci, atau intervensi retroaktif dalam kontrak esensial."""
 
-**Narasi Kritis:** Metode **Z-Score Episode Detection** mendeteksi tanggal pelarian modal murni berdasarkan anomali statistik.
-Kolom "Anomali? Ya" adalah periode di mana kepanikan institusional berada di puncaknya. Tanggal-tanggal krisis ini 
-bertindak sebagai **jejak forensik aliran modal** — mengarahkan analis langsung ke periode mana kebijakan kontroversial, 
-pencabutan izin mendadak, atau putusan hukum bermasalah diterbitkan, yang memicu investor kabur *at all costs*."""
-
-st.markdown(tbl_narr)
+st.markdown(tbl_narr.format(max_date=max_date, max_val=max_ns, max_z=max_z))
 
 if len(high_episodes) > 0:
     tbl = high_episodes[["date", "net_sell_idr_tn", "z_score", "is_anomaly"]].copy()
