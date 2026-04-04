@@ -2,7 +2,7 @@
 Page 3 — H3: Procedural Uncertainty
 Analisis delay cost dan inefisiensi investasi menggunakan ICOR sebagai proxy
 ketidakpastian prosedural hukum.
-Semua data-driven — zero hardcoded events.
+    `Procedural Uncertainty → Delay Cost → ICOR Naik → Investasi Makin Tidak Efisien → Growth Terhambat`
 
 Causal Chain: Procedural Uncertainty → Delay Cost → ICOR Naik → Investasi Makin Tidak Efisien
 """

@@ -2,7 +2,7 @@
 Page 5 — H5: Criminalization Risk
 Analisis IKK Expectation Collapse sebagai proxy risiko kriminalisasi
 keputusan bisnis yang merusak kepercayaan investor.
-Semua data-driven — zero hardcoded events.
+    `Criminalization Risk → Personal Liability Fear → Expectation Collapse → Investment Freeze`
 
 Causal Chain: Criminalization Risk → Personal Liability Fear → Expectation Collapse → Investment Freeze
 """
@@ -395,9 +395,8 @@ st.subheader(_("5.4 Episode Krisis Kepercayaan"))
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Episode Detection</span>', unsafe_allow_html=True)
 
 tbl_narr = _("""Menggunakan metode **Z-Score Episode Detection** — tabel menampilkan episode-episode terburuk yang terdeteksi secara algoritmik.
-Kolom menunjukkan tanggal, nilai IKK, gap, dan Z-Score. **Semua tanggal ditemukan oleh algoritma,
-tidak ada event yang di-hardcode.** Episode ini dapat dihubungkan oleh analis ke berbagai
-peristiwa publik yang terjadi pada periode tersebut.""")
+Kolom menunjukkan tanggal, nilai IKK, gap, dan Z-Score. Episode ini dapat dihubungkan
+oleh analis ke berbagai peristiwa publik yang terjadi pada periode tersebut.""")
 
 st.markdown(tbl_narr)
 

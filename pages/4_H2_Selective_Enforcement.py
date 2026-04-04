@@ -1,7 +1,7 @@
 """
 Page 2 — H2: Selective Enforcement
 Analisis pola enforcement selektif menggunakan anomaly detection pada IKK & PMI.
-Semua data-driven — zero hardcoded events.
+    `Selective Enforcement → Political/Discretion Risk → Confidence Crash → Investment Delay/Exit`
 
 Causal Chain: Selective Enforcement → Political/Discretion Risk → IKK/PMI Drop → Investment Delay
 """
@@ -186,7 +186,7 @@ st.markdown(
     f"\n\n<small>📁 <b>Sumber:</b> {intro_src.format(ikk_n=len(df_ikk), ikk_start=ikk_date_start, ikk_end=ikk_date_end, pmi_n=n_pmi_months, pmi_start=pmi_date_start, pmi_end=pmi_date_end)}</small>",
     unsafe_allow_html=True
 )
-st.caption(_("📊 Visualisasi: Empat panel — (1) IKK Time Series + Anomali, (2) IKK Gap Analysis, (3) PMI Kontraksi, (4) Tabel Episode Anomali. Semua threshold dihitung dari data, tidak ada event hardcoded."))
+st.caption(_("📊 Visualisasi: Empat panel — (1) IKK Time Series + Anomali, (2) IKK Gap Analysis, (3) PMI Kontraksi, (4) Tabel Episode Anomali. Semua threshold dihitung dari data."))
 
 
 # ── KPI Cards — Semua warna advokasi (oranye/merah), TIDAK ADA hijau ──

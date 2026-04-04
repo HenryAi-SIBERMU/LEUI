@@ -2,7 +2,7 @@
 Page 4 — H4: Regulatory Reversal Risk
 Analisis capital outflow (net sell obligasi) sebagai proxy risiko pencabutan
 izin/kebijakan mendadak yang memicu pelarian modal.
-Semua data-driven — zero hardcoded events.
+    `Regulatory Reversal → Stranded Asset Fear → Capital Flight → Net Sell Obligasi Melonjak`
 
 Causal Chain: Regulatory Reversal → Stranded Asset Fear → Capital Flight → Net Sell Spike
 """
@@ -396,8 +396,7 @@ st.subheader("4.4 Episode Capital Flight — Deteksi Anomali")
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Episode Detection</span>', unsafe_allow_html=True)
 
 tbl_narr = """Menggunakan metode **Z-Score Episode Detection** — tabel di bawah menampilkan seluruh episode yang terdeteksi secara algoritmik.
-Semua tanggal episode ini diidentifikasi murni berdasarkan Z-Score — **tidak ada event yang
-di-hardcode**. Threshold Z > 2 digunakan untuk anomali, Z > 1 untuk elevated.
+Threshold Z > 2 digunakan untuk anomali, Z > 1 untuk elevated.
 Episode-episode ini dapat dihubungkan oleh analis ke berbagai peristiwa regulasi
 atau kebijakan yang terjadi pada periode tersebut."""
 
