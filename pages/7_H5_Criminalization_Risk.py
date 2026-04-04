@@ -62,7 +62,7 @@ df = df.sort_values("date").reset_index(drop=True)
 
 
 # ══════════════════════════════════════════════════
-# PRE-COMPUTE — 100% DATA-DRIVEN
+# PRE-COMPUTE
 # ══════════════════════════════════════════════════
 
 n_obs = len(df)
@@ -162,7 +162,7 @@ with st.expander(_("Metodologi: Analisis Criminalization Risk (H5)"), expanded=F
     **Causal Chain:**
     `Criminalization Risk → Personal Liability Fear → Expectation Collapse → IKK Gap Melebar → Investment Freeze`
 
-    **Metode — 100% Data-Driven:**
+    **Metode:**
     1. **Gap Analysis (Expectation − Present)** — Selisih antara ekspektasi konsumen
        dengan kondisi saat ini. Gap yang melebar = masyarakat berharap perbaikan tapi
        realita memburuk. Gap > 2σ dari rata-rata = anomali struktural.
@@ -263,8 +263,9 @@ st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
 # ══════════════════════════════════════════════════
 st.markdown("---")
 st.subheader(_("5.1 IKK Ekspektasi vs Kondisi Saat Ini — Jurang Kepercayaan"))
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Gap Analysis</span>', unsafe_allow_html=True)
 
-ts_narr = _("""Dua garis menunjukkan IKK Ekspektasi (biru) dan IKK Kondisi Saat Ini (hijau).
+ts_narr = _("""Menggunakan metode **Gap Analysis** — dua garis menunjukkan IKK Ekspektasi (biru) dan IKK Kondisi Saat Ini (hijau).
 Area oranye di antaranya adalah **gap** — selisih antara apa yang masyarakat harapkan
 dengan apa yang mereka rasakan saat ini. Gap yang **konsisten lebar** (rata-rata: {gap_mean:.1f} poin)
 menandakan bahwa masyarakat Indonesia secara kronis **lebih optimis tentang masa depan
@@ -308,8 +309,9 @@ st.plotly_chart(fig_ts, use_container_width=True)
 # ══════════════════════════════════════════════════
 st.markdown("---")
 st.subheader(_("5.2 Deteksi Expectation Crash — Runtuhnya Kepercayaan Mendadak"))
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Crash Detection</span>', unsafe_allow_html=True)
 
-crash_narr = _("""Bar chart di bawah memperlihatkan perubahan IKK Ekspektasi dari bulan ke bulan.
+crash_narr = _("""Menggunakan metode **Z-Score Crash Detection** pada perubahan bulanan IKK Ekspektasi.
 Bar merah menandai **crash** (Z < -2) — bulan-bulan di mana ekspektasi publik jatuh secara
 abnormal. Crash mendadak ini konsisten dengan pola *criminalization shock* — peristiwa
 seperti penangkapan direksi, kriminalisasi pejabat, atau penahanan aset mendadak
@@ -355,8 +357,9 @@ st.plotly_chart(fig_crash, use_container_width=True)
 # ══════════════════════════════════════════════════
 st.markdown("---")
 st.subheader(_("5.3 Rolling Gap Volatility — Ketidakpastian Kepercayaan"))
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Rolling Standard Deviation</span>', unsafe_allow_html=True)
 
-vol_narr = _("""Grafik memperlihatkan volatilitas gap (standar deviasi rolling {win}-bulan).
+vol_narr = _("""Menggunakan metode **Rolling Standard Deviation** — grafik memperlihatkan volatilitas gap (standar deviasi rolling {win}-bulan).
 Spike pada volatilitas gap menandakan periode di mana **ketidakpastian** itu sendiri meningkat —
 bukan hanya gap yang lebar, tapi gap yang **berubah-ubah secara tidak bisa diprediksi**.
 Ini adalah manifestasi langsung dari *criminalization risk*: ketika kriminalisasi bisnis terjadi
@@ -389,8 +392,9 @@ st.plotly_chart(fig_vol, use_container_width=True)
 # ══════════════════════════════════════════════════
 st.markdown("---")
 st.subheader(_("5.4 Episode Krisis Kepercayaan"))
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Episode Detection</span>', unsafe_allow_html=True)
 
-tbl_narr = _("""Tabel menampilkan episode-episode terburuk yang terdeteksi secara algoritmik.
+tbl_narr = _("""Menggunakan metode **Z-Score Episode Detection** — tabel menampilkan episode-episode terburuk yang terdeteksi secara algoritmik.
 Kolom menunjukkan tanggal, nilai IKK, gap, dan Z-Score. **Semua tanggal ditemukan oleh algoritma,
 tidak ada event yang di-hardcode.** Episode ini dapat dihubungkan oleh analis ke berbagai
 peristiwa publik yang terjadi pada periode tersebut.""")

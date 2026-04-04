@@ -139,7 +139,7 @@ with st.expander(_("ℹ️ Metodologi: Analisis Selective Enforcement (H2)"), ex
     **Causal Chain:**
     `Selective Enforcement → Political/Discretion Risk → Confidence Crash → Investment Delay/Exit`
 
-    **Metode — 100% Data-Driven:**
+    **Metode:**
     1. **Z-Score Anomaly Detection** pada perubahan bulanan IKK Ekspektasi
        - Z-Score < -2 = drop yang secara statistik abnormal
        - Formula: `Z = (pct_change - μ) / σ`

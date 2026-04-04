@@ -175,7 +175,7 @@ with st.expander(_("Metodologi: Analisis Procedural Uncertainty (H3)"), expanded
     **Causal Chain:**
     `Procedural Uncertainty → Delay Cost → ICOR Naik → Investasi Makin Tidak Efisien → Growth Terhambat`
 
-    **Metode — 100% Data-Driven:**
+    **Metode:**
     1. **ICOR sebagai Delay Cost Indicator**
        - ICOR = Incremental Capital-Output Ratio
        - Formula: `ICOR = Total Investasi / ΔGDP`

@@ -60,7 +60,7 @@ df = df.sort_values("date").reset_index(drop=True)
 
 
 # ══════════════════════════════════════════════════
-# PRE-COMPUTE — 100% DATA-DRIVEN
+# PRE-COMPUTE
 # ══════════════════════════════════════════════════
 
 n_obs = len(df)
@@ -161,7 +161,7 @@ with st.expander(_("Metodologi: Analisis Regulatory Reversal Risk (H4)"), expand
     **Causal Chain:**
     `Regulatory Reversal → Stranded Asset Fear → Capital Flight → Net Sell Obligasi Melonjak`
 
-    **Metode — 100% Data-Driven:**
+    **Metode:**
     1. **Z-Score Anomaly Detection** — Identifikasi minggu-minggu dengan net sell yang
        secara statistik abnormal (Z > 2 = anomali, Z > 1 = elevated).
        Semua threshold dihitung dari distribusi data itu sendiri.
@@ -254,8 +254,9 @@ st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
 # ══════════════════════════════════════════════════
 st.markdown("---")
 st.subheader(_("4.1 Time Series Net Sell Obligasi + Deteksi Anomali"))
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Anomaly Detection</span>', unsafe_allow_html=True)
 
-ts_narr = _("""Grafik memperlihatkan net sell obligasi per periode. Titik merah menandai **episode anomali**
+ts_narr = _("""Menggunakan metode **Z-Score Anomaly Detection** pada net sell obligasi per periode. Titik merah menandai **episode anomali**
 (Z-Score > 2) — minggu-minggu di mana investor menarik modal secara abnormal. Garis oranye
 putus-putus menunjukkan rata-rata ({mean:.2f} IDR Tn / Triliun). Perhatikan bahwa spike tidak tersebar merata —
 mereka **terkonsentrasi** di periode-periode tertentu, konsisten dengan pola *regulatory shock*
@@ -301,8 +302,9 @@ st.plotly_chart(fig_ts, use_container_width=True)
 # ══════════════════════════════════════════════════
 st.markdown("---")
 st.subheader(_("4.2 Rolling Band Analysis — Batas Fluktuasi Wajar"))
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Rolling Band Analysis</span>', unsafe_allow_html=True)
 
-band_narr = _("""Rolling mean (garis biru) dan upper band (+2σ, garis merah) memperlihatkan
+band_narr = _("""Menggunakan metode **Rolling Band Analysis** — rolling mean (garis biru) dan upper band (+2σ, garis merah) memperlihatkan
 pola volatilitas yang berubah-ubah. Ketika net sell menembus upper band (area merah),
 itu menandakan **capital flight episode** yang melampaui fluktuasi wajar.
 Window = {win} periode. Perhatikan bagaimana band melebar di periode-periode tertentu —
@@ -345,8 +347,9 @@ st.plotly_chart(fig_band, use_container_width=True)
 # ══════════════════════════════════════════════════
 st.markdown("---")
 st.subheader(_("4.3 Agregasi Kuartal — Tren Makro Capital Outflow"))
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Quarterly Aggregation</span>', unsafe_allow_html=True)
 
-q_narr = _("""Agregasi per kuartal memberikan gambaran makro yang lebih jelas dibanding data mingguan.
+q_narr = _("""Menggunakan metode **Quarterly Aggregation** untuk melihat tren makro yang lebih jelas dibanding data mingguan.
 Kuartal terburuk: **{worst_q}** dengan total net sell **{worst_val:.2f} IDR Tn / Triliun**.
 Perbandingan antar kuartal menunjukkan apakah tekanan capital flight bersifat persisten
 (selalu tinggi) atau sporadis (melonjak di kuartal tertentu). Pola sporadis lebih konsisten
@@ -382,8 +385,9 @@ if len(q_agg) > 0:
 # ══════════════════════════════════════════════════
 st.markdown("---")
 st.subheader(_("4.4 Episode Capital Flight — Deteksi Anomali"))
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Episode Detection</span>', unsafe_allow_html=True)
 
-tbl_narr = _("""Tabel di bawah menampilkan seluruh episode yang terdeteksi secara algoritmik.
+tbl_narr = _("""Menggunakan metode **Z-Score Episode Detection** — tabel di bawah menampilkan seluruh episode yang terdeteksi secara algoritmik.
 Semua tanggal episode ini diidentifikasi murni berdasarkan Z-Score — **tidak ada event yang
 di-hardcode**. Threshold Z > 2 digunakan untuk anomali, Z > 1 untuk elevated.
 Episode-episode ini dapat dihubungkan oleh analis ke berbagai peristiwa regulasi
