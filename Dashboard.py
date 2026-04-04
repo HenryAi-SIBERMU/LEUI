@@ -114,184 +114,157 @@ st.markdown('<div class="org-badge">CELIOS — Center of Economic and Law Studie
 st.markdown('<div class="main-title">Legal Enforcement Uncertainty Index</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-title">Dashboard Analisis Risk Pricing Investasi Indonesia — Penegakan Hukum → Ketidakpastian → Risiko Ekonomi</div>', unsafe_allow_html=True)
 
-# --- Load summary data ---
+# --- Helper Functions & Imports for Charts ---
+import plotly.express as px
+import plotly.graph_objects as go
+import numpy as np
+
+PLOTLY_TEMPLATE = "plotly_dark"
+
+def gini_coefficient(values):
+    arr = np.array(values, dtype=float)
+    arr = arr[~np.isnan(arr)]
+    arr = arr[arr >= 0]
+    if len(arr) < 2 or arr.sum() == 0: return np.nan
+    arr = np.sort(arr)
+    n = len(arr)
+    idx = np.arange(1, n + 1)
+    return (2 * np.sum(idx * arr) - (n + 1) * np.sum(arr)) / (n * np.sum(arr))
+
+# --- Dashboard Layout: Executive Summary ---
+st.markdown("---")
+st.markdown("## 1. H1: Inconsistency Risk — Kesenjangan Distribusi Investasi")
+st.markdown("Ketimpangan distribusi PMDN (Hijau) & PMA (Biru) melampaui batas moderat (Gini > 0.4), indikasi awal hukum tak bisa diprediksi secara merata lintas wilayah.")
+
+# Load H1 Data
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data", "processed")
+df_asing = pd.read_csv(os.path.join(DATA_DIR, "realisasi_investasi_asing.csv"), parse_dates=["date"])
+df_dom = pd.read_csv(os.path.join(DATA_DIR, "realisasi_investasi_domestik.csv"), parse_dates=["date"])
 
-@st.cache_data
-def load_summary():
-    stats = {}
-    # ICOR
-    path = os.path.join(DATA_DIR, "icor_nasional.csv")
-    if os.path.exists(path):
-        df = pd.read_csv(path)
-        if not df.empty:
-            latest = df.iloc[-1]
-            stats['icor_pmdn'] = latest.get('icor_pmdn', 0)
-            stats['icor_pma'] = latest.get('icor_pma', 0)
-            stats['icor_year'] = str(latest.get('date', ''))[:4]
-    # PMI
-    path = os.path.join(DATA_DIR, "pmi_manufaktur.csv")
-    if os.path.exists(path):
-        df = pd.read_csv(path)
-        if not df.empty:
-            stats['pmi_latest'] = df.iloc[-1].get('pmi_index', 0)
-            stats['pmi_date'] = str(df.iloc[-1].get('date', ''))[:7]
-    # Capital Outflow
-    path = os.path.join(DATA_DIR, "capital_outflow.csv")
-    if os.path.exists(path):
-        df = pd.read_csv(path)
-        if not df.empty:
-            stats['outflow_latest'] = df.iloc[-1].get('net_sell_idr_tn', 0)
-            stats['outflow_mean'] = df['net_sell_idr_tn'].mean()
-            stats['outflow_max'] = df['net_sell_idr_tn'].max()
-    # IKK
-    path = os.path.join(DATA_DIR, "ikk_expect_vs_present.csv")
-    if os.path.exists(path):
-        df = pd.read_csv(path)
-        if not df.empty:
-            latest = df.iloc[-1]
-            stats['ikk_expect'] = latest.get('ikk_expectation', 0)
-            stats['ikk_present'] = latest.get('ikk_present', 0)
-            stats['ikk_gap'] = latest.get('ikk_gap', 0)
-            stats['ikk_date'] = str(latest.get('date', ''))[:7]
-            stats['ikk_rows'] = len(df)
-    # Investment
-    path = os.path.join(DATA_DIR, "realisasi_investasi_domestik.csv")
-    if os.path.exists(path):
-        df = pd.read_csv(path)
-        stats['invest_domestik_rows'] = len(df)
-        stats['invest_domestik_prov'] = df['provinsi'].nunique() if 'provinsi' in df.columns else 0
-    path = os.path.join(DATA_DIR, "realisasi_investasi_asing.csv")
-    if os.path.exists(path):
-        df = pd.read_csv(path)
-        stats['invest_asing_rows'] = len(df)
-    return stats
+def calc_gini_q(df, label):
+    prov_q = df.groupby([pd.Grouper(key="date", freq="QE"), "provinsi"])["nilai_idr_bn"].sum().reset_index()
+    g = prov_q.groupby("date")["nilai_idr_bn"].apply(gini_coefficient).reset_index()
+    g.columns = ["date", "gini"]
+    g["tipe"] = label
+    return g
 
-stats = load_summary()
+gini_a = calc_gini_q(df_asing, "Investasi Asing (PMA)")
+gini_d = calc_gini_q(df_dom, "Investasi Domestik (PMDN)")
+gini_combined = pd.concat([gini_a, gini_d], ignore_index=True)
 
-# --- KPI Cards ---
-st.markdown("### Snapshot Indikator Terkini")
+fig_h1 = px.line(
+    gini_combined, x="date", y="gini", color="tipe",
+    color_discrete_map={"Investasi Asing (PMA)": "#42A5F5", "Investasi Domestik (PMDN)": "#66BB6A"},
+    template=PLOTLY_TEMPLATE,
+    labels={"date": "Kuartal", "gini": "Gini Coefficient", "tipe": "Tipe Investasi"}
+)
+fig_h1.update_layout(
+    height=400, yaxis=dict(range=[0, 1]),
+    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+    margin=dict(l=20, r=20, t=10, b=20), hovermode="x unified"
+)
+fig_h1.add_hline(y=0.4, line_dash="dash", line_color="#FF9800", annotation_text="Batas Moderat (0.4)")
+st.plotly_chart(fig_h1, use_container_width=True)
 
-col1, col2, col3, col4 = st.columns(4)
+st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
 
-with col1:
-    icor_val = stats.get('icor_pma', 0)
-    icor_year = stats.get('icor_year', '—')
-    st.markdown(f"""
-    <div class="stat-card">
-        <div class="stat-label">ICOR PMA</div>
-        <div class="stat-number">{icor_val:.2f}</div>
-        <div class="stat-sub">Cost of Capital ({icor_year})</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col2:
-    pmi = stats.get('pmi_latest', 0)
-    pmi_color = "#66BB6A" if pmi >= 50 else "#EF5350"
-    pmi_status = "Ekspansi" if pmi >= 50 else "Kontraksi"
-    st.markdown(f"""
-    <div class="stat-card">
-        <div class="stat-label">PMI Manufaktur</div>
-        <div class="stat-number" style="color: {pmi_color}">{pmi:.1f}</div>
-        <div class="stat-sub">{pmi_status} ({stats.get('pmi_date', '—')})</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col3:
-    outflow = stats.get('outflow_latest', 0)
-    st.markdown(f"""
-    <div class="stat-card">
-        <div class="stat-label">Capital Outflow (Net Sell)</div>
-        <div class="stat-number" style="color: #EF5350">{outflow:.2f} T</div>
-        <div class="stat-sub">IDR Triliun (terbaru)</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col4:
-    gap = stats.get('ikk_gap', 0)
-    gap_color = "#66BB6A" if gap > 0 else "#EF5350"
-    st.markdown(f"""
-    <div class="stat-card">
-        <div class="stat-label">IKK Gap (Expectation − Present)</div>
-        <div class="stat-number" style="color: {gap_color}">{gap:.1f}</div>
-        <div class="stat-sub">Consumer Confidence ({stats.get('ikk_date', '—')})</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
-
-# --- Framework Summary ---
+# --- H2: Selective Enforcement ---
 st.markdown("---")
-st.markdown("### Kerangka Riset LEUI")
+st.markdown("## 2. H2: Selective Enforcement — Anomali Kepercayaan Konsumen")
+st.markdown("Deteksi anomali pada Indeks Kepercayaan Konsumen (IKK) Ekspektasi. Titik merah (Z-Score < -2) menandakan *crash* ekspektasi yang tiba-tiba dan di luar kewajaran fluktuasi ekonomi.")
 
-st.markdown("""
-> **Premis:** Bukan hukum buruk yang paling mahal, tapi **hukum yang tak bisa diprediksi.**
+df_ikk = pd.read_csv(os.path.join(DATA_DIR, "ikk_expect_vs_present.csv"), parse_dates=["date"]).sort_values("date").reset_index(drop=True)
+df_ikk["ikk_exp_pct"] = df_ikk["ikk_expectation"].pct_change() * 100
+exp_mean = df_ikk["ikk_exp_pct"].mean()
+exp_std = df_ikk["ikk_exp_pct"].std()
+df_ikk["ikk_exp_zscore"] = (df_ikk["ikk_exp_pct"] - exp_mean) / exp_std
+df_ikk["is_exp_anomaly"] = df_ikk["ikk_exp_zscore"] < -2
 
-**Causal Chain:** Penegakan Hukum → Ketidakpastian → Persepsi Risiko → Risk Pricing → Keputusan Investasi
-""")
+fig_h2 = go.Figure()
+fig_h2.add_trace(go.Scatter(
+    x=df_ikk["date"], y=df_ikk["ikk_expectation"], mode="lines", name="IKK Ekspektasi", line=dict(color="#42A5F5", width=2)
+))
+fig_h2.add_trace(go.Scatter(
+    x=df_ikk["date"], y=df_ikk["ikk_present"], mode="lines", name="IKK Present", line=dict(color="#66BB6A", width=2)
+))
+anomalies_h2 = df_ikk[df_ikk["is_exp_anomaly"]]
+fig_h2.add_trace(go.Scatter(
+    x=anomalies_h2["date"], y=anomalies_h2["ikk_expectation"], mode="markers", name="Anomali (Z < -2)",
+    marker=dict(color="#E53935", size=10, symbol="x", line=dict(width=2, color="white")),
+    hovertemplate="<b>%{x|%B %Y}</b><br>IKK Ekspektasi: %{y:.1f}<br>Drop: %{customdata[0]:.1f}%<br>Z-Score: %{customdata[1]:.2f}<extra></extra>",
+    customdata=anomalies_h2[["ikk_exp_pct", "ikk_exp_zscore"]].values
+))
+fig_h2.update_layout(
+    template=PLOTLY_TEMPLATE, height=400,
+    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+    margin=dict(l=20, r=20, t=10, b=20), hovermode="x unified"
+)
+st.plotly_chart(fig_h2, use_container_width=True)
 
-col_h1, col_h2 = st.columns(2)
+st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
 
-with col_h1:
-    st.markdown("""
-    **5 Hipotesis:**
-    | # | Hipotesis | Uncertainty Type |
-    |---|-----------|-----------------|
-    | H1 | Inconsistency Risk | Outcome uncertainty |
-    | H2 | Selective Enforcement | Political risk |
-    | H3 | Procedural Uncertainty | Process risk |
-    | H4 | Regulatory Reversal | Policy risk |
-    | H5 | Criminalization Risk | Personal risk |
-    """)
+st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
 
-with col_h2:
-    st.markdown("""
-    **Risk Pricing Channels:**
-    | Jenis Risiko | Cara Di-price |
-    |---|---|
-    | Legal uncertainty | Risk premium ↑ |
-    | Enforcement risk | Cost of capital ↑ |
-    | Criminalization risk | Insurance cost ↑ |
-    | Process risk | Delay cost ↑ |
-    | Regulatory reversal | Expected return ↓ |
-    """)
-
-# --- Data inventory ---
+# --- H4: Regulatory Reversal ---
 st.markdown("---")
-st.markdown("### Inventaris Data")
+st.markdown("## 4. H4: Regulatory Reversal — Pelarian Modal Mendadak")
+st.markdown("Capital Outflow (Net Sell Obligasi) sebagai *proxy* fear investor terhadap *stranded asset*. Batas oranye menandakan anomali pelarian modal ekstrim (>2 Standar Deviasi).")
 
-inv_data = [
-    {"Dataset": "Biaya Investasi (ICOR)", "Rows": "15", "Period": "2010-2024", "Freq": "Yearly"},
-    {"Dataset": "Realisasi Investasi Domestik", "Rows": str(stats.get('invest_domestik_rows', '-')), "Period": "1990-2025", "Freq": "Quarterly"},
-    {"Dataset": "Realisasi Investasi Asing", "Rows": str(stats.get('invest_asing_rows', '-')), "Period": "1990-2025", "Freq": "Quarterly"},
-    {"Dataset": "IKK (Expect vs Present)", "Rows": str(stats.get('ikk_rows', '-')), "Period": "2001-2025", "Freq": "Monthly"},
-    {"Dataset": "PMI Manufaktur", "Rows": "36", "Period": "2023-2026", "Freq": "Monthly"},
-    {"Dataset": "Capital Outflow", "Rows": "32", "Period": "Dec 2024-Jan 2026", "Freq": "Daily"},
-]
-st.dataframe(pd.DataFrame(inv_data), use_container_width=True, hide_index=True)
+df_outflow = pd.read_csv(os.path.join(DATA_DIR, "capital_outflow.csv"), parse_dates=["date"]).sort_values("date").reset_index(drop=True)
+mean_ns = df_outflow["net_sell_idr_tn"].mean()
+std_ns = df_outflow["net_sell_idr_tn"].std()
+df_outflow["z_score"] = (df_outflow["net_sell_idr_tn"] - mean_ns) / std_ns
+df_outflow["Color"] = df_outflow["z_score"].apply(lambda z: "#E53935" if z > 2 else "#42A5F5")
 
-# --- Navigation Cards ---
+fig_h4 = px.bar(
+    df_outflow, x="date", y="net_sell_idr_tn", 
+    template=PLOTLY_TEMPLATE,
+    labels={"date": "Tanggal", "net_sell_idr_tn": "Net Sell (IDR Tn)"}
+)
+fig_h4.update_traces(marker_color=df_outflow["Color"])
+fig_h4.update_layout(
+    height=400, margin=dict(l=20, r=20, t=10, b=20), hovermode="x unified"
+)
+if mean_ns + 2*std_ns < df_outflow["net_sell_idr_tn"].max():
+    fig_h4.add_hline(y=mean_ns + 2*std_ns, line_dash="dash", line_color="#FF9800", annotation_text="Batas Anomali (Z>2)")
+st.plotly_chart(fig_h4, use_container_width=True)
+
+st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
+
+# --- H5: Criminalization Risk ---
 st.markdown("---")
-st.markdown("### Navigasi")
+st.markdown("## 5. H5: Criminalization Risk — Gap Harapan vs Kenyataan")
+st.markdown("Mendeteksi pelebaran gap (selisih) ekstrem antara IKK Ekspektasi vs Kondisi Saat Ini. Gap tajam yang disertai *crash* ekspektasi mendadak menandakan episode kepanikan publik.")
 
-col_nav1, col_nav2 = st.columns(2)
-with col_nav1:
-    st.markdown("""
-    <div class="nav-card">
-        <div class="nav-title">Eksplorasi Data</div>
-        <div class="nav-desc">Akses langsung ke semua dataset CSV — filter, preview, dan download</div>
-    </div>
-    """, unsafe_allow_html=True)
+df_ikk_h5 = df_ikk.copy()
+gap_mean = df_ikk_h5["ikk_gap"].mean()
+df_ikk_h5["gap_z"] = (df_ikk_h5["ikk_gap"] - gap_mean) / df_ikk_h5["ikk_gap"].std()
+df_ikk_h5["exp_change"] = df_ikk_h5["ikk_expectation"].diff()
+df_ikk_h5["exp_crash_z"] = (df_ikk_h5["exp_change"] - df_ikk_h5["exp_change"].mean()) / df_ikk_h5["exp_change"].std()
+df_ikk_h5["is_crisis"] = (df_ikk_h5["exp_crash_z"] < -1.5) | (df_ikk_h5["gap_z"] > 2)
 
-with col_nav2:
-    st.markdown("""
-    <div class="nav-card">
-        <div class="nav-title">Dokumentasi Riset</div>
-        <div class="nav-desc">Framework LEUI, strategi narasi, metodologi teknis, dan insight data</div>
-    </div>
-    """, unsafe_allow_html=True)
+fig_h5 = go.Figure()
+fig_h5.add_trace(go.Bar(
+    x=df_ikk_h5["date"], y=df_ikk_h5["ikk_gap"], name="Lebar Gap IKK", marker_color="#FF9800"
+))
+anomalies_h5 = df_ikk_h5[df_ikk_h5["is_crisis"]]
+fig_h5.add_trace(go.Scatter(
+    x=anomalies_h5["date"], y=anomalies_h5["ikk_gap"], mode="markers", name="Episode Krisis",
+    marker=dict(color="#E53935", size=10, symbol="x", line=dict(width=2, color="white"))
+))
+fig_h5.update_layout(
+    template=PLOTLY_TEMPLATE, height=400,
+    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+    margin=dict(l=20, r=20, t=10, b=20), hovermode="x unified",
+    yaxis_title="Gap (Poin)"
+)
+fig_h5.add_hline(y=gap_mean, line_dash="solid", line_color="white", opacity=0.3, annotation_text="Gap Rata-rata")
+st.plotly_chart(fig_h5, use_container_width=True)
+
+st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
 
 # --- Footer ---
+st.markdown("---")
 st.markdown("""
 <div class="footer">
     CELIOS — Center of Economic and Law Studies | Legal Enforcement Uncertainty Index (LEUI) | 2026
