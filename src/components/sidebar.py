@@ -57,6 +57,7 @@ def render_sidebar():
         st.markdown("### Analisis")
         st.page_link("pages/3_H1_Inconsistency_Risk.py", label="H1: Inconsistency Risk", icon=None)
         st.page_link("pages/4_H2_Selective_Enforcement.py", label="H2: Selective Enforcement", icon=None)
+        st.page_link("pages/5_H3_Procedural_Uncertainty.py", label="H3: Procedural Uncertainty", icon=None)
 
         st.markdown("### Resources")
         st.page_link("pages/1_Eksplorasi_Data.py", label="Eksplorasi Data", icon=None)
