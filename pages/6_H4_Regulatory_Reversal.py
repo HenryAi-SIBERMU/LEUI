@@ -312,26 +312,50 @@ band_narr = """Ketika net sell aktual (garis biru) menembus batas toleransi Uppe
 band_src = "Rolling window = {win} periode. Upper band = rolling mean + 2 × rolling std."
 st.markdown(band_narr.format(upper_band=mean_ns + 2*std_ns) +
             f"\n\n<small>📁 <b>Sumber:</b> {band_src.format(win=window)}</small>", unsafe_allow_html=True)
-st.caption("📊 Visualisasi: Line chart — net sell aktual (biru), rolling mean (hijau), upper band (merah putus-putus).")
+st.caption("📊 Visualisasi: Bollinger Band — area hijau = zona toleransi, area merah = titik jebol batas wajar.")
 
 fig_band = go.Figure()
+
+# Tolerance zone fill (rolling mean to upper band)
 fig_band.add_trace(go.Scatter(
-    x=df["date"], y=df["net_sell_idr_tn"], mode="lines+markers", name="Net Sell Aktual",
-    line=dict(color=C_NET_SELL, width=2), marker=dict(size=6),
-    hovertemplate="<b>%{x|%d %b %Y}</b><br>Net Sell: %{y:.2f} Tn<extra></extra>"
+    x=df["date"], y=df["upper_band"], mode="lines", name="Upper Band (+2\u03c3)",
+    line=dict(color="rgba(229,57,53,0.4)", width=0),
+    hovertemplate="Upper Band: %{y:.2f} Tn<extra></extra>",
+    showlegend=False
 ))
+fig_band.add_trace(go.Scatter(
+    x=df["date"], y=df["rolling_mean"], mode="lines", name="Zona Toleransi",
+    line=dict(color="rgba(102,187,106,0.4)", width=0),
+    fill="tonexty", fillcolor="rgba(102,187,106,0.12)",
+    hovertemplate="Rolling Mean: %{y:.2f} Tn<extra></extra>"
+))
+
+# Rolling mean line
 fig_band.add_trace(go.Scatter(
     x=df["date"], y=df["rolling_mean"], mode="lines", name=f"Rolling Mean ({window}p)",
     line=dict(color="#66BB6A", width=2, dash="dot"),
     hovertemplate="Rolling Mean: %{y:.2f} Tn<extra></extra>"
 ))
+
+# Upper band line
 fig_band.add_trace(go.Scatter(
-    x=df["date"], y=df["upper_band"], mode="lines", name="Upper Band (+2σ)",
+    x=df["date"], y=df["upper_band"], mode="lines", name="Upper Band (+2\u03c3)",
     line=dict(color=C_ANOMALY, width=1.5, dash="dash"),
     hovertemplate="Upper Band: %{y:.2f} Tn<extra></extra>"
 ))
+
+# Net sell aktual — color by breach
+breach_colors = [C_ANOMALY if (pd.notna(ub) and ns > ub) else C_NET_SELL
+                 for ns, ub in zip(df["net_sell_idr_tn"], df["upper_band"])]
+fig_band.add_trace(go.Scatter(
+    x=df["date"], y=df["net_sell_idr_tn"], mode="lines+markers", name="Net Sell Aktual",
+    line=dict(color=C_NET_SELL, width=2),
+    marker=dict(size=7, color=breach_colors, line=dict(width=1, color="#333")),
+    hovertemplate="<b>%{x|%d %b %Y}</b><br>Net Sell: %{y:.2f} Tn<extra></extra>"
+))
+
 fig_band.update_layout(
-    template=PLOTLY_TEMPLATE, height=430,
+    template=PLOTLY_TEMPLATE, height=450,
     yaxis_title="Net Sell (IDR Tn / Triliun)", xaxis_title="",
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
     margin=dict(l=20, r=20, t=40, b=20), hovermode="x unified"
@@ -351,22 +375,26 @@ q_narr = """Agregasi kuartalan menyaring *noise* mingguan untuk mengungkap daya 
 q_src = "Agregasi <code>capital_outflow.csv</code> per kuartal: sum, mean, max, dan count per kuartal."
 st.markdown(q_narr.format(worst_q=worst_q, worst_val=worst_q_val) +
             f"\n\n<small>📁 <b>Sumber:</b> {q_src}</small>", unsafe_allow_html=True)
-st.caption("📊 Visualisasi: Bar chart — total net sell per kuartal. Warna intensitas = besaran.")
+st.caption("📊 Visualisasi: Waterfall chart — kontribusi kumulatif tiap kuartal terhadap total capital flight.")
 
 if len(q_agg) > 0:
-    fig_q = go.Figure()
-    q_colors = [C_ANOMALY if v == q_agg["total_sell"].max() else C_WARN if v > q_agg["total_sell"].mean() else C_NET_SELL
-                for v in q_agg["total_sell"]]
-    fig_q.add_trace(go.Bar(
-        x=q_agg["quarter_str"], y=q_agg["total_sell"],
-        marker_color=q_colors, name="Total Net Sell",
+    cumulative = q_agg["total_sell"].cumsum()
+    fig_q = go.Figure(go.Waterfall(
+        x=q_agg["quarter_str"],
+        y=q_agg["total_sell"],
+        measure=["relative"] * len(q_agg),
         text=[f"{v:.1f}" for v in q_agg["total_sell"]],
         textposition="outside",
-        hovertemplate="<b>%{x}</b><br>Total: %{y:.2f} Tn<extra></extra>"
+        increasing=dict(marker=dict(color=C_ANOMALY)),
+        decreasing=dict(marker=dict(color="#66BB6A")),
+        totals=dict(marker=dict(color=C_WARN)),
+        connector=dict(line=dict(color="#555", width=1, dash="dot")),
+        hovertemplate="<b>%{x}</b><br>Net Sell: %{y:.2f} Tn<br>Kumulatif: %{customdata:.2f} Tn<extra></extra>",
+        customdata=cumulative
     ))
     fig_q.update_layout(
-        template=PLOTLY_TEMPLATE, height=400,
-        yaxis_title="Total Net Sell (IDR Tn / Triliun)", xaxis_title="",
+        template=PLOTLY_TEMPLATE, height=430,
+        yaxis_title="Net Sell (IDR Tn / Triliun)", xaxis_title="",
         margin=dict(l=20, r=20, t=40, b=20), showlegend=False
     )
     st.plotly_chart(fig_q, use_container_width=True)
