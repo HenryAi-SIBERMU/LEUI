@@ -278,10 +278,10 @@ st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
 # ══════════════════════════════════════════════════
 st.markdown("---")
 st.subheader(_("3.1 Tren ICOR Nasional — Biaya Investasi Makin Mahal"))
-st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: ICOR Time Series — <code>ICOR = Total Investasi / ΔGDP</code> (Harrod-Domar, 1946)</span>', unsafe_allow_html=True)
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: ICOR Time Series</span>', unsafe_allow_html=True)
 
-icor_narr = _("""**Metode yang digunakan:** ICOR (Incremental Capital-Output Ratio) dihitung dari rasio total investasi
-terhadap pertumbuhan PDB. Rumus: `ICOR = Total Investasi / ΔGDP`. Semakin tinggi ICOR,
+icor_narr = _("""Menggunakan metode **ICOR Time Series** — ICOR mengukur seberapa mahal biaya untuk
+menghasilkan pertumbuhan. Semakin tinggi ICOR,
 semakin banyak modal yang dibutuhkan — yang berarti semakin besar biaya-biaya tersembunyi
 (delay, birokrasi, ketidakpastian hukum, korupsi) yang menggerogoti efisiensi.
 Grafik memperlihatkan ICOR PMA (biru) dan PMDN (hijau) sepanjang **{yr_f}–{yr_l}**.
@@ -323,10 +323,10 @@ st.plotly_chart(fig_icor, use_container_width=True)
 # ══════════════════════════════════════════════════
 st.markdown("---")
 st.subheader(_("3.2 Hubungan ICOR dan Volume Investasi"))
-st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Spearman Rank Correlation — <code>scipy.stats.spearmanr()</code> (Charles Spearman, 1904)</span>', unsafe_allow_html=True)
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Spearman Rank Correlation</span>', unsafe_allow_html=True)
 
-scatter_narr = _("""**Metode yang digunakan:** Spearman Rank Correlation mengukur kekuatan hubungan antara dua variabel
-berdasarkan ranking, bukan nilai absolut. Rumus: `ρ = 1 - (6 × Σdᵢ²) / (n × (n² - 1))`.
+scatter_narr = _("""Menggunakan metode **Spearman Rank Correlation** untuk mengukur kekuatan hubungan antara
+efisiensi investasi (ICOR) dan volume investasi total (PMA+PMDN) per tahun.
 Jika **ketidakpastian prosedural** benar-benar menaikkan biaya investasi, maka seharusnya
 ada korelasi negatif: ICOR tinggi → volume investasi tertekan.
 Korelasi Spearman menunjukkan **r = {corr_pma:.3f}** untuk PMA (p = {pval_pma:.4f}) dan
@@ -370,10 +370,10 @@ if len(df_merged) > 0:
 # ══════════════════════════════════════════════════
 st.markdown("---")
 st.subheader(_("3.3 Lag Analysis — Efek Delay Prosedural"))
-st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Spearman Lag Correlation — <code>spearmanr(ICOR[t], Investasi[t+lag])</code> + <code>pandas.shift()</code></span>', unsafe_allow_html=True)
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Spearman Lag Correlation</span>', unsafe_allow_html=True)
 
-lag_narr = _("""**Metode yang digunakan:** Lag Correlation menerapkan Spearman Correlation yang sama seperti Section 3.2,
-tetapi dengan data yang digeser waktunya menggunakan `pandas.shift()`. Ini menguji apakah
+lag_narr = _("""Menggunakan metode **Spearman Lag Correlation** — menerapkan Spearman Correlation yang sama
+seperti Section 3.2, tetapi dengan data yang digeser waktunya (lag). Ini menguji apakah
 ICOR tinggi tahun ini **berkorelasi** dengan investasi rendah di tahun-tahun berikutnya.
 Formula: `Spearman(ICOR[t], Investasi[t+lag])` untuk lag = 0, 1, 2, 3 tahun.
 Jika delay cost bersifat kumulatif (seperti yang diprediksi oleh hipotesis procedural uncertainty),
@@ -423,10 +423,9 @@ if len(df_lag_results) > 0:
 # ══════════════════════════════════════════════════
 st.markdown("---")
 st.subheader(_("3.4 Rate of Change — Lonjakan Biaya Tahunan"))
-st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Rate of Change — <code>pandas.pct_change()</code> (persentase perubahan year-over-year)</span>', unsafe_allow_html=True)
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Rate of Change</span>', unsafe_allow_html=True)
 
-roc_narr = _("""**Metode yang digunakan:** Rate of Change menghitung persentase perubahan ICOR dari tahun ke tahun
-menggunakan `pandas.pct_change()`. Rumus: `RoC = (ICOR[t] - ICOR[t-1]) / ICOR[t-1] × 100%`.
+roc_narr = _("""Menggunakan metode **Rate of Change** — menghitung persentase perubahan ICOR dari tahun ke tahun.
 Bar merah menunjukkan tahun di mana ICOR **melonjak tajam** — biaya investasi tiba-tiba membengkak.
 Lonjakan terbesar terjadi pada **{worst_yr}** (+{worst_val:.1f}%), menandakan bahwa pada tahun
 tersebut ada faktor-faktor yang secara mendadak menaikkan biaya investasi — konsisten dengan
