@@ -147,13 +147,13 @@ trend_word = "meningkat" if trend_change > 0 else "menurun"
 # ══════════════════════════════════════════════════
 # HEADER
 # ══════════════════════════════════════════════════
-st.title(_("H4: Regulatory Reversal Risk — Risiko Pencabutan Kebijakan"))
-subtitle = _("Analisis Capital Outflow (Net Sell Obligasi) sebagai Proxy Pelarian Modal akibat Ketidakpastian Regulasi")
+st.title("H4: Regulatory Reversal Risk — Risiko Pencabutan Kebijakan")
+subtitle = "Analisis Capital Outflow (Net Sell Obligasi) sebagai Proxy Pelarian Modal akibat Ketidakpastian Regulasi"
 st.markdown(f'<p style="font-size: 1.1rem; color: #66BB6A; font-weight: 500; margin-top: -15px;">{subtitle}</p>', unsafe_allow_html=True)
 
 # ── Methodology ──
-with st.expander(_("Metodologi: Analisis Regulatory Reversal Risk (H4)"), expanded=False):
-    st.markdown(_("""
+with st.expander("Metodologi: Analisis Regulatory Reversal Risk (H4)", expanded=False):
+    st.markdown("""
     **Premis:** Pencabutan izin yang sudah sah, perubahan regulasi retroaktif, atau kriminalisasi
     pasca pergantian pejabat menciptakan **stranded asset risk** — investor yang sudah menanamkan
     modal tiba-tiba kehilangan jaminan hukum. Respons rasional? **Tarik modal secepat mungkin.**
@@ -162,22 +162,30 @@ with st.expander(_("Metodologi: Analisis Regulatory Reversal Risk (H4)"), expand
     `Regulatory Reversal → Stranded Asset Fear → Capital Flight → Net Sell Obligasi Melonjak`
 
     **Metode:**
-    1. **Z-Score Anomaly Detection** — Identifikasi minggu-minggu dengan net sell yang
-       secara statistik abnormal (Z > 2 = anomali, Z > 1 = elevated).
-       Semua threshold dihitung dari distribusi data itu sendiri.
-    2. **Rolling Band Analysis** — Moving average + 2 standard deviasi sebagai
-       batas atas fluktuasi wajar. Titik di luar band = capital flight episode.
-    3. **Quarterly Aggregation** — Agregasi per kuartal untuk melihat tren makro.
-    4. **Trend Analysis** — Perbandingan rata-rata paruh pertama vs paruh kedua periode.
+    1. **Z-Score Anomaly Detection**
+       - Identifikasi minggu dengan net sell abnormal
+       - Formula: `Z = (x - μ) / σ`
+       - Threshold: `Z > 2` (anomali capital flight), `Z > 1` (elevated)
+    2. **Rolling Band Analysis**
+       - Batas atas fluktuasi wajar menggunakan moving average
+       - Formula: `Upper Band = Rolling Mean + (2 × Rolling SD)`
+       - Titik di luar band = capital flight episode
+    3. **Quarterly Aggregation**
+       - Agregasi data mingguan ke kuartalan
+       - Formula: `Sum(Net Sell)` per kuartal
+       - Fungsi: melihat tren makro & menghilangkan noise harian
+    4. **Trend Analysis**
+       - Perbandingan rata-rata paruh pertama vs kedua
+       - Formula: `Δ = (Mean[Akhir] - Mean[Awal]) / Mean[Awal] × 100%`
 
     **Catatan:** Net sell obligasi harian dipengaruhi banyak faktor (Fed rate, global risk-off,
     rupiah, dll). Analisis ini menyajikan data sebagai **proxy parsial** — spike yang muncul
     bersamaan dengan ketidakpastian regulasi memperkuat hipotesis H4.
-    """))
+    """)
 
 
 # ── Intro Narrative ──
-intro = _("""Data capital outflow Indonesia selama **{n} observasi** ({start} – {end}) memperlihatkan
+intro = """Data capital outflow Indonesia selama **{n} observasi** ({start} – {end}) memperlihatkan
 pola net sell obligasi yang **sangat volatile** (CV = {cv:.1f}%). Total akumulasi net sell selama
 periode ini mencapai **{total:.2f} IDR Tn / Triliun** dengan rata-rata **{mean:.2f} IDR Tn / Triliun** per periode.
 Dari {n} observasi, algoritma Z-Score mendeteksi **{n_anom} episode anomali** (Z > 2) dan
@@ -185,7 +193,7 @@ Dari {n} observasi, algoritma Z-Score mendeteksi **{n_anom} episode anomali** (Z
 masif, jauh melampaui fluktuasi wajar. Net sell tertinggi tercatat pada
 **{max_date}** sebesar **{max_val:.2f} IDR Tn / Triliun** (Z = {max_z:.2f}). Tren keseluruhan menunjukkan
 rata-rata net sell paruh kedua **{trend}** sebesar **{trend_chg:.1f}%** dibanding paruh pertama,
-mengindikasikan bahwa {trend_interp}.""")
+mengindikasikan bahwa {trend_interp}."""
 
 if trend_change > 10:
     trend_interp = "tekanan pelarian modal makin membesar — sinyal bahwa ketidakpastian regulasi memburuk"
@@ -196,8 +204,8 @@ else:
 
 max_z = df.loc[df["net_sell_idr_tn"].idxmax(), "z_score"]
 
-intro_src = _("Data dari <code>capital_outflow.csv</code> ({n} baris, {start} - {end}). "
-              "Sumber: Bond Net Sell data (CEIC/Bloomberg).")
+intro_src = "Data dari <code>capital_outflow.csv</code> ({n} baris, {start} - {end}). " \
+              "Sumber: Bond Net Sell data (CEIC/Bloomberg)."
 
 st.markdown(
     intro.format(
@@ -211,7 +219,7 @@ st.markdown(
     f"\n\n<small>📁 <b>Sumber:</b> {intro_src.format(n=n_obs, start=date_start, end=date_end)}</small>",
     unsafe_allow_html=True
 )
-st.caption(_("📊 Visualisasi: Empat panel — (1) Time Series + Anomali, (2) Rolling Band, (3) Agregasi Kuartal, (4) Tabel Episode. Semua threshold dihitung dari data."))
+st.caption("📊 Visualisasi: Empat panel — (1) Time Series + Anomali, (2) Rolling Band, (3) Agregasi Kuartal, (4) Tabel Episode. Semua threshold dihitung dari data.")
 
 
 # ── KPI Cards — Semua warna advokasi ──
@@ -256,17 +264,17 @@ st.markdown("---")
 st.subheader("4.1 Time Series Net Sell Obligasi + Deteksi Anomali")
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Anomaly Detection</span>', unsafe_allow_html=True)
 
-ts_narr = _("""Menggunakan metode **Z-Score Anomaly Detection** pada net sell obligasi per periode. Titik merah menandai **episode anomali**
+ts_narr = """Menggunakan metode **Z-Score Anomaly Detection** pada net sell obligasi per periode. Titik merah menandai **episode anomali**
 (Z-Score > 2) — minggu-minggu di mana investor menarik modal secara abnormal. Garis oranye
 putus-putus menunjukkan rata-rata ({mean:.2f} IDR Tn / Triliun). Perhatikan bahwa spike tidak tersebar merata —
 mereka **terkonsentrasi** di periode-periode tertentu, konsisten dengan pola *regulatory shock*
 di mana perubahan kebijakan mendadak memicu respons pelarian modal yang cepat dan masif.
-Streaks terpanjang di atas rata-rata: **{streak} periode berturut-turut**.""")
+Streaks terpanjang di atas rata-rata: **{streak} periode berturut-turut**."""
 
-ts_src = _("Data mentah <code>capital_outflow.csv</code>. Z-Score dihitung dari mean dan std. deviasi seluruh dataset.")
+ts_src = "Data mentah <code>capital_outflow.csv</code>. Z-Score dihitung dari mean dan std. deviasi seluruh dataset."
 st.markdown(ts_narr.format(mean=mean_ns, streak=max_streak) +
             f"\n\n<small>📁 <b>Sumber:</b> {ts_src}</small>", unsafe_allow_html=True)
-st.caption(_("📊 Visualisasi: Bar chart — net sell per periode. Merah = anomali (Z>2), Oranye = elevated (Z>1), Biru = normal."))
+st.caption("📊 Visualisasi: Bar chart — net sell per periode. Merah = anomali (Z>2), Oranye = elevated (Z>1), Biru = normal.")
 
 # Bar colors based on Z-Score
 bar_colors = []
@@ -304,18 +312,18 @@ st.markdown("---")
 st.subheader("4.2 Rolling Band Analysis — Batas Fluktuasi Wajar")
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Rolling Band Analysis</span>', unsafe_allow_html=True)
 
-band_narr = _("""Menggunakan metode **Rolling Band Analysis** — rolling mean (garis biru) dan upper band (+2σ, garis merah) memperlihatkan
+band_narr = """Menggunakan metode **Rolling Band Analysis** — rolling mean (garis biru) dan upper band (+2σ, garis merah) memperlihatkan
 pola volatilitas yang berubah-ubah. Ketika net sell menembus upper band (area merah),
 itu menandakan **capital flight episode** yang melampaui fluktuasi wajar.
 Window = {win} periode. Perhatikan bagaimana band melebar di periode-periode tertentu —
 ini menunjukkan bahwa volatilitas itu sendiri berfluktuasi, sebuah pola yang disebut
 *volatility clustering*: ketika ketidakpastian regulasi muncul, bukan hanya volume outflow
-yang naik, tapi **ketidakpastian outflow itu sendiri** juga meningkat.""")
+yang naik, tapi **ketidakpastian outflow itu sendiri** juga meningkat."""
 
-band_src = _("Rolling window = {win} periode. Upper band = rolling mean + 2 × rolling std.")
+band_src = "Rolling window = {win} periode. Upper band = rolling mean + 2 × rolling std."
 st.markdown(band_narr.format(win=window) +
             f"\n\n<small>📁 <b>Sumber:</b> {band_src.format(win=window)}</small>", unsafe_allow_html=True)
-st.caption(_("📊 Visualisasi: Line chart — net sell aktual (biru), rolling mean (hijau), upper band (merah putus-putus)."))
+st.caption("📊 Visualisasi: Line chart — net sell aktual (biru), rolling mean (hijau), upper band (merah putus-putus).")
 
 fig_band = go.Figure()
 fig_band.add_trace(go.Scatter(
@@ -349,17 +357,17 @@ st.markdown("---")
 st.subheader("4.3 Agregasi Kuartal — Tren Makro Capital Outflow")
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Quarterly Aggregation</span>', unsafe_allow_html=True)
 
-q_narr = _("""Menggunakan metode **Quarterly Aggregation** untuk melihat tren makro yang lebih jelas dibanding data mingguan.
+q_narr = """Menggunakan metode **Quarterly Aggregation** untuk melihat tren makro yang lebih jelas dibanding data mingguan.
 Kuartal terburuk: **{worst_q}** dengan total net sell **{worst_val:.2f} IDR Tn / Triliun**.
 Perbandingan antar kuartal menunjukkan apakah tekanan capital flight bersifat persisten
 (selalu tinggi) atau sporadis (melonjak di kuartal tertentu). Pola sporadis lebih konsisten
 dengan hipotesis regulatory reversal — perubahan kebijakan mendadak memicu lonjakan tajam
-yang kemudian mereda saat ketidakpastian berkurang.""")
+yang kemudian mereda saat ketidakpastian berkurang."""
 
-q_src = _("Agregasi <code>capital_outflow.csv</code> per kuartal: sum, mean, max, dan count per kuartal.")
+q_src = "Agregasi <code>capital_outflow.csv</code> per kuartal: sum, mean, max, dan count per kuartal."
 st.markdown(q_narr.format(worst_q=worst_q, worst_val=worst_q_val) +
             f"\n\n<small>📁 <b>Sumber:</b> {q_src}</small>", unsafe_allow_html=True)
-st.caption(_("📊 Visualisasi: Bar chart — total net sell per kuartal. Warna intensitas = besaran."))
+st.caption("📊 Visualisasi: Bar chart — total net sell per kuartal. Warna intensitas = besaran.")
 
 if len(q_agg) > 0:
     fig_q = go.Figure()
@@ -387,11 +395,11 @@ st.markdown("---")
 st.subheader("4.4 Episode Capital Flight — Deteksi Anomali")
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Episode Detection</span>', unsafe_allow_html=True)
 
-tbl_narr = _("""Menggunakan metode **Z-Score Episode Detection** — tabel di bawah menampilkan seluruh episode yang terdeteksi secara algoritmik.
+tbl_narr = """Menggunakan metode **Z-Score Episode Detection** — tabel di bawah menampilkan seluruh episode yang terdeteksi secara algoritmik.
 Semua tanggal episode ini diidentifikasi murni berdasarkan Z-Score — **tidak ada event yang
 di-hardcode**. Threshold Z > 2 digunakan untuk anomali, Z > 1 untuk elevated.
 Episode-episode ini dapat dihubungkan oleh analis ke berbagai peristiwa regulasi
-atau kebijakan yang terjadi pada periode tersebut.""")
+atau kebijakan yang terjadi pada periode tersebut."""
 
 st.markdown(tbl_narr)
 
@@ -406,16 +414,16 @@ if len(high_episodes) > 0:
         "Z-Score": "{:.2f}"
     }), use_container_width=True, hide_index=True)
 else:
-    st.info(_("Tidak ada episode anomali yang terdeteksi pada dataset ini."))
+    st.info("Tidak ada episode anomali yang terdeteksi pada dataset ini.")
 
 
 # ══════════════════════════════════════════════════
 # FOOTER — Temuan Utama
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("Interpretasi & Temuan Utama"))
+st.subheader("Interpretasi & Temuan Utama")
 
-temuan = _("""
+temuan = """
 **Analisis Temuan Utama H4 — Regulatory Reversal Risk:**
 
 Data capital outflow **{n} observasi** ({start} – {end}) memperlihatkan pola
@@ -444,7 +452,7 @@ merugikan investor yang sudah ada, tapi juga **menaikkan barrier of entry** bagi
 *Catatan: Net sell obligasi dipengaruhi banyak faktor global (Fed rate, DXY, geopolitik).
 Analisis ini menyajikan data sebagai proxy parsial — bukan klaim kausal tunggal terhadap
 regulatory reversal.*
-""")
+"""
 
 if trend_change > 10:
     trend_interp_final = "Tekanan yang meningkat ini memperkuat argumen bahwa ketidakpastian regulasi memburuk."
