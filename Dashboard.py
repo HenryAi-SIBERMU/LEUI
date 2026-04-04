@@ -1,126 +1,156 @@
 import streamlit as st
 import pandas as pd
-import os
-import sys
+import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
+import sys, os
 
-sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from src.components.sidebar import render_sidebar
 from src.utils.i18n import _
 
-# --- Page Config ---
 st.set_page_config(
-    page_title="Dashboard LEUI — CELIOS",
+    page_title="Dashboard Executive Summary — CELIOS LEUI",
     page_icon="ref/Celios China-Indonesia Energy Transition.png",
-    layout="wide",
-    initial_sidebar_state="expanded",
+    layout="wide"
 )
+render_sidebar()
 
-# --- Custom CSS ---
+# ── Styles ──
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-
-* { font-family: 'Inter', sans-serif; }
-
-.main-title {
-    font-size: 2.8rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, #43A047, #66BB6A, #81C784);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 0;
-    line-height: 1.2;
-}
-
-.sub-title {
-    font-size: 1.1rem;
-    color: #9E9E9E;
-    font-weight: 300;
-    margin-top: 0;
-    margin-bottom: 2rem;
-}
-
-.org-badge {
-    display: inline-block;
-    background: linear-gradient(135deg, #1B5E20, #2E7D32);
-    color: white;
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    margin-bottom: 1rem;
-}
-
-.stat-card {
-    background: linear-gradient(135deg, #1A1F2B, #232B3B);
-    border: 1px solid #2E7D3233;
-    border-radius: 16px;
-    padding: 24px;
-    text-align: center;
-    transition: transform 0.2s, border-color 0.2s;
-}
-.stat-card:hover {
-    transform: translateY(-2px);
-    border-color: #43A047;
-}
-.stat-number {
-    font-size: 2.2rem;
-    font-weight: 800;
-    color: #66BB6A;
-    margin: 8px 0;
-}
-.stat-label {
-    font-size: 0.85rem;
-    color: #9E9E9E;
-    font-weight: 400;
-}
-.stat-sub {
-    font-size: 0.75rem;
-    color: #616161;
-    margin-top: 4px;
-}
-
-.nav-card {
-    background: linear-gradient(135deg, #1A1F2B, #232B3B);
-    border: 1px solid #ffffff11;
-    border-radius: 12px;
+.metric-card {
+    background: #1E1E1E;
+    border: 1px solid #333;
+    border-radius: 8px;
     padding: 20px;
-    margin-bottom: 8px;
-    transition: border-color 0.2s;
-}
-.nav-card:hover { border-color: #43A047; }
-.nav-icon { font-size: 1.6rem; margin-bottom: 8px; }
-.nav-title { font-size: 1rem; font-weight: 600; color: #E0E0E0; }
-.nav-desc { font-size: 0.8rem; color: #757575; margin-top: 4px; }
-
-.footer {
     text-align: center;
-    color: #616161;
-    font-size: 0.75rem;
-    margin-top: 4rem;
-    padding: 2rem 0;
-    border-top: 1px solid #ffffff0a;
 }
+.metric-value { font-size: 2.2rem; font-weight: 700; color: #4CAF50; margin-bottom: 5px; }
+.metric-label { font-size: 0.95rem; color: #E0E0E0; margin-bottom: 5px; }
+.metric-delta { font-size: 0.85rem; font-weight: 500; }
 </style>
 """, unsafe_allow_html=True)
 
-# --- Sidebar ---
-render_sidebar()
-
-# --- Header ---
-st.markdown('<div class="org-badge">CELIOS — Center of Economic and Law Studies</div>', unsafe_allow_html=True)
-st.markdown('<div class="main-title">Legal Enforcement Uncertainty Index</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-title">Dashboard Analisis Risk Pricing Investasi Indonesia — Penegakan Hukum → Ketidakpastian → Risiko Ekonomi</div>', unsafe_allow_html=True)
-
-# --- Helper Functions & Imports for Charts ---
-import plotly.express as px
-import plotly.graph_objects as go
-import numpy as np
-
 PLOTLY_TEMPLATE = "plotly_dark"
+C_ASING = "#42A5F5"
+C_DOMESTIK = "#66BB6A"
+C_WARN = "#FF9800"
+C_ANOMALY = "#E53935"
 
+# ── Data Loading ──
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data", "processed")
+
+@st.cache_data
+def load_data():
+    df_a = pd.read_csv(os.path.join(DATA_DIR, "realisasi_investasi_asing.csv"), parse_dates=["date"])
+    df_d = pd.read_csv(os.path.join(DATA_DIR, "realisasi_investasi_domestik.csv"), parse_dates=["date"])
+    df_i = pd.read_csv(os.path.join(DATA_DIR, "icor_nasional.csv"), parse_dates=["date"])
+    return df_a, df_d, df_i
+
+@st.cache_data
+def load_summary():
+    stats = {}
+    path = os.path.join(DATA_DIR, "icor_nasional.csv")
+    if os.path.exists(path):
+        df = pd.read_csv(path)
+        if not df.empty:
+            stats['icor_pma'] = df.iloc[-1].get('icor_pma', 0)
+            stats['icor_year'] = str(df.iloc[-1].get('date', ''))[:4]
+    path = os.path.join(DATA_DIR, "pmi_manufaktur.csv")
+    if os.path.exists(path):
+        df = pd.read_csv(path)
+        if not df.empty:
+            stats['pmi_latest'] = df.iloc[-1].get('pmi_index', 0)
+    path = os.path.join(DATA_DIR, "capital_outflow.csv")
+    if os.path.exists(path):
+        df = pd.read_csv(path)
+        if not df.empty:
+            stats['outflow_latest'] = df.iloc[-1].get('net_sell_idr_tn', 0)
+    path = os.path.join(DATA_DIR, "ikk_expect_vs_present.csv")
+    if os.path.exists(path):
+        df = pd.read_csv(path)
+        if not df.empty:
+            stats['ikk_gap'] = df.iloc[-1].get('ikk_gap', 0)
+    return stats
+
+# Initialize
+df_asing, df_domestik, df_icor = load_data()
+stats = load_summary()
+
+# ══════════════════════════════════════════════════
+# HEADER
+# ══════════════════════════════════════════════════
+st.markdown('<div class="org-badge" style="background:#1B5E20; color:#E8F5E9; padding:4px 10px; border-radius:4px; font-size:0.8rem; font-weight:700; display:inline-block; margin-bottom:10px;">CELIOS — CENTER OF ECONOMIC AND LAW STUDIES</div>', unsafe_allow_html=True)
+st.markdown('<h1 style="color:#66BB6A; margin-bottom:0px; padding-bottom:0px;">Legal Enforcement Uncertainty Index</h1>', unsafe_allow_html=True)
+st.markdown('<p style="font-size: 1.1rem; color: #9E9E9E; margin-top: 5px;">Dashboard Analisis Risk Pricing Investasi Indonesia (H1–H5)<br>Riset 5 Narasi Strategis: Inconsistency, Selective Enforcement, Procedural, Regulatory Reversal, & Criminalization Risk.</p>', unsafe_allow_html=True)
+
+st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
+
+# ══════════════════════════════════════════════════
+# OVERVIEW NASIONAL
+# ══════════════════════════════════════════════════
+st.markdown("## Overview Nasional & Tren Risiko")
+st.markdown('<p style="font-size: 1.05rem; color: #66BB6A; font-weight: 500; margin-top: -15px;">Statistik Deskriptif & Indikator Utama Analisis</p>', unsafe_allow_html=True)
+
+with st.expander("ℹ️ Metodologi: Analisis Tren & Overview Nasional Dashboard LEUI", expanded=False):
+    st.markdown("""
+    **Premis Utama:** Bukan hukum buruk yang paling mahal, tapi **hukum yang tak bisa diprediksi.**
+    Dashboard ini mengagregasi 5 hipotesis ketidakpastian hukum (H1-H5) untuk melihat bagaimana investor 
+    menerjemahkan risiko regulasi menjadi *cost of capital*.
+    """)
+
+st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+
+# --- KPI Cards ---
+col1, col2, col3, col4 = st.columns(4)
+with col1:
+    icor_val = stats.get('icor_pma', 0)
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-label">ICOR Investasi Asing</div>
+        <div class="metric-value" style="color:#EF5350">{icor_val:.2f}</div>
+        <div class="metric-delta" style="color:#EF5350">▼ Cost of Capital Tembus &gt; 6.0</div>
+    </div>
+    """, unsafe_allow_html=True)
+with col2:
+    pmi = stats.get('pmi_latest', 0)
+    pmi_col = "#66BB6A" if pmi >= 50 else "#EF5350"
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-label">PMI Manufaktur</div>
+        <div class="metric-value" style="color:{pmi_col}">{pmi:.1f}</div>
+        <div class="metric-delta" style="color:{pmi_col}">Sinyal Kontraksi</div>
+    </div>
+    """, unsafe_allow_html=True)
+with col3:
+    outflow = stats.get('outflow_latest', 0)
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-label">Capital Outflow (Net Sell)</div>
+        <div class="metric-value" style="color:#EF5350">{outflow:.2f} T</div>
+        <div class="metric-delta" style="color:#EF5350">Data Baseline 2024–2025</div>
+    </div>
+    """, unsafe_allow_html=True)
+with col4:
+    gap = stats.get('ikk_gap', 0)
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-label">Gap IKK (Exp vs Present)</div>
+        <div class="metric-value" style="color:#FF9800">{gap:.1f}</div>
+        <div class="metric-delta" style="color:#FF9800">Optimisme Semu Konsumen</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
+
+# ══════════════════════════════════════════════════
+# BAGIAN H1 (SEMUA GRAFIK)
+# ══════════════════════════════════════════════════
+st.markdown("## 1. Analisis H1: Inconsistency Risk (Ketidakkonsistenan Hukum)")
+st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+
+# --- Helper logic for H1 ---
 def gini_coefficient(values):
     arr = np.array(values, dtype=float)
     arr = arr[~np.isnan(arr)]
@@ -131,16 +161,6 @@ def gini_coefficient(values):
     idx = np.arange(1, n + 1)
     return (2 * np.sum(idx * arr) - (n + 1) * np.sum(arr)) / (n * np.sum(arr))
 
-# --- Dashboard Layout: Executive Summary ---
-st.markdown("---")
-st.markdown("## 1. H1: Inconsistency Risk — Kesenjangan Distribusi Investasi")
-st.markdown("Ketimpangan distribusi PMDN (Hijau) & PMA (Biru) melampaui batas moderat (Gini > 0.4), indikasi awal hukum tak bisa diprediksi secara merata lintas wilayah.")
-
-# Load H1 Data
-DATA_DIR = os.path.join(os.path.dirname(__file__), "data", "processed")
-df_asing = pd.read_csv(os.path.join(DATA_DIR, "realisasi_investasi_asing.csv"), parse_dates=["date"])
-df_dom = pd.read_csv(os.path.join(DATA_DIR, "realisasi_investasi_domestik.csv"), parse_dates=["date"])
-
 def calc_gini_q(df, label):
     prov_q = df.groupby([pd.Grouper(key="date", freq="QE"), "provinsi"])["nilai_idr_bn"].sum().reset_index()
     g = prov_q.groupby("date")["nilai_idr_bn"].apply(gini_coefficient).reset_index()
@@ -148,118 +168,96 @@ def calc_gini_q(df, label):
     g["tipe"] = label
     return g
 
+def calc_std_q(df, label):
+    prov_q = df.groupby([pd.Grouper(key="date", freq="QE"), "provinsi"])["nilai_idr_bn"].sum().reset_index()
+    s = prov_q.groupby("date")["nilai_idr_bn"].std().reset_index()
+    s.columns = ["date", "std_dev"]
+    s["tipe"] = label
+    return s
+
+# ── 1.1 GINI COEFFICIENT ──
+st.markdown("### 1.1 Ketimpangan Distribusi Investasi Antar Provinsi (Gini Coefficient)")
+st.markdown("📁 **Sumber:** Agregasi per provinsi per kuartal dari `realisasi_investasi_asing.csv` & `realisasi_investasi_domestik.csv`.")
+st.markdown("📊 **Visualisasi:** Line chart membandingkan Gini Coefficient PMA (biru) vs PMDN (hijau). Nilai > 0.4 menunjukkan ketimpangan di luar batas moderat.")
+
 gini_a = calc_gini_q(df_asing, "Investasi Asing (PMA)")
-gini_d = calc_gini_q(df_dom, "Investasi Domestik (PMDN)")
+gini_d = calc_gini_q(df_domestik, "Investasi Domestik (PMDN)")
 gini_combined = pd.concat([gini_a, gini_d], ignore_index=True)
 
-fig_h1 = px.line(
+fig_gini = px.line(
     gini_combined, x="date", y="gini", color="tipe",
-    color_discrete_map={"Investasi Asing (PMA)": "#42A5F5", "Investasi Domestik (PMDN)": "#66BB6A"},
+    color_discrete_map={"Investasi Asing (PMA)": C_ASING, "Investasi Domestik (PMDN)": C_DOMESTIK},
     template=PLOTLY_TEMPLATE,
     labels={"date": "Kuartal", "gini": "Gini Coefficient", "tipe": "Tipe Investasi"}
 )
-fig_h1.update_layout(
-    height=400, yaxis=dict(range=[0, 1]),
-    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-    margin=dict(l=20, r=20, t=10, b=20), hovermode="x unified"
-)
-fig_h1.add_hline(y=0.4, line_dash="dash", line_color="#FF9800", annotation_text="Batas Moderat (0.4)")
-st.plotly_chart(fig_h1, use_container_width=True)
+fig_gini.update_layout(height=450, yaxis=dict(range=[0, 1]), legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1), margin=dict(l=20, r=20, t=10, b=20), hovermode="x unified")
+fig_gini.add_hline(y=0.4, line_dash="dash", line_color=C_WARN, annotation_text="Batas Ketimpangan Moderat (0.4)")
+st.plotly_chart(fig_gini, use_container_width=True)
 
-st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
 
-# --- H2: Selective Enforcement ---
-st.markdown("---")
-st.markdown("## 2. H2: Selective Enforcement — Anomali Kepercayaan Konsumen")
-st.markdown("Deteksi anomali pada Indeks Kepercayaan Konsumen (IKK) Ekspektasi. Titik merah (Z-Score < -2) menandakan *crash* ekspektasi yang tiba-tiba dan di luar kewajaran fluktuasi ekonomi.")
+# ── 1.2 STD DEVIATION ──
+st.markdown("### 1.2 Volatilitas & Lebar Kesenjangan Investasi (Std. Deviation)")
+st.markdown("📁 **Sumber:** Perhitungan standar deviasi dari distribusi investasi provinsi per kuartal.")
+st.markdown("📊 **Visualisasi:** Line chart volatilitas sebaran investasi absolut. Spike menunjukkan kuartal dengan konsentrasi asimetris tinggi.")
 
-df_ikk = pd.read_csv(os.path.join(DATA_DIR, "ikk_expect_vs_present.csv"), parse_dates=["date"]).sort_values("date").reset_index(drop=True)
-df_ikk["ikk_exp_pct"] = df_ikk["ikk_expectation"].pct_change() * 100
-exp_mean = df_ikk["ikk_exp_pct"].mean()
-exp_std = df_ikk["ikk_exp_pct"].std()
-df_ikk["ikk_exp_zscore"] = (df_ikk["ikk_exp_pct"] - exp_mean) / exp_std
-df_ikk["is_exp_anomaly"] = df_ikk["ikk_exp_zscore"] < -2
+std_a = calc_std_q(df_asing, "Investasi Asing (PMA)")
+std_d = calc_std_q(df_domestik, "Investasi Domestik (PMDN)")
+std_combined = pd.concat([std_a, std_d], ignore_index=True)
 
-fig_h2 = go.Figure()
-fig_h2.add_trace(go.Scatter(
-    x=df_ikk["date"], y=df_ikk["ikk_expectation"], mode="lines", name="IKK Ekspektasi", line=dict(color="#42A5F5", width=2)
-))
-fig_h2.add_trace(go.Scatter(
-    x=df_ikk["date"], y=df_ikk["ikk_present"], mode="lines", name="IKK Present", line=dict(color="#66BB6A", width=2)
-))
-anomalies_h2 = df_ikk[df_ikk["is_exp_anomaly"]]
-fig_h2.add_trace(go.Scatter(
-    x=anomalies_h2["date"], y=anomalies_h2["ikk_expectation"], mode="markers", name="Anomali (Z < -2)",
-    marker=dict(color="#E53935", size=10, symbol="x", line=dict(width=2, color="white")),
-    hovertemplate="<b>%{x|%B %Y}</b><br>IKK Ekspektasi: %{y:.1f}<br>Drop: %{customdata[0]:.1f}%<br>Z-Score: %{customdata[1]:.2f}<extra></extra>",
-    customdata=anomalies_h2[["ikk_exp_pct", "ikk_exp_zscore"]].values
-))
-fig_h2.update_layout(
-    template=PLOTLY_TEMPLATE, height=400,
-    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-    margin=dict(l=20, r=20, t=10, b=20), hovermode="x unified"
-)
-st.plotly_chart(fig_h2, use_container_width=True)
-
-st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
-
-st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
-
-# --- H4: Regulatory Reversal ---
-st.markdown("---")
-st.markdown("## 4. H4: Regulatory Reversal — Pelarian Modal Mendadak")
-st.markdown("Capital Outflow (Net Sell Obligasi) sebagai *proxy* fear investor terhadap *stranded asset*. Batas oranye menandakan anomali pelarian modal ekstrim (>2 Standar Deviasi).")
-
-df_outflow = pd.read_csv(os.path.join(DATA_DIR, "capital_outflow.csv"), parse_dates=["date"]).sort_values("date").reset_index(drop=True)
-mean_ns = df_outflow["net_sell_idr_tn"].mean()
-std_ns = df_outflow["net_sell_idr_tn"].std()
-df_outflow["z_score"] = (df_outflow["net_sell_idr_tn"] - mean_ns) / std_ns
-df_outflow["Color"] = df_outflow["z_score"].apply(lambda z: "#E53935" if z > 2 else "#42A5F5")
-
-fig_h4 = px.bar(
-    df_outflow, x="date", y="net_sell_idr_tn", 
+fig_std = px.line(
+    std_combined, x="date", y="std_dev", color="tipe",
+    color_discrete_map={"Investasi Asing (PMA)": C_ASING, "Investasi Domestik (PMDN)": C_DOMESTIK},
     template=PLOTLY_TEMPLATE,
-    labels={"date": "Tanggal", "net_sell_idr_tn": "Net Sell (IDR Tn)"}
+    labels={"date": "Kuartal", "std_dev": "Std. Deviation (IDR Bn)", "tipe": "Tipe Investasi"}
 )
-fig_h4.update_traces(marker_color=df_outflow["Color"])
-fig_h4.update_layout(
-    height=400, margin=dict(l=20, r=20, t=10, b=20), hovermode="x unified"
-)
-if mean_ns + 2*std_ns < df_outflow["net_sell_idr_tn"].max():
-    fig_h4.add_hline(y=mean_ns + 2*std_ns, line_dash="dash", line_color="#FF9800", annotation_text="Batas Anomali (Z>2)")
-st.plotly_chart(fig_h4, use_container_width=True)
+fig_std.update_layout(height=400, legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1), margin=dict(l=20, r=20, t=10, b=20), hovermode="x unified")
+st.plotly_chart(fig_std, use_container_width=True)
 
-st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
 
-# --- H5: Criminalization Risk ---
-st.markdown("---")
-st.markdown("## 5. H5: Criminalization Risk — Gap Harapan vs Kenyataan")
-st.markdown("Mendeteksi pelebaran gap (selisih) ekstrem antara IKK Ekspektasi vs Kondisi Saat Ini. Gap tajam yang disertai *crash* ekspektasi mendadak menandakan episode kepanikan publik.")
+# ── 1.3 TOP/BOTTOM PROVINSI ──
+st.markdown("### 1.3 Peta Konsentrasi Investasi (Top vs Bottom Provinsi)")
+st.markdown("📁 **Sumber:** Rata-rata investasi gabungan PMA+PMDN per provinsi dari keseluruhan periode data.")
+st.markdown("📊 **Visualisasi:** Bar chart horizontal Top 15 (hijau) vs Bottom 15 (merah) menunjukkan dominasi absolut segelintir wilayah tujuan investasi.")
 
-df_ikk_h5 = df_ikk.copy()
-gap_mean = df_ikk_h5["ikk_gap"].mean()
-df_ikk_h5["gap_z"] = (df_ikk_h5["ikk_gap"] - gap_mean) / df_ikk_h5["ikk_gap"].std()
-df_ikk_h5["exp_change"] = df_ikk_h5["ikk_expectation"].diff()
-df_ikk_h5["exp_crash_z"] = (df_ikk_h5["exp_change"] - df_ikk_h5["exp_change"].mean()) / df_ikk_h5["exp_change"].std()
-df_ikk_h5["is_crisis"] = (df_ikk_h5["exp_crash_z"] < -1.5) | (df_ikk_h5["gap_z"] > 2)
+df_all = pd.concat([df_asing.assign(tipe="Asing"), df_domestik.assign(tipe="Domestik")], ignore_index=True)
+prov_avg = df_all.groupby("provinsi")["nilai_idr_bn"].mean().sort_values(ascending=True).reset_index()
+prov_avg.columns = ["provinsi", "rata_rata"]
 
-fig_h5 = go.Figure()
-fig_h5.add_trace(go.Bar(
-    x=df_ikk_h5["date"], y=df_ikk_h5["ikk_gap"], name="Lebar Gap IKK", marker_color="#FF9800"
-))
-anomalies_h5 = df_ikk_h5[df_ikk_h5["is_crisis"]]
-fig_h5.add_trace(go.Scatter(
-    x=anomalies_h5["date"], y=anomalies_h5["ikk_gap"], mode="markers", name="Episode Krisis",
-    marker=dict(color="#E53935", size=10, symbol="x", line=dict(width=2, color="white"))
-))
-fig_h5.update_layout(
-    template=PLOTLY_TEMPLATE, height=400,
-    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-    margin=dict(l=20, r=20, t=10, b=20), hovermode="x unified",
-    yaxis_title="Gap (Poin)"
-)
-fig_h5.add_hline(y=gap_mean, line_dash="solid", line_color="white", opacity=0.3, annotation_text="Gap Rata-rata")
-st.plotly_chart(fig_h5, use_container_width=True)
+tab_top, tab_bottom = st.tabs(["Top 15 Provinsi", "Bottom 15 Provinsi"])
+with tab_top:
+    top = prov_avg.tail(15)
+    fig_top = px.bar(
+        top, x="rata_rata", y="provinsi", orientation="h", color="rata_rata",
+        color_continuous_scale=["#1B5E20", "#43A047", "#A5D6A7"], template=PLOTLY_TEMPLATE,
+        labels={"rata_rata": "Rata-rata (IDR Bn / Miliar/kuartal)", "provinsi": ""}
+    )
+    fig_top.update_layout(height=450, margin=dict(l=20, r=20, t=20, b=20), showlegend=False, coloraxis_showscale=False)
+    st.plotly_chart(fig_top, use_container_width=True)
+
+with tab_bottom:
+    bottom = prov_avg.head(15)
+    fig_bot = px.bar(
+        bottom, x="rata_rata", y="provinsi", orientation="h", color="rata_rata",
+        color_continuous_scale=["#B71C1C", "#E53935", "#EF9A9A"], template=PLOTLY_TEMPLATE,
+        labels={"rata_rata": "Rata-rata (IDR Bn / Miliar/kuartal)", "provinsi": ""}
+    )
+    fig_bot.update_layout(height=450, margin=dict(l=20, r=20, t=20, b=20), showlegend=False, coloraxis_showscale=False)
+    st.plotly_chart(fig_bot, use_container_width=True)
+
+st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
+
+# ── 1.4 ICOR ──
+st.markdown("### 1.4 Tren ICOR Nasional: Biaya Ketidakpastian")
+st.markdown("📁 **Sumber:** `icor_nasional.csv` - Rasio Pembentukan Modal Tetap Bruto terhadap Pertumbuhan PDB.")
+st.markdown("📊 **Visualisasi:** Line chart perbandingan efisiensi investasi PMDN (hijau) dan PMA (biru). Spike menandakan fase inefisiensi prosedural yang parah.")
+
+fig_icor = go.Figure()
+fig_icor.add_trace(go.Scatter(x=df_icor["date"], y=df_icor["icor_pmdn"], mode="lines+markers", name="ICOR PMDN", line=dict(color=C_DOMESTIK, width=2.5), marker=dict(size=7)))
+fig_icor.add_trace(go.Scatter(x=df_icor["date"], y=df_icor["icor_pma"], mode="lines+markers", name="ICOR PMA", line=dict(color=C_ASING, width=2.5), marker=dict(size=7)))
+fig_icor.update_layout(template=PLOTLY_TEMPLATE, height=400, yaxis_title="ICOR (Rasio)", xaxis_title="Tahun", legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1), margin=dict(l=20, r=20, t=10, b=20), hovermode="x unified")
+st.plotly_chart(fig_icor, use_container_width=True)
 
 st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
 
