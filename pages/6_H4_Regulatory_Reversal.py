@@ -11,6 +11,7 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 from scipy import stats
+from sklearn.ensemble import IsolationForest
 import sys, os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
@@ -101,6 +102,17 @@ df["upper_band"] = df["rolling_mean"] + 2 * df["rolling_std"]
 
 # Volatility (coefficient of variation)
 cv = (std_ns / mean_ns * 100) if mean_ns > 0 else 0
+
+# Isolation Forest anomaly detection (ML-based)
+iso_model = IsolationForest(contamination=0.15, random_state=42, n_estimators=100)
+df["iso_score"] = iso_model.fit_predict(df[["net_sell_idr_tn"]])
+df["iso_anomaly_score"] = iso_model.decision_function(df[["net_sell_idr_tn"]])
+df["is_iso_anomaly"] = df["iso_score"] == -1
+n_iso_anomaly = df["is_iso_anomaly"].sum()
+iso_threshold = df.loc[df["is_iso_anomaly"], "net_sell_idr_tn"].min() if n_iso_anomaly > 0 else max_ns
+
+# Max Z-Score for tbl_narr
+max_z = df["z_score"].max()
 
 # Consecutive high-sell streaks
 df["above_mean"] = df["net_sell_idr_tn"] > mean_ns
@@ -301,66 +313,59 @@ st.plotly_chart(fig_ts, use_container_width=True)
 
 
 # ══════════════════════════════════════════════════
-# 4.2 ROLLING BAND ANALYSIS
+# 4.2 ISOLATION FOREST — ML ANOMALY DETECTION
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader("4.2 Rolling Band Analysis — Batas Fluktuasi Wajar")
-st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Rolling Band Analysis</span>', unsafe_allow_html=True)
+st.subheader("4.2 Isolation Forest — Deteksi Anomali Machine Learning")
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Isolation Forest (scikit-learn)</span>', unsafe_allow_html=True)
 
-band_narr = """Ketika net sell aktual (garis biru) menembus batas toleransi Upper Band (garis merah putus-putus pada tingkat +2 standar deviasi, rata-rata di kisaran **{upper_band:.1f} IDR Tn**), ini mendeskripsikan jebolnya batas wajar volatilitas. Jarak antara *rolling mean* (hijau) dan batas merah yang melebar drastis secara visual membuktikan fenomena **volatility clustering**. Ketidakpastian regulasi tidak hanya memaksa modal keluar secara absolut, tetapi secara radikal melebarkan ketidakpastian pergerakan *yield* ke depan, membuat *default action* rasional investor adalah penyelamatan aset (flight to safety)."""
+iso_narr = """Algoritma **Isolation Forest** (Liu et al., 2008) mengisolasi data outlier melalui partisi acak rekursif. Prinsipnya: data anomali lebih mudah dipisahkan karena jumlahnya sedikit dan nilainya ekstrem. Dari {n} observasi, model mendeteksi **{n_anom} episode anomali** (ditandai marker merah). Titik anomali terkonsentrasi pada net sell di atas **{threshold:.1f} IDR Tn** — titik batas di mana algoritma menilai penarikan modal sudah melampaui pola normal pasar. Semakin rendah *anomaly score* (sumbu kanan, warna lebih gelap), semakin kuat sinyal bahwa episode tersebut bukan bagian dari fluktuasi wajar melainkan pelarian modal institusional akibat guncangan regulasi."""
 
-band_src = "Rolling window = {win} periode. Upper band = rolling mean + 2 × rolling std."
-st.markdown(band_narr.format(upper_band=mean_ns + 2*std_ns) +
-            f"\n\n<small>📁 <b>Sumber:</b> {band_src.format(win=window)}</small>", unsafe_allow_html=True)
-st.caption("📊 Visualisasi: Bollinger Band — area hijau = zona toleransi, area merah = titik jebol batas wajar.")
+iso_src = "Isolation Forest (n_estimators=100, contamination=0.15). Library: <code>sklearn.ensemble.IsolationForest</code>."
+st.markdown(iso_narr.format(n=n_obs, n_anom=n_iso_anomaly, threshold=iso_threshold) +
+            f"\n\n<small>\ud83d\udcc1 <b>Sumber:</b> {iso_src}</small>", unsafe_allow_html=True)
+st.caption("\ud83d\udcca Visualisasi: Scatter plot \u2014 ukuran dan warna marker menunjukkan anomaly score. Merah = anomali terdeteksi ML.")
 
-fig_band = go.Figure()
+# Build scatter plot with anomaly score gradient
+fig_iso = go.Figure()
 
-# Tolerance zone fill (rolling mean to upper band)
-fig_band.add_trace(go.Scatter(
-    x=df["date"], y=df["upper_band"], mode="lines", name="Upper Band (+2\u03c3)",
-    line=dict(color="rgba(229,57,53,0.4)", width=0),
-    hovertemplate="Upper Band: %{y:.2f} Tn<extra></extra>",
-    showlegend=False
-))
-fig_band.add_trace(go.Scatter(
-    x=df["date"], y=df["rolling_mean"], mode="lines", name="Zona Toleransi",
-    line=dict(color="rgba(102,187,106,0.4)", width=0),
-    fill="tonexty", fillcolor="rgba(102,187,106,0.12)",
-    hovertemplate="Rolling Mean: %{y:.2f} Tn<extra></extra>"
-))
-
-# Rolling mean line
-fig_band.add_trace(go.Scatter(
-    x=df["date"], y=df["rolling_mean"], mode="lines", name=f"Rolling Mean ({window}p)",
-    line=dict(color="#66BB6A", width=2, dash="dot"),
-    hovertemplate="Rolling Mean: %{y:.2f} Tn<extra></extra>"
+# Normal points
+df_normal = df[~df["is_iso_anomaly"]]
+fig_iso.add_trace(go.Scatter(
+    x=df_normal["date"], y=df_normal["net_sell_idr_tn"],
+    mode="markers+lines", name="Normal",
+    marker=dict(size=8, color=df_normal["iso_anomaly_score"], colorscale="Blues",
+                cmin=df["iso_anomaly_score"].min(), cmax=df["iso_anomaly_score"].max(),
+                line=dict(width=1, color="#333")),
+    line=dict(color="rgba(66,165,245,0.3)", width=1),
+    hovertemplate="<b>%{x|%d %b %Y}</b><br>Net Sell: %{y:.2f} Tn<br>Score: %{customdata:.3f}<extra></extra>",
+    customdata=df_normal["iso_anomaly_score"]
 ))
 
-# Upper band line
-fig_band.add_trace(go.Scatter(
-    x=df["date"], y=df["upper_band"], mode="lines", name="Upper Band (+2\u03c3)",
-    line=dict(color=C_ANOMALY, width=1.5, dash="dash"),
-    hovertemplate="Upper Band: %{y:.2f} Tn<extra></extra>"
+# Anomaly points
+df_anom = df[df["is_iso_anomaly"]]
+fig_iso.add_trace(go.Scatter(
+    x=df_anom["date"], y=df_anom["net_sell_idr_tn"],
+    mode="markers", name="Anomali (ML)",
+    marker=dict(size=14, color=C_ANOMALY, symbol="diamond",
+                line=dict(width=2, color="#fff")),
+    hovertemplate="<b>%{x|%d %b %Y}</b><br>Net Sell: %{y:.2f} Tn<br>Score: %{customdata:.3f}<br><b>\u26a0\ufe0f ANOMALI</b><extra></extra>",
+    customdata=df_anom["iso_anomaly_score"]
 ))
 
-# Net sell aktual — color by breach
-breach_colors = [C_ANOMALY if (pd.notna(ub) and ns > ub) else C_NET_SELL
-                 for ns, ub in zip(df["net_sell_idr_tn"], df["upper_band"])]
-fig_band.add_trace(go.Scatter(
-    x=df["date"], y=df["net_sell_idr_tn"], mode="lines+markers", name="Net Sell Aktual",
-    line=dict(color=C_NET_SELL, width=2),
-    marker=dict(size=7, color=breach_colors, line=dict(width=1, color="#333")),
-    hovertemplate="<b>%{x|%d %b %Y}</b><br>Net Sell: %{y:.2f} Tn<extra></extra>"
-))
+# Threshold line
+fig_iso.add_hline(y=iso_threshold, line_dash="dash", line_color=C_WARN,
+                  annotation_text=f"Batas Anomali ML: {iso_threshold:.1f} Tn")
+fig_iso.add_hline(y=mean_ns, line_dash="dot", line_color="#666",
+                  annotation_text=f"Rata-rata: {mean_ns:.2f} Tn")
 
-fig_band.update_layout(
+fig_iso.update_layout(
     template=PLOTLY_TEMPLATE, height=450,
     yaxis_title="Net Sell (IDR Tn / Triliun)", xaxis_title="",
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
     margin=dict(l=20, r=20, t=40, b=20), hovermode="x unified"
 )
-st.plotly_chart(fig_band, use_container_width=True)
+st.plotly_chart(fig_iso, use_container_width=True)
 
 
 # ══════════════════════════════════════════════════
