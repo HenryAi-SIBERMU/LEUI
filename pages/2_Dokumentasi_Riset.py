@@ -91,7 +91,7 @@ docs_map = {
     },
     _("Gap Data"): {
         "file": "Gap_Data.md",
-        "desc": _("Dokumen pendataan gap antara brief riset klien, ketersediaan data empiris aktual, dan implementasi fitur Dashboard."),
+        "desc": _("Dokumen pendataan gap antara brief riset, ketersediaan data empiris aktual, dan implementasi fitur Dashboard."),
         "tags": [_("Gap Analysis"), _("Data Audit"), _("Brief vs Realitas")]
     },
 }
