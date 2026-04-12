@@ -21,7 +21,7 @@ def get_all_csvs():
     result = {}
     if os.path.exists(processed_dir):
         for f in sorted(os.listdir(processed_dir)):
-            if f.endswith('.csv'):
+            if f.endswith('.csv') and not f.endswith('_raw.csv'):
                 result[f] = os.path.join(processed_dir, f)
     return result
 
