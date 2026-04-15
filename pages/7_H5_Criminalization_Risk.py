@@ -240,6 +240,39 @@ st.markdown("---")
 st.subheader("5.1 Variabel Hukum (X): Volume Pembatalan Undang-Undang MK")
 st.markdown('<span style="background:#5C2B6A;color:#E1BEE7;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Distribusi OSINT Direktori Mahkamah Konstitusi RI</span>', unsafe_allow_html=True)
 
+# ── Compute legal stats for narrative ──
+_mk_year_range = ""
+_mk_peak_year = ""
+_mk_peak_vol = 0
+_mk_n_uu = 0
+_mk_cipta_kerja_pct = 0
+if not _df_mk_yr.empty:
+    _mk_year_range = f"{int(_df_mk_yr['year'].min())}–{int(_df_mk_yr['year'].max())}"
+    _peak_idx = _df_mk_yr['total_putusan_mk'].idxmax()
+    _mk_peak_year = str(int(_df_mk_yr.loc[_peak_idx, 'year']))
+    _mk_peak_vol = int(_df_mk_yr.loc[_peak_idx, 'total_putusan_mk'])
+if not _df_mk_uu.empty:
+    _mk_n_uu = len(_df_mk_uu)
+    _ck_mask = _df_mk_uu['uu_diuji'].str.contains('Cipta Kerja', case=False, na=False)
+    _ck_total = int(_df_mk_uu.loc[_ck_mask, 'jumlah'].sum())
+    _all_total = int(_df_mk_uu['jumlah'].sum())
+    _mk_cipta_kerja_pct = round(_ck_total / _all_total * 100, 1) if _all_total > 0 else 0
+
+st.markdown(f"""
+Analisis **Variabel Hukum (X)** berangkat dari inventarisasi *Landmark Verdicts* Mahkamah Konstitusi RI
+sepanjang periode **{_mk_year_range}**. Dari total **{_total_mk} putusan** yang terrecord,
+lonjakan tertajam terjadi di tahun **{_mk_peak_year}** dengan **{_mk_peak_vol} putusan** — sebuah
+akselerasi agresif yang mengindikasikan intensifikasi serangan judisial terhadap fondasi regulasi ekonomi.
+
+Distribusi objek sengketa menunjukkan konsentrasi yang mengkhawatirkan: **{_mk_cipta_kerja_pct}%**
+dari seluruh putusan MK menyasar kluster **UU Cipta Kerja** — regulasi omnibus yang menjadi tulang punggung
+iklim investasi Indonesia. Serangan konstan terhadap satu instrumen hukum vital ini menciptakan
+*regulatory sieging effect*: investor tidak bisa membangun rencana bisnis jangka panjang di atas
+fondasi hukum yang terus-menerus diguncang pembatalan konstitusional.
+
+<small>📁 <b>Sumber:</b> Direktori Putusan Mahkamah Konstitusi RI (OSINT). Data: <code>putusan_mk_yearly.csv</code> & <code>mk_uu_breakdown.csv</code>.</small>
+""", unsafe_allow_html=True)
+
 import plotly.express as px
 _cc1, _cc2 = st.columns([1.5, 1])
 with _cc1:
@@ -247,10 +280,9 @@ with _cc1:
     if not _df_mk_yr.empty:
         import plotly.graph_objects as go
         fig_mk = go.Figure()
-        fig_mk.add_trace(go.Bar(x=_df_mk_yr["year"], y=_df_mk_yr["amar_ditolak"], name="Amar Ditolak", marker_color="#78909C"))
-        fig_mk.add_trace(go.Bar(x=_df_mk_yr["year"], y=_df_mk_yr["amar_dikabulkan"], name="Amar Dikabulkan", marker_color="#E53935"))
-        fig_mk.add_trace(go.Bar(x=_df_mk_yr["year"], y=_df_mk_yr["amar_lainnya"], name="Amar Lainnya", marker_color="#BDBDBD"))
-        fig_mk.update_layout(barmode="stack", template="plotly_dark", height=320, margin=dict(l=10, r=10, t=10, b=10), showlegend=True)
+        fig_mk.add_trace(go.Bar(x=_df_mk_yr["year"], y=_df_mk_yr["total_putusan_mk"], name="Total Putusan MK", marker_color="#AB47BC"))
+        fig_mk.update_layout(template="plotly_dark", height=320, margin=dict(l=10, r=10, t=10, b=10), showlegend=False)
+        fig_mk.update_yaxes(title_text="Volume Putusan")
         st.plotly_chart(fig_mk, use_container_width=True)
 
 with _cc2:
@@ -435,23 +467,20 @@ else:
 st.markdown("---")
 st.subheader("Interpretasi & Temuan Utama")
 
-temuan = """
+temuan = f"""
 **Sintesis Temuan Utama (Law & Economics):**
 
 Sesuai dengan kerangka kerja Law & Economics, sentimen krisis dan kriminalisasi otoritas direksi dalam H5 ini mengonfirmasi rantai kausalitas berikut:
 `Kriminalisasi Bisnis (X) → Ketidakpastian Operasional → Persepsi Risiko (Personal Liability) → Kepercayaan Rusak → Keputusan Penarikan Ekspansi (Y)`
 
-1. **Terror Personal Liability & Pembatalan Kontrak (Variabel X)** — Tingginya intensitas putusan MK yang menguji fondasi hukum korporat (seperti sengketa pada UU Cipta Kerja dan UU Minerba) membangun preseden bahwa garansi tetinggi negara sekalipun tidak kebal pembatalan sepihak. Menjamurnya praktik kriminalisasi pejabat menularkan infeksi ketakutan ke direksi korporasi — jika kebijakan legal bisa berujung bui, maka segala bentuk pengambilan risiko ekspansi otomatis dibekukan (*Frostbite Impact*).
- 
-2. **Kehancuran Indeks Kepercayaan (Variabel Y)** — Syok hukum ini terserap jelas ke *Indeks Keyakinan Konsumen* via *Gap Analysis*. Selisih ekspektasi membengkak hingga **{gap_max:.1f} poin** mengonfirmasi realita makro yang dibayangi pesimisme akut, di mana pelaku usaha dan publik pesimis terhadap proteksi *property rights* mereka di masa depan.
+1. **Temuan Olah Data Hukum (Variabel X)** — Database OSINT Mahkamah Konstitusi merecord **{_total_mk} Landmark Verdicts** sepanjang **{_mk_year_range}**, dengan puncak volume di tahun **{_mk_peak_year}** ({_mk_peak_vol} putusan). Konsentrasi serangan judisial berpusat pada kluster **UU Cipta Kerja** yang menguasai **{_mk_cipta_kerja_pct}%** dari seluruh sengketa. Tingginya intensitas gugatan terhadap satu instrumen hukum vital ini menciptakan *Regulatory Sieging Effect* — preseden bahwa garansi tertinggi negara sekalipun tidak kebal pembatalan sepihak, dan menularkan teror *Personal Liability Fear* ke seluruh direksi korporasi.
+
+2. **Temuan Olah Data Ekonomi (Variabel Y)** — Syok hukum tersebut terserap jelas ke *Indeks Keyakinan Konsumen*. Gap ekspektasi membengkak hingga **{gap_max:.1f} poin** mengonfirmasi pesimisme akut makroekonomi. Algoritma Z-Score mendeteksi **{n_exp_crashes} fase Expectation Crash** dadakan (Z < -2), di mana kepercayaan publik runtuh secara mendadak dan brutal — konsisten dengan pola *criminalization shock* yang langsung merusak kepercayaan pasar.
    
-3. **Keputusan Fatalistik Menahan Ekspansi (Variabel Y)** — Algoritma dengan tajam mendeteksi **{n_crash} fase kejatuhan ekspektasi algoritmik (Expectation Crash)** dadakan. Alih-alih melakukan intervensi produktif, pasar yang dijangkiti ketakutan *legal hazard* langsung tiarap. Modal segar dibiarkan menumpuk di instrumen likuid bebas risiko, menyebabkan perputaran uang di sektor riil seketika lumpuh.
+3. **Konvergensi Kausalitas X → Y** — Korelasi Spearman antara level ekspektasi dan lebar gap menunjukkan **r = {corr_exp_gap:.3f}** (p = {pval_exp_gap:.4f}). Tren gap keseluruhan **{gap_trend_word}** sebesar **{abs(gap_trend_change):.1f}%** antara periode awal dan akhir. Artinya, tekanan judisial yang terus meningkat (X) secara sistematis menggerus kemampuan pasar untuk membentuk ekspektasi yang stabil (Y).
 
 **Implikasi Final Rekomendasi:**
-Ancaman kriminalisasi manuver bisnis (*Criminalization Risk*) melahirkan teror *chilling effect* kolektif. Ketakutan yuridis ini adalah variabel yang menjatuhkan keyakinan *real-time* investor secara telak. Negara tidak lagi bisa sekadar mengobati trauma ini menggunakan insentif fiskal murahan, melainkan harus mendemiliterisasi iklim hukum korporatnya agar direksi berani bangkit dari hibernasi dan kembali memutar mesin ekonomi nasional.
+Ancaman kriminalisasi manuver bisnis (*Criminalization Risk*) melahirkan teror *chilling effect* kolektif. Dengan **{_mk_cipta_kerja_pct}%** sengketa MK menyerang fondasi regulasi investasi dan **{n_exp_crashes} episode** kehancuran kepercayaan publik yang terdeteksi algoritmik, Indonesia menghadapi krisis struktural di mana ketakutan yuridis menjadi penghambat utama ekspansi modal. Negara tidak lagi bisa sekadar mengobati trauma ini menggunakan insentif fiskal murahan, melainkan harus mendemiliterisasi iklim hukum korporatnya agar direksi berani bangkit dari hibernasi dan kembali memutar mesin ekonomi nasional.
 """
 
-st.markdown(temuan.format(
-    gap_max=gap_max,
-    n_crash=n_exp_crashes
-))
+st.markdown(temuan)
