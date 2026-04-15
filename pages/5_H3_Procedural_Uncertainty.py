@@ -165,7 +165,7 @@ st.title(_("H3: Procedural Uncertainty — Ketidakpastian Prosedural"))
 subtitle = _("Analisis Delay Cost & Inefisiensi Investasi melalui ICOR sebagai Proxy Beban Prosedural")
 st.markdown(f'<p style="font-size: 1.1rem; color: #66BB6A; font-weight: 500; margin-top: -15px;">{subtitle}</p>', unsafe_allow_html=True)
 
-# ── Unified KPI Cards ──
+# ── Setup Variables (Hukum) ──
 _sipp_pn_path = os.path.join(DATA, "sipp_pn_distribution.csv")
 _total_sipp = 0
 _avg_durasi = 0
@@ -175,6 +175,40 @@ if os.path.exists(_sipp_pn_path):
     _avg_dur_vals = _df_pn['avg_durasi'].dropna()
     _avg_durasi = _avg_dur_vals.mean() if len(_avg_dur_vals) > 0 else 0
 
+# ── Methodology ──
+with st.expander(_("Metodologi: Analisis Procedural Uncertainty (H3)"), expanded=False):
+    st.markdown(_("""
+    **Causal Chain Law & Economics:**
+    `Penegakan Hukum Berlarut (X) → Ketidakpastian Waktu → Persepsi Risiko Investor → Biaya Ekonomi Naik (Delay Cost/ICOR) → Keputusan Investasi Terhambat (Y)`
+
+    **Variabel Independen (X):**
+    - Durasi proses perkara perdata khusus & bisnis di tingkat Pengadilan Negeri (Data SIPP OSINT).
+    
+    **Variabel Dependen (Y):**
+    - ICOR Nasional sebagai parameter *Delay Cost* (ICOR > 6.0 = sangat tidak efisien).
+    - Korelasi Spearman ICOR vs Total Realisasi Investasi PMA & PMDN.
+    """))
+
+# ── Intro Narrative ──
+intro = _("""Kerangka empiris **Procedural Uncertainty** membuktikan secara langsung alur kausalitas antara kacaunya penegakan hukum dan mandeknya investasi. Berdasarkan sampel SIPP, sengketa bisnis di Indonesia memakan waktu **rata-rata {_avg_durasi:.0f} hari**. Lambat dan mahalnya proses hukum ini menciptakan **ketidakpastian absolut** bagi pelaku usaha. Investor menerjemahkan ketidakpastian waktu ini menjadi **persepsi risiko tinggi**. 
+
+Sebagai respons, risiko ini dikonversi menjadi **biaya ekonomi** berupa _Risk Premium_ dan _Delay Cost_ yang harus ditanggung investor. Hal ini terekam jelas dalam indikator efisiensi modal (**ICOR**) yang terus membengkak (saat ini {icor_avg_last:.2f}) — membuat ongkos ekspansi di Indonesia menjadi mahal dan inefisien. Rantai kausalitas ini berpuncak pada **keputusan menekan investasi (Y)**: terbukti dari korelasi **r = {corr:.3f}** antara lonjakan ICOR dan tertekannya sentimen volume investasi modal asing secara signifikan.""")
+
+intro_src = _("SIPP Mahkamah Agung (Variabel Hukum/X) & Panel ICOR Investasi BPS-BKPM (Variabel Makroekonomi/Y).")
+
+st.markdown(
+    intro.format(
+        _avg_durasi=_avg_durasi,
+        yr_f=yr_first, yr_l=yr_last, 
+        icor_avg_last=icor_avg_last,
+        corr=corr_pma
+    ) +
+    f"\n\n<small>📁 <b>Sumber Basis Data:</b> {intro_src}</small>",
+    unsafe_allow_html=True
+)
+st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
+
+# ── Overview KPI Cards (Hukum + Ekonomi) ──
 st.markdown("### Eksekutif Summary (H3)")
 c1, c2, c3, c4 = st.columns(4)
 with c1:
@@ -208,36 +242,7 @@ with c4:
         <div class="metric-delta" style="color:{C_WARN}">Tahun {worst_jump_yr}</div>
     </div>""", unsafe_allow_html=True)
 
-with st.expander(_("Metodologi: Analisis Procedural Uncertainty (H3)"), expanded=False):
-    st.markdown(_("""
-    **Causal Chain Law & Economics:**
-    `Penegakan Hukum Berlarut (X) → Ketidakpastian Waktu → Persepsi Risiko Investor → Biaya Ekonomi Naik (Delay Cost/ICOR) → Keputusan Investasi Terhambat (Y)`
-
-    **Variabel Independen (X):**
-    - Durasi proses perkara perdata khusus & bisnis di tingkat Pengadilan Negeri (Data SIPP OSINT).
-    
-    **Variabel Dependen (Y):**
-    - ICOR Nasional sebagai parameter *Delay Cost* (ICOR > 6.0 = sangat tidak efisien).
-    - Korelasi Spearman ICOR vs Total Realisasi Investasi PMA & PMDN.
-    """))
-
-intro = _("""Kerangka empiris **Procedural Uncertainty** membuktikan secara langsung alur kausalitas antara kacaunya penegakan hukum dan mandeknya investasi. Berdasarkan sampel SIPP, sengketa bisnis di Indonesia memakan waktu **rata-rata {_avg_durasi:.0f} hari**. Lambat dan mahalnya proses hukum ini menciptakan **ketidakpastian absolut** bagi pelaku usaha. Investor menerjemahkan ketidakpastian waktu ini menjadi **persepsi risiko tinggi**. 
-
-Sebagai respons, risiko ini dikonversi menjadi **biaya ekonomi** berupa _Risk Premium_ dan _Delay Cost_ yang harus ditanggung investor. Hal ini terekam jelas dalam indikator efisiensi modal (**ICOR**) yang terus membengkak (saat ini {icor_avg_last:.2f}) — membuat ongkos ekspansi di Indonesia menjadi mahal dan inefisien. Rantai kausalitas ini berpuncak pada **keputusan menekan investasi (Y)**: terbukti dari korelasi **r = {corr:.3f}** antara lonjakan ICOR dan tertekannya sentimen volume investasi modal asing secara signifikan.""")
-
-intro_src = _("SIPP Mahkamah Agung (Variabel Hukum/X) & Panel ICOR Investasi BPS-BKPM (Variabel Makroekonomi/Y).")
-
-st.markdown(
-    intro.format(
-        _avg_durasi=_avg_durasi,
-        yr_f=yr_first, yr_l=yr_last, 
-        icor_avg_last=icor_avg_last,
-        corr=corr_pma
-    ) +
-    f"\n\n<small>📁 <b>Sumber Basis Data:</b> {intro_src}</small>",
-    unsafe_allow_html=True
-)
-st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
 
 # ── 3.1 Variabel Hukum (X) ──
 st.markdown("---")
