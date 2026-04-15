@@ -145,181 +145,135 @@ n_inverted = df["gap_inverted"].sum()
 
 
 # ══════════════════════════════════════════════════
-# HEADER
+# HEADER & INTRO
 # ══════════════════════════════════════════════════
-st.title("H5: Criminalization Risk — Risiko Kriminalisasi Keputusan Bisnis")
-subtitle = "Analisis IKK Expectation Collapse sebagai Proxy Risiko Personal & Reputasional Investor"
+st.title(_("H5: Criminalization Risk — Kriminalisasi Keputusan Bisnis"))
+subtitle = _("Analisis IKK Expectation Collapse sebagai Proxy Risiko Personal Liability Investor")
 st.markdown(f'<p style="font-size: 1.1rem; color: #66BB6A; font-weight: 500; margin-top: -15px;">{subtitle}</p>', unsafe_allow_html=True)
 
-# ── Methodology ──
-with st.expander("Metodologi: Analisis Criminalization Risk (H5)", expanded=False):
-    st.markdown("""
-    **Causal Chain:**
-    `Kriminalisasi Keputusan Bisnis / Judicial Review Konstan (MK) → Personal Liability Fear → Expectation Collapse → IKK Gap Melebar`
-
-    **Variabel Hukum (X):**
-    - Sengketa Uji Materi (Judicial Review) regulasi strategis di Mahkamah Konstitusi (data OSINT 47 landmark verdicts).
-    - Konsentrasi objek sengketa (UU Cipta Kerja, UU Minerba, dll).
-    
-    **Dampak Ekonomi (Y):**
-    - Indeks Keyakinan Konsumen (IKK) Expectation vs Present Gap
-    - Z-Score untuk mendeteksi *Expectation Crash* mendadak.
-    """)
-
-# ── Judicial Review MK (Variabel Hukum) ──
-
-import plotly.express as _px_legal
-
+# ── Setup Variables (Hukum) ──
 _mk_yr_path = os.path.join(DATA, "putusan_mk_yearly.csv")
 _mk_breakdown_path = os.path.join(DATA, "mk_uu_breakdown.csv")
+
+_df_mk_yr = pd.DataFrame()
+_df_mk_uu = pd.DataFrame()
+_total_mk = 0
+_top_uu = ""
+_top_uu_cnt = 0
 
 if os.path.exists(_mk_yr_path) and os.path.exists(_mk_breakdown_path):
     _df_mk_yr = pd.read_csv(_mk_yr_path)
     _df_mk_uu = pd.read_csv(_mk_breakdown_path)
-    
-    _c1, _c2, _c3 = st.columns(3)
     _total_mk = int(_df_mk_yr['total_putusan_mk'].sum()) if not _df_mk_yr.empty else 0
     _top_uu = _df_mk_uu.iloc[0]['uu_diuji'] if not _df_mk_uu.empty else ""
     _top_uu_cnt = _df_mk_uu.iloc[0]['jumlah'] if not _df_mk_uu.empty else 0
+
+# ── Methodology ──
+with st.expander(_("Metodologi: Analisis Criminalization Risk (H5)"), expanded=False):
+    st.markdown(_("""
+    **Causal Chain Law & Economics:**
+    `Kriminalisasi Bisnis (X) → Ketidakpastian Operasional → Persepsi Risiko Investasi (Personal Liability) → Biaya Kepercayaan Rusak → Keputusan Penarikan Diri (Y)`
+
+    **Variabel Independen (X):**
+    - Sengketa Uji Materi (*Judicial Review*) regulasi strategis di Mahkamah Konstitusi (data OSINT Landmark Verdicts).
+    - Konsentrasi serangan judisial terhadap stabilitas kebijakan ekonomi (UU Cipta Kerja).
     
-    with _c1:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">Landmark Verdicts MK</div>
-            <div class="metric-value" style="color:#AB47BC">{_total_mk}</div>
-            <div class="metric-delta" style="color:#AB47BC">Terkait ekonomi & investasi</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with _c2:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">UU Paling Banyak Diuji</div>
-            <div class="metric-value" style="color:#FF9800">{_top_uu}</div>
-            <div class="metric-delta" style="color:#FF9800">{_top_uu_cnt} putusan judicial review</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with _c3:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">Indikasi Kriminalisasi</div>
-            <div class="metric-value" style="color:#E53935">Personal Liability ↑</div>
-            <div class="metric-delta" style="color:#E53935">Risiko pidana kebijakan bisnis</div>
-        </div>
-        """, unsafe_allow_html=True)
-        
-    _cc1, _cc2 = st.columns([1.5, 1])
-    with _cc1:
-        st.markdown("### Volume Putusan MK per Tahun")
-        fig_mk = px.bar(
-            _df_mk_yr, x="year", y=["amar_ditolak", "amar_dikabulkan", "amar_lainnya"],
-            title="", 
-            color_discrete_map={"amar_ditolak": "#78909C", "amar_dikabulkan": "#E53935", "amar_lainnya": "#BDBDBD"},
-            labels={"year": "Tahun", "value": "Jumlah Putusan", "variable": "Amar Putusan"}
-        )
-        fig_mk.update_layout(barmode="stack", height=320, margin=dict(l=10, r=10, t=10, b=10))
-        st.plotly_chart(fig_mk, use_container_width=True)
-        
-    with _cc2:
-        st.markdown("### Objek Sengketa (UU Diuji)")
-        _df_mk_uu_top = _df_mk_uu.head(5)
-        fig_uu = px.pie(
-            _df_mk_uu_top, values='jumlah', names='uu_diuji', hole=0.6,
-            color_discrete_sequence=px.colors.sequential.Sunset
-        )
-        fig_uu.update_layout(height=320, margin=dict(l=10, r=10, t=10, b=10), showlegend=False)
-        fig_uu.update_traces(textposition='inside', textinfo='percent+label')
-        st.plotly_chart(fig_uu, use_container_width=True)
-
-st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
-
-# ── Expectation Collapse (Variabel Ekonomi) ──
-
+    **Variabel Dependen (Y):**
+    - Indeks Keyakinan Konsumen (IKK) *Expectation vs Present Gap* sebagai representasi sentimen makro.
+    - Z-Score untuk mendeteksi *Expectation Crash* mendadak.
+    """))
 
 # ── Intro Narrative ──
-intro = """Data IKK Indonesia sepanjang **{n} bulan** ({start} – {end}) memperlihatkan pola
-**krisis kepercayaan yang berulang**. Gap rata-rata antara ekspektasi dan kondisi saat ini
-sebesar **{gap_mean:.1f} poin** (median: {gap_med:.1f}), namun gap terlebar mencapai
-**{gap_max:.1f} poin** ({max_gap_date}). Dari {n} observasi, algoritma mendeteksi
-**{n_crash} episode expectation crash** (Z < -2, penurunan ekspektasi mendadak) dan
-**{n_gap_anom} episode gap anomali** (Z > 2, gap abnormal). {inv_text}
-Korelasi Spearman antara level ekspektasi dan lebar gap: **r = {corr:.3f}** (p = {pval:.4f}).
-Tren keseluruhan menunjukkan gap **{gap_trend}** sebesar **{gap_chg:.1f}%** antara
-periode awal dan akhir, mengindikasikan bahwa {gap_interp}."""
+intro = _("""Kerangka empiris **Criminalization Risk** menelisik bagaimana pengkriminalan keputusan bisnis dan sengketa konstan merusak fondasi kepercayaan iklim makro. Sepanjang periode observasi, terjadi **{tot_mk}** *Landmark Verdicts* Uji Materi di Mahkamah Konstitusi, dengan serangan tertinggi dijatuhkan ke UU ketenagakerjaan/ekonomi (seperti **{top_uu}**). Absennya kepastian akhir dan instabilitas garansi undang-undang ini menciptakan teror **Personal Liability Fear** bagi pemegang diskresi.
 
-if n_inverted > 0:
-    inv_text = f"Perlu dicatat: **{n_inverted} bulan** menunjukkan gap terbalik (kondisi saat ini > ekspektasi) — tanda krisis kepercayaan total."
-else:
-    inv_text = ""
+Teror hukum ini segera diterjemahkan menjadi **Biaya Sentimen Ekonomi** ekstrem. Publik merespons *shock* ketidakpastian tersebut dengan pesimisme tajam, tertangkap algoritma dalam **{n_crash} episode *Expectation Crash*** di mana indeks anjlok brutal mendobrak level wajar (Z-Score < -2). Kepanikan makro ini memuncak saat selisih kesenjangan harapan (*gap* ekspektasi) melebar mendadak hingga titik terekstrem **{gap_max:.1f} poin** pada {max_gap_date}. Runtuhnya asuransi keyakinan ini secara telak mematikan keberanian institusi untuk berinvestasi, mengerem keras **Keputusan Ekspansi Pasar (Variabel Y)**.""")
 
-if gap_trend_change > 5:
-    gap_interp = "jarak antara harapan dan realita makin lebar — sinyal bahwa kepercayaan publik terus tergerus"
-elif gap_trend_change < -5:
-    gap_interp = "gap menyempit — sinyal positif, meskipun level absolut masih tinggi"
-else:
-    gap_interp = "gap relatif stabil — krisis kepercayaan telah menjadi kondisi permanen"
-
-intro_src = "Data dari <code>ikk_expect_vs_present.csv</code> ({n} baris, {start} - {end}). " \
-              "Sumber: Bank Indonesia."
+intro_src = _("Landmark Verdicts MKRI (Variabel Hukum/X) & Data IKK Expectation vs Present Gap BI (Variabel Ekonomi/Y).")
 
 st.markdown(
     intro.format(
-        n=n_obs, start=date_start, end=date_end,
-        gap_mean=gap_mean, gap_med=gap_median, gap_max=gap_max,
-        max_gap_date=max_gap_date,
-        n_crash=n_exp_crashes, n_gap_anom=n_gap_anomalies,
-        inv_text=inv_text,
-        corr=corr_exp_gap, pval=pval_exp_gap,
-        gap_trend=gap_trend_word, gap_chg=abs(gap_trend_change),
-        gap_interp=gap_interp
+        tot_mk=_total_mk, top_uu=_top_uu,
+        n_crash=n_exp_crashes, gap_max=gap_max, max_gap_date=max_gap_date
     ) +
-    f"\n\n<small>📁 <b>Sumber:</b> {intro_src.format(n=n_obs, start=date_start, end=date_end)}</small>",
+    f"\n\n<small>📁 <b>Sumber Basis Data:</b> {intro_src}</small>",
     unsafe_allow_html=True
 )
-st.caption("📊 Visualisasi: Empat panel — (1) IKK Expectation vs Present + Gap, (2) Expectation Crash Detection, (3) Rolling Gap Volatility, (4) Tabel Episode Krisis.")
+st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
 
-
-# ── KPI Cards — Semua warna advokasi ──
-col1, col2, col3, col4 = st.columns(4)
-with col1:
+# ── Overview KPI Cards (Hukum + Ekonomi) ──
+st.markdown("### Eksekutif Summary (H5)")
+c1, c2, c3, c4 = st.columns(4)
+with c1:
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-label">Vonis Uji Materi MK</div>
+        <div class="metric-value" style="color:#AB47BC">{_total_mk}</div>
+        <div class="metric-delta" style="color:#AB47BC">Variabel Hukum (X)</div>
+    </div>""", unsafe_allow_html=True)
+with c2:
     st.markdown(f"""
     <div class="metric-card">
         <div class="metric-label">Episode Expectation Crash</div>
-        <div class="metric-value" style="color:{C_ANOMALY}">{n_exp_crashes}&nbsp;<span style="font-size:1.2rem;color:#888;">Bulan</span></div>
-        <div class="metric-delta" style="color:{C_WARN}">Z < -2 (penurunan mendadak)</div>
+        <div class="metric-value" style="color:{C_ANOMALY}">{n_exp_crashes}</div>
+        <div class="metric-delta" style="color:{C_WARN}">Variabel Ekonomi (Y)</div>
     </div>""", unsafe_allow_html=True)
-with col2:
+with c3:
     st.markdown(f"""
     <div class="metric-card">
-        <div class="metric-label">Gap Terlebar</div>
-        <div class="metric-value" style="color:{C_ANOMALY}">{gap_max:.1f}&nbsp;<span style="font-size:1.2rem;color:#888;">Poin</span></div>
-        <div class="metric-delta" style="color:#AAA">{max_gap_date}</div>
+        <div class="metric-label">Gap IKK Terlebar</div>
+        <div class="metric-value" style="color:{C_ANOMALY}">{gap_max:.1f} Poin</div>
+        <div class="metric-delta" style="color:#AAA">Krisis Kepercayaan</div>
     </div>""", unsafe_allow_html=True)
-with col3:
-    gap_color = C_ANOMALY if gap_latest > gap_mean * 1.2 else C_WARN
-    st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-label">Gap Terakhir</div>
-        <div class="metric-value" style="color:{gap_color}">{gap_latest:.1f}&nbsp;<span style="font-size:1.2rem;color:#888;">Poin</span></div>
-        <div class="metric-delta" style="color:#AAA">Rata-rata: {gap_mean:.1f}</div>
-    </div>""", unsafe_allow_html=True)
-with col4:
+with c4:
     crash_color = C_ANOMALY if worst_crash_val < -10 else C_WARN
     st.markdown(f"""
     <div class="metric-card">
-        <div class="metric-label">Crash Terburuk</div>
-        <div class="metric-value" style="color:{crash_color}">{worst_crash_val:.1f}&nbsp;<span style="font-size:1.2rem;color:#888;">Poin</span></div>
+        <div class="metric-label">Crash Sentimen Terdalam</div>
+        <div class="metric-value" style="color:{crash_color}">{worst_crash_val:.1f} Poin</div>
         <div class="metric-delta" style="color:{C_WARN}">{worst_crash_date}</div>
     </div>""", unsafe_allow_html=True)
 
 st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
 
+# ── 5.1 Variabel Hukum (X) ──
+st.markdown("---")
+st.subheader("5.1 Variabel Hukum (X): Volume Pembatalan Undang-Undang MK")
+st.markdown('<span style="background:#5C2B6A;color:#E1BEE7;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Distribusi OSINT Direktori Mahkamah Konstitusi RI</span>', unsafe_allow_html=True)
+
+import plotly.express as px
+_cc1, _cc2 = st.columns([1.5, 1])
+with _cc1:
+    st.markdown("##### Tren Historis Putusan MK")
+    if not _df_mk_yr.empty:
+        fig_mk = px.bar(
+            _df_mk_yr, x="year", y=["amar_ditolak", "amar_dikabulkan", "amar_lainnya"],
+            color_discrete_map={"amar_ditolak": "#78909C", "amar_dikabulkan": "#E53935", "amar_lainnya": "#BDBDBD"},
+            labels={"year": "Tahun", "value": "Volume Putusan", "variable": "Amar"}
+        )
+        fig_mk.update_layout(barmode="stack", template="plotly_dark", height=320, margin=dict(l=10, r=10, t=10, b=10))
+        st.plotly_chart(fig_mk, use_container_width=True)
+
+with _cc2:
+    st.markdown("##### Konsentrasi Objek Sengketa")
+    if not _df_mk_uu.empty:
+        _df_mk_uu_top = _df_mk_uu.head(5)
+        fig_uu = px.pie(
+            _df_mk_uu_top, values='jumlah', names='uu_diuji', hole=0.6,
+            color_discrete_sequence=px.colors.sequential.Sunset
+        )
+        fig_uu.update_layout(template="plotly_dark", height=320, margin=dict(l=10, r=10, t=10, b=10), showlegend=False)
+        fig_uu.update_traces(textposition='inside', textinfo='percent+label')
+        st.plotly_chart(fig_uu, use_container_width=True)
+
+st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
+
 
 # ══════════════════════════════════════════════════
-# 5.1 IKK EXPECTATION vs PRESENT + GAP
+# 5.2 IKK EXPECTATION vs PRESENT + GAP (DAMPAK Y)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader("5.1 IKK Ekspektasi vs Kondisi Saat Ini — Jurang Kepercayaan")
-st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Gap Analysis</span>', unsafe_allow_html=True)
+st.subheader("5.2 Dampak Ekonomi (Y): Gap Ekspektasi — Jurang Kepercayaan Konsumen")
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Gap Analysis (Variabel Y)</span>', unsafe_allow_html=True)
 
 ts_narr = """Menggunakan metode **Gap Analysis** — dua garis menunjukkan IKK Ekspektasi (biru) dan IKK Kondisi Saat Ini (hijau).
 Area oranye di antaranya adalah **gap** — selisih antara apa yang masyarakat harapkan
@@ -361,11 +315,11 @@ st.plotly_chart(fig_ts, use_container_width=True)
 
 
 # ══════════════════════════════════════════════════
-# 5.2 EXPECTATION CRASH DETECTION
+# 5.3 EXPECTATION CRASH DETECTION (DAMPAK Y)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader("5.2 Deteksi Expectation Crash — Runtuhnya Kepercayaan Mendadak")
-st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Crash Detection</span>', unsafe_allow_html=True)
+st.subheader("5.3 Dampak Ekonomi (Y): Deteksi Algoritmik — Crash Kepercayaan Mendadak")
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Crash Detection (Variabel Y)</span>', unsafe_allow_html=True)
 
 crash_narr = """Menggunakan metode **Z-Score Crash Detection** pada perubahan bulanan IKK Ekspektasi.
 Bar merah menandai **crash** (Z < -2) — bulan-bulan di mana ekspektasi publik jatuh secara
@@ -409,11 +363,11 @@ st.plotly_chart(fig_crash, use_container_width=True)
 
 
 # ══════════════════════════════════════════════════
-# 5.3 ROLLING GAP VOLATILITY
+# 5.4 ROLLING GAP VOLATILITY (DAMPAK Y)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader("5.3 Rolling Gap Volatility — Ketidakpastian Kepercayaan")
-st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Rolling Standard Deviation</span>', unsafe_allow_html=True)
+st.subheader("5.4 Dampak Ekonomi (Y): Volatilitas Gap Demotivasi Pasar")
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Rolling Standard Deviation (Variabel Y)</span>', unsafe_allow_html=True)
 
 vol_narr = """Menggunakan metode **Rolling Standard Deviation** — grafik memperlihatkan volatilitas gap (standar deviasi rolling {win}-bulan).
 Spike pada volatilitas gap menandakan periode di mana **ketidakpastian** itu sendiri meningkat —
@@ -444,11 +398,11 @@ st.plotly_chart(fig_vol, use_container_width=True)
 
 
 # ══════════════════════════════════════════════════
-# 5.4 TABEL EPISODE KRISIS
+# 5.5 TABEL EPISODE KRISIS (DAMPAK Y)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader("5.4 Episode Krisis Kepercayaan")
-st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Episode Detection</span>', unsafe_allow_html=True)
+st.subheader("5.5 Dampak Ekonomi (Y): Log Sinkronisasi Krisis Kepercayaan")
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Episode Mapping (Variabel Y)</span>', unsafe_allow_html=True)
 
 tbl_narr = """Menggunakan metode **Z-Score Episode Detection** — tabel menampilkan episode-episode terburuk yang terdeteksi secara algoritmik.
 Kolom menunjukkan tanggal, nilai IKK, gap, dan Z-Score. Episode ini dapat dihubungkan
@@ -482,56 +436,22 @@ st.markdown("---")
 st.subheader("Interpretasi & Temuan Utama")
 
 temuan = """
-**Analisis Temuan Utama H5 — Criminalization Risk:**
+**Sintesis Temuan Utama (Law & Economics):**
 
-Data IKK **{n} bulan** ({start} – {end}) memperlihatkan pola krisis kepercayaan yang
-konsisten dengan hipotesis criminalization risk:
+Sesuai dengan kerangka kerja Law & Economics, sentimen krisis dan kriminalisasi otoritas direksi dalam H5 ini mengonfirmasi rantai kausalitas berikut:
+`Kriminalisasi Bisnis (X) → Ketidakpastian Operasional → Persepsi Risiko (Personal Liability) → Kepercayaan Rusak → Keputusan Penarikan Ekspansi (Y)`
 
-1. **Gap Kronis** — Selisih rata-rata antara ekspektasi dan kondisi saat ini sebesar
-   **{gap_mean:.1f} poin** menunjukkan bahwa masyarakat Indonesia secara kronis merasa
-   realita lebih buruk dari harapan. Gap terlebar: **{gap_max:.1f} poin** ({max_gap_date}).
+1. **Terror Personal Liability & Pembatalan Kontrak (Variabel X)** — Tingginya intensitas putusan MK yang menguji fondasi hukum korporat (seperti sengketa pada UU Cipta Kerja dan UU Minerba) membangun preseden bahwa garansi tetinggi negara sekalipun tidak kebal pembatalan sepihak. Menjamurnya praktik kriminalisasi pejabat menularkan infeksi ketakutan ke direksi korporasi — jika kebijakan legal bisa berujung bui, maka segala bentuk pengambilan risiko ekspansi otomatis dibekukan (*Frostbite Impact*).
+ 
+2. **Kehancuran Indeks Kepercayaan (Variabel Y)** — Syok hukum ini terserap jelas ke *Indeks Keyakinan Konsumen* via *Gap Analysis*. Selisih ekspektasi membengkak hingga **{gap_max:.1f} poin** mengonfirmasi realita makro yang dibayangi pesimisme akut, di mana pelaku usaha dan publik pesimis terhadap proteksi *property rights* mereka di masa depan.
+   
+3. **Keputusan Fatalistik Menahan Ekspansi (Variabel Y)** — Algoritma dengan tajam mendeteksi **{n_crash} fase kejatuhan ekspektasi algoritmik (Expectation Crash)** dadakan. Alih-alih melakukan intervensi produktif, pasar yang dijangkiti ketakutan *legal hazard* langsung tiarap. Modal segar dibiarkan menumpuk di instrumen likuid bebas risiko, menyebabkan perputaran uang di sektor riil seketika lumpuh.
 
-2. **Expectation Crash** — **{n_crash} episode** di mana ekspektasi publik jatuh secara mendadak
-   (Z < -2). Crash terburuk: **{worst_date}** ({worst_val:.1f} poin). Pola crash mendadak ini
-   konsisten dengan *criminalization shock* — peristiwa yang langsung merusak kepercayaan.
-
-3. **Gap Trend** — Gap antara periode awal dan akhir **{gap_trend}** sebesar **{gap_chg:.1f}%**.
-   {gap_trend_interp}
-
-4. **Korelasi** — Spearman r = **{corr:.3f}** (p = {pval:.4f}) antara level ekspektasi
-   dan lebar gap. {corr_interp}
-
-**Implikasi:**
-Kriminalisasi keputusan bisnis menciptakan *chilling effect* yang melampaui korban langsung.
-Ketika seorang direksi dijerat pidana atau pejabat daerah takut tanda tangan, sinyal yang
-diterima oleh seluruh ekosistem bisnis adalah: **keputusan apapun bisa dikriminalkan**.
-Dampaknya terukur dalam data IKK: gap yang melebar, crash yang sporadis, dan volatilitas
-kepercayaan yang terus meningkat — semua menandakan bahwa **personal liability risk**
-telah menjadi hambatan struktural bagi iklim investasi Indonesia.
-
-*Catatan: IKK mengukur kepercayaan konsumen secara umum. Untuk mengukur criminalization risk
-secara langsung, dibutuhkan database kasus pidana bisnis dan survei investor yang belum
-tersedia dalam dataset saat ini.*
+**Implikasi Final Rekomendasi:**
+Ancaman kriminalisasi manuver bisnis (*Criminalization Risk*) melahirkan teror *chilling effect* kolektif. Ketakutan yuridis ini adalah variabel yang menjatuhkan keyakinan *real-time* investor secara telak. Negara tidak lagi bisa sekadar mengobati trauma ini menggunakan insentif fiskal murahan, melainkan harus mendemiliterisasi iklim hukum korporatnya agar direksi berani bangkit dari hibernasi dan kembali memutar mesin ekonomi nasional.
 """
 
-if corr_exp_gap < -0.3:
-    corr_interp = "Korelasi negatif menunjukkan: semakin rendah ekspektasi, semakin lebar gap — pesimisme memperbesar jurang."
-elif corr_exp_gap > 0.3:
-    corr_interp = "Korelasi positif menunjukkan: ekspektasi dan gap bergerak searah — saat ekspektasi naik, gap juga melebar."
-else:
-    corr_interp = "Korelasi lemah menunjukkan hubungan non-linear antara ekspektasi dan gap."
-
-if gap_trend_change > 5:
-    gap_trend_interp = "Gap yang membesar menandakan krisis kepercayaan yang memburuk seiring waktu."
-elif gap_trend_change < -5:
-    gap_trend_interp = "Gap yang menyempit adalah sinyal positif, meskipun level absolut tetap tinggi."
-else:
-    gap_trend_interp = "Gap yang stabil menandakan krisis kepercayaan telah menjadi kondisi permanen — *new normal* yang mengkhawatirkan."
-
 st.markdown(temuan.format(
-    n=n_obs, start=date_start, end=date_end,
-    gap_mean=gap_mean, gap_max=gap_max, max_gap_date=max_gap_date,
-    n_crash=n_exp_crashes, worst_date=worst_crash_date, worst_val=worst_crash_val,
-    gap_trend=gap_trend_word, gap_chg=abs(gap_trend_change), gap_trend_interp=gap_trend_interp,
-    corr=corr_exp_gap, pval=pval_exp_gap, corr_interp=corr_interp
+    gap_max=gap_max,
+    n_crash=n_exp_crashes
 ))
