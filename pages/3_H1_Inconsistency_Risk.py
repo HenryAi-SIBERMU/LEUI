@@ -184,91 +184,64 @@ with st.expander(_("Metodologi: Analisis Inconsistency Risk (H1)"), expanded=Fal
     - ICOR Nasional (efisiensi investasi)
     """))
 
-# ── Intro Narrative ──
-intro = _("""Data realisasi investasi Indonesia **{start}–{end}** mencakup **{n_prov} provinsi** dan
-**{n_kab}+ kabupaten/kota** memperlihatkan sebuah **kontradiksi struktural**: investasi tidak
-mengikuti potensi ekonomi, melainkan terkonsentrasi di segelintir wilayah. Gini PMA sebesar **{gini_a:.3f}** dan PMDN **{gini_d:.3f}**,
-keduanya **jauh di atas ambang ketimpangan moderat (0.4)**. **5 provinsi teratas menyerap {top5:.1f}% total
-investasi**, sementara **10 provinsi terbawah hanya menyerap {bot10:.1f}%**.""")
-
-st.markdown(
-    intro.format(
-        start=rng_start, end=rng_end, n_prov=n_prov_a, n_kab=n_kab_a,
-        gini_a=latest_gini_a, gini_d=latest_gini_d,
-        top5=top5_share, bot10=bot10_share
-    ),
-    unsafe_allow_html=True
-)
-st.caption(_("Visualisasi: Pemodelan Dampak Putusan MA & Regulasi terhadap Volatilitas, Ketimpangan, dan Distribusi Top/Bottom Provinsi (Data diagregasi ke panel kuartalan)."))
-
-st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
-
-# ── Variabel Hukum (X) ──
-
-# Load legal data
+# ── Load Legal Data for Narrative ──
 import plotly.express as _px_legal
 _ma_yearly_path = os.path.join(DATA, "putusan_ma_yearly.csv")
 _reg_h1_path = os.path.join(DATA, "regulasi_h1_yearly.csv")
 
-_lc1, _lc2, _lc3 = st.columns(3)
-
+_total_ma = 0
+_df_ma_yr = None
 if os.path.exists(_ma_yearly_path):
     _df_ma_yr = pd.read_csv(_ma_yearly_path)
     _total_ma = int(_df_ma_yr['total_putusan'].sum())
-    with _lc1:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">Putusan MA Bisnis</div>
-            <div class="metric-value" style="color:#AB47BC">{_total_ma}</div>
-            <div class="metric-delta" style="color:#AB47BC">Wanprestasi, Izin, Investasi</div>
-        </div>
-        """, unsafe_allow_html=True)
 
+_total_reg = 0
+_berlaku = 0
+_dicabut = 0
+_df_reg_h1 = None
 if os.path.exists(_reg_h1_path):
     _df_reg_h1 = pd.read_csv(_reg_h1_path)
     _total_reg = int(_df_reg_h1['jumlah'].sum())
     _berlaku = int(_df_reg_h1[_df_reg_h1['status'] == 'berlaku']['jumlah'].sum()) if 'status' in _df_reg_h1.columns else _total_reg
     _dicabut = _total_reg - _berlaku
-    with _lc2:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">Regulasi H1 Berlaku</div>
-            <div class="metric-value" style="color:#42A5F5">{_berlaku}</div>
-            <div class="metric-delta" style="color:#42A5F5">dari {_total_reg} total</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with _lc3:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">Regulasi H1 Dicabut/Diubah</div>
-            <div class="metric-value" style="color:#E53935">{_dicabut}</div>
-            <div class="metric-delta" style="color:#E53935">Indikator inkonsistensi kebijakan</div>
-        </div>
-        """, unsafe_allow_html=True)
 
-# Chart: MA Putusan per Tahun
-if os.path.exists(_ma_yearly_path):
-    st.markdown("---")
-    st.subheader(_("1.1 Volume Putusan MA Bisnis per Tahun"))
-    st.markdown('<span style="background:#333;color:#AB47BC;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Sumber Inkonsistensi (Data Hukum)</span>', unsafe_allow_html=True)
-    
-    _fig_ma = px.bar(
-        _df_ma_yr, x="year", y="total_putusan",
-        color_discrete_sequence=["#AB47BC"],
-        template=PLOTLY_TEMPLATE,
-        labels={"year": "Tahun", "total_putusan": "Jumlah Putusan"}
-    )
-    _fig_ma.update_layout(height=350, margin=dict(l=20, r=20, t=10, b=20))
-    st.plotly_chart(_fig_ma, use_container_width=True)
+# ── Intro Narrative ──
+intro = _("""Inkonsistensi hukum bukan lagi sebatas wacana yuridis, melainkan *driver* utama ketimpangan struktural ekonomi Indonesia. Analisis data realisasi **{start}–{end}** pada **{n_prov} provinsi** memperlihatkan bagaimana tingginya risiko sengketa perdata (tercatat **{tot_ma} putusan MA bisnis**) dan tumpang tindih aturan (sedikitnya **{tot_dicabut} regulasi daerah/pusat dicabut/diubah**) menciptakan *barrier to entry* tak kasat mata. 
 
-st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
+Investor merespons beban ketidakpastian ini secara defensif dengan memusatkan modal mereka ke segelintir \"safe haven\" yang terbukti aman. Hasilnya, Gini rasio investasi asing (PMA) meledak ke **{gini_a:.3f}** dan PMDN menembus **{gini_d:.3f}**—angka yang mengonfirmasi ketimpangan absolut. Terbukti, **5 provinsi teratas sanggup menyedot {top5:.1f}% investasi nasional**, membiarkan **10 provinsi terbawahnya memperebutkan remah-remah {bot10:.1f}%**. Grafik dan permodelan di bawah membuktikan bahwa ketimpangan ini adalah harga (biaya efisiensi) langsung dari inkonsistensi penegakan hukum.""")
 
-# ── Variabel Ekonomi (Y) ──
+st.markdown(
+    intro.format(
+        start=rng_start, end=rng_end, n_prov=n_prov_a, 
+        tot_ma=_total_ma, tot_dicabut=_dicabut,
+        gini_a=latest_gini_a, gini_d=latest_gini_d,
+        top5=top5_share, bot10=bot10_share
+    ),
+    unsafe_allow_html=True
+)
+st.caption(_("Visualisasi: Analisis keterkaitan antara Inkonsistensi Hukum (Sengketa MA & Revisi Regulasi) terhadap disparitas ekonomi (Volatilitas Std. Deviation, Gini Coefficient, Distribusi Provinsi, dan Inefisiensi ICOR)."))
 
+st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
 
-# ── KPI Cards ──
+# ── Overview KPI Cards (Hukum + Ekonomi) ──
+
+# Row 1: Legal + Economic KPI Cards (semua sejajar)
 col1, col2, col3, col4 = st.columns(4)
 with col1:
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-label">Putusan MA Bisnis</div>
+        <div class="metric-value" style="color:#AB47BC">{_total_ma}</div>
+        <div class="metric-delta" style="color:#AB47BC">Wanprestasi, Izin, Investasi</div>
+    </div>""", unsafe_allow_html=True)
+with col2:
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-label">Regulasi Berlaku / Dicabut</div>
+        <div class="metric-value" style="color:#42A5F5">{_berlaku} / <span style="color:#E53935">{_dicabut}</span></div>
+        <div class="metric-delta" style="color:#42A5F5">dari {_total_reg} total regulasi H1</div>
+    </div>""", unsafe_allow_html=True)
+with col3:
     g_color = '#EF5350' if latest_gini_a > 0.4 else '#4CAF50'
     g_status = 'Sangat Timpang' if latest_gini_a > 0.6 else 'Timpang' if latest_gini_a > 0.4 else 'Moderat'
     st.markdown(f"""
@@ -277,7 +250,7 @@ with col1:
         <div class="metric-value" style="color:{g_color}">{latest_gini_a:.3f}</div>
         <div class="metric-delta" style="color:{g_color}">{g_status}</div>
     </div>""", unsafe_allow_html=True)
-with col2:
+with col4:
     g_color = '#EF5350' if latest_gini_d > 0.4 else '#4CAF50'
     g_status = 'Sangat Timpang' if latest_gini_d > 0.6 else 'Timpang' if latest_gini_d > 0.4 else 'Moderat'
     st.markdown(f"""
@@ -286,14 +259,17 @@ with col2:
         <div class="metric-value" style="color:{g_color}">{latest_gini_d:.3f}</div>
         <div class="metric-delta" style="color:{g_color}">{g_status}</div>
     </div>""", unsafe_allow_html=True)
-with col3:
+
+# Row 2: Remaining Economic KPI Cards
+col5, col6, col7, col8 = st.columns(4)
+with col5:
     st.markdown(f"""
     <div class="metric-card">
         <div class="metric-label">Rasio Top/Bottom Provinsi</div>
         <div class="metric-value" style="color:#FF9800">{ratio_top_bot:,.0f}x</div>
         <div class="metric-delta" style="color:#AAA">Kesenjangan investasi</div>
     </div>""", unsafe_allow_html=True)
-with col4:
+with col6:
     icor_color = '#EF5350' if icor_last > 6 else '#FF9800' if icor_last > 4 else '#4CAF50'
     st.markdown(f"""
     <div class="metric-card">
@@ -301,15 +277,69 @@ with col4:
         <div class="metric-value" style="color:{icor_color}">{icor_last:.2f}</div>
         <div class="metric-delta" style="color:#AAA">Efisiensi investasi</div>
     </div>""", unsafe_allow_html=True)
-
-st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
-
-
 # ══════════════════════════════════════════════════
-# 2. GINI COEFFICIENT — SECTION UTAMA
+# 1.1 YUDISIAL (HUKUM)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("1.2 Ketimpangan Distribusi Investasi (Gini Coefficient)"))
+st.subheader(_("1.1 Inkonsistensi Yudisial: Volume Sengketa Bisnis per Tahun"))
+st.markdown('<span style="background:#5C2B6A;color:#E1BEE7;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Agregasi Putusan Direktori MA (Variabel X1)</span>', unsafe_allow_html=True)
+
+ma_narrative = _("""Menggunakan metode **Data Mining Putusan Mahkamah Agung** untuk mengekstrak dan mengagregasi volume sengketa perdata bisnis (wanprestasi, sengketa investasi, lisensi, dan perizinan). Grafik di bawah menunjukkan jumlah putusan tingkat kasasi pada sektor bisnis per tahunnya. Angka yang secara persisten muncul ini menjadi bukti empiris adanya **procedural uncertainty**: ketidakkonsistenan pengadilan atau kontrak bisnis yang dibatalkan sepihak. Bagi investor, risiko hukum di level elit (MA) ini memaksa mereka untuk mengerem laju ekspansi ke daerah tinggi konflik, memilih untuk bermain di area yang sudah stabil secara iklim hukum.""")
+
+ma_src = _("Berdasarkan scraping <code>putusan3.mahkamahagung.go.id</code> (Filter: Perdata Khusus, Bisnis, Investasi).")
+st.markdown(ma_narrative + f"\n\n<small>📁 <b>Sumber:</b> {ma_src}</small>", unsafe_allow_html=True)
+st.caption(_("📊 Visualisasi: Bar chart — Volume putusan Mahkamah Agung terkait sengketa bisnis (Tingkat Kasasi) per tahun."))
+
+if _df_ma_yr is not None:
+    _fig_ma = px.bar(
+        _df_ma_yr, x="year", y="total_putusan",
+        color_discrete_sequence=["#AB47BC"],
+        template=PLOTLY_TEMPLATE,
+        labels={"year": "Tahun", "total_putusan": "Jumlah Sengketa Tingkat Kasasi"}
+    )
+    _fig_ma.update_layout(height=350, margin=dict(l=20, r=20, t=20, b=20))
+    st.plotly_chart(_fig_ma, use_container_width=True)
+    
+    st.markdown(f"""
+    <div style="background:{C_BG}; padding:14px 20px; border-radius:10px; border-left:5px solid #AB47BC; margin-bottom: 20px; margin-top: 5px;">
+        Data direktori Mahkamah Agung mencatat adanya <strong>{_total_ma} sengketa perdata bisnis</strong> (wanprestasi, investasi, dan perizinan) yang bermuara hingga kasasi. Volume sengketa konstan ini mencerminkan <em>procedural uncertainty</em>—risiko hukum di mana investor rentan terhadap pembatalan kontrak.
+    </div>
+    """, unsafe_allow_html=True)
+
+# ══════════════════════════════════════════════════
+# 1.2 REGULASI (HUKUM)
+# ══════════════════════════════════════════════════
+st.markdown("---")
+st.subheader(_("1.2 Ketidakpastian Regulasi: Tumpang Tindih & Pencabutan"))
+st.markdown('<span style="background:#0D47A1;color:#BBDEFB;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Regulatory Churn Test (Variabel X2)</span>', unsafe_allow_html=True)
+
+reg_narrative = _("""Menggunakan metode **Regulatory Churn Test** untuk mengukur tingkat ketidakpastian produk hukum yang esensial bagi iklim usaha. Kami melacak siklus hidup puluhan regulasi kunci (daerah maupun pusat) yang mengatur izin usaha, perpajakan lokal, dan tata ruang. Grafik di bawah membandingkan regulasi mana yang bertahan (berlaku) melawan regulasi yang sudah layu sebelum berkembang (dicabut, dibatalkan MA/MK, atau direvisi). *Churn rate* pembatalan regulasi yang agresif ini menembakkan sinyal merah bagi modal asing: aturan yang ditandatangani hari ini bisa saja ilegal esok hari, meningkatkan beban biaya kejut (*shock cost*) investor.""")
+
+reg_src = _("Ekstraksi status dari database regulasi Pasal.id & JDIH (Dataset Bappenas).")
+st.markdown(reg_narrative + f"\n\n<small>📁 <b>Sumber:</b> {reg_src}</small>", unsafe_allow_html=True)
+st.caption(_("📊 Visualisasi: Grouped bar chart — Status hukum regulasi esensial (biru: berlaku, merah/hijau: tidak berlaku/dicabut) per tahun penerbitan."))
+
+if _df_reg_h1 is not None:
+    _fig_reg = px.bar(
+        _df_reg_h1, x="year", y="jumlah", color="status",
+        color_discrete_map={"berlaku": "#42A5F5", "dicabut": "#E53935"},
+        template=PLOTLY_TEMPLATE, barmode="group",
+        labels={"year": "Tahun", "jumlah": "Jumlah Regulasi", "status": "Status Hukum"}
+    )
+    _fig_reg.update_layout(height=350, margin=dict(l=20, r=20, t=20, b=20), hovermode="x unified", legend=dict(title=""))
+    st.plotly_chart(_fig_reg, use_container_width=True)
+    
+    st.markdown(f"""
+    <div style="background:{C_BG}; padding:14px 20px; border-radius:10px; border-left:5px solid #E53935; margin-bottom: 20px; margin-top: 5px;">
+        Dari <strong>{_total_reg} regulasi kunci</strong> tingkat daerah dan pusat yang memengaruhi iklim usaha (H1), sebanyak <strong>{_dicabut} aturan berakhir dicabut, dibatalkan, atau direvisi</strong>. <em>Churn rate</em> yang tinggi ini menghancurkan horizon perencanaan jangka panjang bagi investor.
+    </div>
+    """, unsafe_allow_html=True)
+
+# ══════════════════════════════════════════════════
+# 1.3 GINI COEFFICIENT
+# ══════════════════════════════════════════════════
+st.markdown("---")
+st.subheader(_("1.3 Dampak Ekonomi: Ketimpangan Distribusi (Gini Coefficient)"))
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Gini Coefficient</span>', unsafe_allow_html=True)
 
 gini_trend_word = "memburuk" if gini_a_change > 0 else "membaik"
@@ -349,10 +379,10 @@ st.plotly_chart(fig_gini, use_container_width=True)
 
 
 # ══════════════════════════════════════════════════
-# 3. STD DEVIATION
+# 4. STD DEVIATION
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("1.3 Volatilitas Investasi Antar Provinsi (Std. Deviation)"))
+st.subheader(_("1.4 Dampak Ekonomi: Volatilitas Investasi (Std. Deviation)"))
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Standard Deviation</span>', unsafe_allow_html=True)
 
 std_narrative = _("""Menggunakan metode **Standard Deviation** untuk mengukur volatilitas sebaran investasi.
@@ -361,11 +391,11 @@ SD mengukur *seberapa jauh* kesenjangan itu dalam nilai absolut. SD PMA kuartal 
 provinsi menerima puluhan ribu miliar sementara yang lain nyaris nol. SD PMDN di **{std_d:,.1f} IDR Bn / Miliar**
 juga memperlihatkan volatilitas yang besar. Perhatikan *spike* pada grafik — lonjakan SD biasanya
 berkorelasi dengan kuartal di mana satu atau dua provinsi menerima mega-investasi, sementara
-daerah lain stagnan. Pola ini konsisten dengan hipotesis bahwa investor menghindari wilayah
-dengan **risiko hukum yang tidak bisa diprediksi**, memilih bertumpuk di \"safe haven\" yang sudah terbukti.""")
+daerah lain stagnan. Pola ini linier dengan instabilitas hukum (seperti temuan **{tot_dicabut} regulasi daerah/pusat yang dicabut/diubah**); investor memilih menghindari
+wilayah dengan **risiko hukum yang tidak bisa diprediksi**, dan bertumpuk di \"safe haven\" yang sudah terbukti.""")
 
 std_src = _("Agregasi <code>realisasi_investasi_asing.csv</code> & <code>realisasi_investasi_domestik.csv</code> — groupby(kuartal, provinsi) → sum → SD per kuartal.")
-st.markdown(std_narrative.format(std_a=latest_std_a, std_d=latest_std_d) +
+st.markdown(std_narrative.format(std_a=latest_std_a, std_d=latest_std_d, tot_dicabut=_dicabut) +
             f"\n\n<small>📁 <b>Sumber:</b> {std_src}</small>", unsafe_allow_html=True)
 st.caption(_("📊 Visualisasi: Line chart — Standard Deviation realisasi investasi antar provinsi per kuartal. PMA (biru), PMDN (hijau). Spike menandakan kuartal dengan konsentrasi extremitas tinggi."))
 
@@ -385,10 +415,10 @@ st.plotly_chart(fig_std, use_container_width=True)
 
 
 # ══════════════════════════════════════════════════
-# 4. DISTRIBUSI PROVINSI
+# 5. DISTRIBUSI PROVINSI
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("1.4 Peta Konsentrasi Investasi per Provinsi"))
+st.subheader(_("1.5 Dampak Ekonomi: Peta Konsentrasi Investasi per Provinsi"))
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Distribusi Top/Bottom Analysis</span>', unsafe_allow_html=True)
 
 prov_narrative = _("""Menggunakan metode **Distribusi Top/Bottom Analysis** untuk mengidentifikasi konsentrasi investasi.
@@ -397,16 +427,16 @@ sementara **{bot1}**, **{bot2}**, dan **{bot3}** nyaris tidak menerima apa-apa. 
 mencapai **{ratio:,.0f}x lipat** — provinsi teratas menerima investasi {ratio:,.0f} kali lebih besar
 dari terbawah. **5 provinsi teratas menyerap {top5:.1f}%** dari seluruh investasi, sementara
 **10 provinsi terbawah hanya {bot10:.1f}%**. Ini bukan simply perbedaan daya saing ekonomi —
-Gini di atas 0.6 mengindikasikan bahwa distorsi *non-fundamental* (termasuk inkonsistensi penegakan
-hukum dan birokrasi) turut mendorong konsentrasi ini. Investor memilih bertumpuk di wilayah yang
-\"dipersepsikan aman\" — sebuah *self-fulfilling prophecy* yang semakin melebarkan kesenjangan.""")
+Gini di atas 0.6 mengindikasikan bahwa distorsi *non-fundamental*, termasuk ekspektasi paparan
+terhadap **sengketa perdata (seperti {tot_ma} putusan MA bisnis)** dan inkonsistensi birokrasi, turut mendorong konsentrasi ini. Investor memilih bertumpuk di wilayah yang
+\"dipersepsikan aman\" secara penegakan hukum — sebuah *self-fulfilling prophecy* yang semakin melebarkan kesenjangan.""")
 
 prov_src = _("Gabungan <code>realisasi_investasi_asing.csv</code> + <code>realisasi_investasi_domestik.csv</code>, groupby(provinsi) → mean.")
 st.markdown(
     prov_narrative.format(
         top1=prov_top1['provinsi'], top2=prov_top2['provinsi'], top3=prov_top3['provinsi'],
         bot1=prov_bot1['provinsi'], bot2=prov_bot2['provinsi'], bot3=prov_bot3['provinsi'],
-        ratio=ratio_top_bot, top5=top5_share, bot10=bot10_share
+        ratio=ratio_top_bot, top5=top5_share, bot10=bot10_share, tot_ma=_total_ma
     ) + f"\n\n<small>📁 <b>Sumber:</b> {prov_src}</small>", unsafe_allow_html=True
 )
 st.caption(_("📊 Visualisasi: Bar chart horizontal — Top 15 dan Bottom 15 provinsi berdasarkan rata-rata investasi PMA+PMDN per kuartal. Warna = besaran nilai."))
@@ -448,10 +478,10 @@ st.markdown(f"""
 
 
 # ══════════════════════════════════════════════════
-# 5. ICOR NASIONAL
+# 6. ICOR NASIONAL
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("1.5 Tren ICOR Nasional: Biaya Ketidakpastian"))
+st.subheader(_("1.6 Dampak Ekonomi: Tren ICOR Nasional (Biaya Ketidakpastian)"))
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: ICOR Time Series</span>', unsafe_allow_html=True)
 
 icor_trend_word = "naik" if icor_pma_trend > 0 else "turun"
