@@ -245,12 +245,12 @@ _cc1, _cc2 = st.columns([1.5, 1])
 with _cc1:
     st.markdown("##### Tren Historis Putusan MK")
     if not _df_mk_yr.empty:
-        fig_mk = px.bar(
-            _df_mk_yr, x="year", y=["amar_ditolak", "amar_dikabulkan", "amar_lainnya"],
-            color_discrete_map={"amar_ditolak": "#78909C", "amar_dikabulkan": "#E53935", "amar_lainnya": "#BDBDBD"},
-            labels={"year": "Tahun", "value": "Volume Putusan", "variable": "Amar"}
-        )
-        fig_mk.update_layout(barmode="stack", template="plotly_dark", height=320, margin=dict(l=10, r=10, t=10, b=10))
+        import plotly.graph_objects as go
+        fig_mk = go.Figure()
+        fig_mk.add_trace(go.Bar(x=_df_mk_yr["year"], y=_df_mk_yr["amar_ditolak"], name="Amar Ditolak", marker_color="#78909C"))
+        fig_mk.add_trace(go.Bar(x=_df_mk_yr["year"], y=_df_mk_yr["amar_dikabulkan"], name="Amar Dikabulkan", marker_color="#E53935"))
+        fig_mk.add_trace(go.Bar(x=_df_mk_yr["year"], y=_df_mk_yr["amar_lainnya"], name="Amar Lainnya", marker_color="#BDBDBD"))
+        fig_mk.update_layout(barmode="stack", template="plotly_dark", height=320, margin=dict(l=10, r=10, t=10, b=10), showlegend=True)
         st.plotly_chart(fig_mk, use_container_width=True)
 
 with _cc2:
