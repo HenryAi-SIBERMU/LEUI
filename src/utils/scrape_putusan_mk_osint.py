@@ -21,10 +21,9 @@ LEUI_KEYWORDS = [
 ]
 
 def search_google_cse_api(query, max_results=10):
-    results = []
-    # Menggunakan API Key dari project Celios sebelumnya
-    GOOGLE_API_KEY = "AIzaSyCgfjc35Ah1eCVyF8lPLNmpBhX26i5MQrs"
-    GOOGLE_CSE_ID = "c369c352f440840cb"
+    # MENGHAPUS API KEY YANG TER-EXPOSE!
+    GOOGLE_API_KEY = "REMOVED"
+    GOOGLE_CSE_ID = "REMOVED"
     
     url = "https://www.googleapis.com/customsearch/v1"
     
