@@ -159,76 +159,109 @@ trend_word = "meningkat" if trend_change > 0 else "menurun"
 
 
 # ══════════════════════════════════════════════════
-# HEADER
+# HEADER & INTRO
 # ══════════════════════════════════════════════════
-st.title("H4: Regulatory Reversal Risk")
+st.title(_("H4: Regulatory Reversal Risk — Guncangan Regulasi"))
+subtitle = _("Analisis Capital Flight & Net Sell Obligasi sebagai Proxy Risiko Stranded Asset")
+st.markdown(f'<p style="font-size: 1.1rem; color: #66BB6A; font-weight: 500; margin-top: -15px;">{subtitle}</p>', unsafe_allow_html=True)
 
-# ── Methodology ──
-with st.expander("Metodologi: Analisis Regulatory Reversal Risk (H4)", expanded=False):
-    st.markdown("""
-    **Causal Chain:**
-    `Regulatory Churn (Regulasi Berubah) → Stranded Asset Fear → Capital Flight → Net Sell Obligasi`
-
-    **Variabel Hukum (X):**
-    - **Regulatory Churn Rate**: Rasio (Persentase) regulasi yang dicabut/diubah per tahun terhadap total regulasi yang pernah ada, selama 52 tahun terakhir (sumber: Pasal.id REST API).
-    - **Reversal Timeline**: Tren jumlah regulasi yang masih berlaku vs tidak berlaku per tahun pengesahan.
-    
-    **Dampak Ekonomi (Y):**
-    - Capital Outflow bulanan (Net Sell Obligasi Pemerintah / IDR Triliun)
-    - Z-Score Anomaly Detection untuk mendeteksi *capital flight spike* pasca-reversal.
-    """)
-
-# ── Regulatory Churn Rate (Variabel Hukum) ──
-
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-
+# ── Setup Variables (Hukum) ──
 _churn_path = os.path.join(DATA, "regulatory_churn_rate.csv")
 _rev_path = os.path.join(DATA, "h4_reversal_timeline.csv")
+
+_latest_churn = 0
+_max_churn = 0
+_df_churn = pd.DataFrame()
+_df_rev = pd.DataFrame()
 
 if os.path.exists(_churn_path) and os.path.exists(_rev_path):
     _df_churn = pd.read_csv(_churn_path)
     _df_rev = pd.read_csv(_rev_path)
-    
-    # KPIs Hukum
-    _c1, _c2, _c3 = st.columns(3)
     _latest_churn = _df_churn['churn_rate'].iloc[-1] if not _df_churn.empty else 0
     _max_churn = _df_churn['churn_rate'].max() if not _df_churn.empty else 0
-    with _c1:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">Churn Rate Terkini</div>
-            <div class="metric-value" style="color:#FF9800">{_latest_churn:.1f}%</div>
-            <div class="metric-delta" style="color:#FF9800">Regulasi berubah per tahun</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with _c2:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">Churn Rate Maksimum</div>
-            <div class="metric-value" style="color:#E53935">{_max_churn:.1f}%</div>
-            <div class="metric-delta" style="color:#E53935">Puncak volatilitas aturan</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with _c3:
-        st.markdown(f"""
-        <div class="metric-card">
-            <div class="metric-label">Data Observasi</div>
-            <div class="metric-value" style="color:#42A5F5">52 Tahun</div>
-            <div class="metric-delta" style="color:#42A5F5">Sejarah regulasi via Pasal.id</div>
-        </div>
-        """, unsafe_allow_html=True)
-        
-    st.markdown("### Grafik Dual-Axis: Regulatory Churn Rate (X) vs Capital Outflow (Y)")
-    st.markdown("*Melihat hubungan langsung antara instabilitas hukum dengan tekanan modal keluar secara tahunan.*")
+
+# ── Methodology ──
+with st.expander(_("Metodologi: Analisis Regulatory Reversal Risk (H4)"), expanded=False):
+    st.markdown(_("""
+    **Causal Chain Law & Economics:**
+    `Regulasi Berubah (X) → Ketidakpastian Ketentuan → Persepsi Risiko (Stranded Asset) → Capital Flight (Biaya) → Net Sell Obligasi (Y)`
+
+    **Variabel Independen (X):**
+    - **Regulatory Churn Rate**: Rasio (Persentase) regulasi yang dicabut/diubah per tahun terhadap total regulasi yang pernah ada (sumber: Pasal.id REST API).
     
-    # Merge for dual-axis (yearly)
-    _df_outflow_yr = df.copy()
-    _df_outflow_yr['year'] = _df_outflow_yr['date'].dt.year
-    _df_outflow_yr = _df_outflow_yr.groupby('year')['net_sell_idr_tn'].sum().reset_index()
-    
+    **Variabel Dependen (Y):**
+    - Capital Outflow bulanan (Net Sell Obligasi Pemerintah / IDR Triliun).
+    - Z-Score Anomaly Detection untuk mendeteksi *capital flight spike* pasca-reversal.
+    """))
+
+# ── Intro Narrative ──
+intro = _("""Kerangka empiris **Regulatory Reversal Risk** membuktikan pelarian modal bukan sekadar fluktuasi pasar, melainkan reaksi atas ketidakpastian regulasi. Data historis mencatat tingkat **Regulatory Churn (Rasio Perubahan Regulasi)** mencapai puncaknya di **{max_churn:.1f}%**. Aturan (seperti diskresi izin tambang/ekspor) yang dicabut secara mendadak menciptakan iklim **ketidakpastian absolut** yang diterjemahkan investor sebagai risiko *stranded asset* (aset tersandera). 
+
+Risiko yang tak terprediksi ini memaksa *fund manager* institusional menuntut *Risk Premium* ekstrem yang memicu lonjakan **Capital Flight**. Selama {n_obs} periode terakhir ({yr_start}–{yr_end}), pelarian dari aset obligasi melahirkan **{n_anom} episode anomali kepanikan** dengan puncak *Net Sell* menyentuh **{max_ns:.1f} Triliun Rupiah** (Z-Score {max_z:.2f}). Besarnya kapitalisasi modal keluar yang berskala raksasa ini menegaskan bahwa **keputusan penarikan investasi (Y)** sangat rentan (elastis) terhadap rezim hukum *in-motion* yang sewenang-wenang.""")
+
+intro_src = _("Pasal.id API (Variabel Hukum/X) & Bond Net Sell Data CEIC/Bloomberg (Variabel Makroekonomi/Y).")
+
+st.markdown(
+    intro.format(
+        max_churn=_max_churn,
+        n_obs=n_obs, yr_start=year_start, yr_end=year_end,
+        max_ns=max_ns, max_z=max_z, n_anom=n_anomaly
+    ) +
+    f"\n\n<small>📁 <b>Sumber Basis Data:</b> {intro_src}</small>",
+    unsafe_allow_html=True
+)
+st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
+
+# ── Overview KPI Cards (Hukum + Ekonomi) ──
+st.markdown("### Eksekutif Summary (H4)")
+c1, c2, c3, c4 = st.columns(4)
+with c1:
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-label">Churn Rate Maksimum</div>
+        <div class="metric-value" style="color:#FF9800">{_max_churn:.1f}%</div>
+        <div class="metric-delta" style="color:#FF9800">Variabel Hukum (X)</div>
+    </div>""", unsafe_allow_html=True)
+with c2:
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-label">Net Sell Tertinggi</div>
+        <div class="metric-value" style="color:{C_ANOMALY}">{max_ns:.1f} Tn</div>
+        <div class="metric-delta" style="color:{C_WARN}">Variabel Ekonomi (Y)</div>
+    </div>""", unsafe_allow_html=True)
+with c3:
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-label">Episode Anomali Z>2</div>
+        <div class="metric-value" style="color:{C_ANOMALY}">{n_anomaly}</div>
+        <div class="metric-delta" style="color:#AAA">Kepanikan (Dampak Y)</div>
+    </div>""", unsafe_allow_html=True)
+with c4:
+    cv_color = C_ANOMALY if cv > 50 else C_WARN
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-label">Volatilitas Capital (CV)</div>
+        <div class="metric-value" style="color:{cv_color}">{cv:.1f}%</div>
+        <div class="metric-delta" style="color:{C_WARN}">Sangat Volatile</div>
+    </div>""", unsafe_allow_html=True)
+
+st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
+
+# ── 4.1 Variabel Hukum (X) ──
+from plotly.subplots import make_subplots
+st.markdown("---")
+st.subheader("4.1 Variabel Hukum (X): Regulasi Churn & Hubungan Dual-Axis Capital Flight")
+st.markdown('<span style="background:#5C2B6A;color:#E1BEE7;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Regulatory Churn Rate & Overlay Data Output CEIC</span>', unsafe_allow_html=True)
+
+st.markdown("*Melihat hubungan langsung antara fluktuasi/revisi hukum dengan tekanan modal keluar secara tahunan.*")
+
+# Merge for dual-axis (yearly)
+_df_outflow_yr = df.copy()
+_df_outflow_yr['year'] = _df_outflow_yr['date'].dt.year
+_df_outflow_yr = _df_outflow_yr.groupby('year')['net_sell_idr_tn'].sum().reset_index()
+
+if not _df_churn.empty:
     _df_dual = pd.merge(_df_churn, _df_outflow_yr, on='year', how='inner').sort_values('year')
-    
     if not _df_dual.empty:
         fig_dual = make_subplots(specs=[[{"secondary_y": True}]])
         
@@ -244,7 +277,7 @@ if os.path.exists(_churn_path) and os.path.exists(_rev_path):
         )
         
         fig_dual.update_layout(
-            template="plotly_dark" if st.get_option("theme.base") == "dark" else "plotly_white",
+            template="plotly_dark",
             height=400,
             margin=dict(l=20, r=20, t=10, b=20),
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
@@ -256,88 +289,13 @@ if os.path.exists(_churn_path) and os.path.exists(_rev_path):
 
 st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
 
-# ── Capital Flight (Variabel Ekonomi) ──
-
-
-# ── Intro Narrative ──
-intro = """Data capital outflow Indonesia selama **{n} observasi** ({start} – {end}) memperlihatkan
-pola net sell obligasi yang **sangat volatile** (CV = {cv:.1f}%). Total akumulasi net sell selama
-periode ini mencapai **{total:.2f} IDR Tn / Triliun** dengan rata-rata **{mean:.2f} IDR Tn / Triliun** per periode.
-Dari {n} observasi, algoritma Z-Score mendeteksi **{n_anom} episode anomali** (Z > 2) dan
-**{n_high} episode elevated** (Z > 1) — minggu-minggu di mana investor menarik modal secara
-masif, jauh melampaui fluktuasi wajar. Net sell tertinggi tercatat pada
-**{max_date}** sebesar **{max_val:.2f} IDR Tn / Triliun** (Z = {max_z:.2f}). Tren keseluruhan menunjukkan
-rata-rata net sell paruh kedua **{trend}** sebesar **{trend_chg:.1f}%** dibanding paruh pertama,
-mengindikasikan bahwa {trend_interp}."""
-
-if trend_change > 10:
-    trend_interp = "tekanan pelarian modal makin membesar — sinyal bahwa ketidakpastian regulasi memburuk"
-elif trend_change < -10:
-    trend_interp = "tekanan pelarian modal mereda relatif — namun level absolut tetap tinggi"
-else:
-    trend_interp = "tekanan pelarian modal relatif stabil — namun volatilitas tetap mengkhawatirkan"
-
-max_z = df.loc[df["net_sell_idr_tn"].idxmax(), "z_score"]
-
-intro_src = "Data dari <code>capital_outflow.csv</code> ({n} baris, {start} - {end}). " \
-              "Sumber: Bond Net Sell data (CEIC/Bloomberg)."
-
-st.markdown(
-    intro.format(
-        n=n_obs, start=date_start, end=date_end,
-        cv=cv, total=total_ns, mean=mean_ns,
-        n_anom=n_anomaly, n_high=n_high,
-        max_date=max_date, max_val=max_ns, max_z=max_z,
-        trend=trend_word, trend_chg=abs(trend_change),
-        trend_interp=trend_interp
-    ) +
-    f"\n\n<small>📁 <b>Sumber:</b> {intro_src.format(n=n_obs, start=date_start, end=date_end)}</small>",
-    unsafe_allow_html=True
-)
-st.caption("📊 Visualisasi: Empat panel — (1) Time Series + Anomali, (2) Rolling Band, (3) Agregasi Kuartal, (4) Tabel Episode. Semua threshold dihitung dari data.")
-
-
-# ── KPI Cards — Semua warna advokasi ──
-col1, col2, col3, col4 = st.columns(4)
-with col1:
-    st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-label">Episode Anomali (Z>2)</div>
-        <div class="metric-value" style="color:{C_ANOMALY}">{n_anomaly}</div>
-        <div class="metric-delta" style="color:{C_WARN}">dari {n_obs} observasi</div>
-    </div>""", unsafe_allow_html=True)
-with col2:
-    st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-label">Net Sell Tertinggi</div>
-        <div class="metric-value" style="color:{C_ANOMALY}">{max_ns:.1f} Tn</div>
-        <div class="metric-delta" style="color:#AAA">Z = {max_z:.2f}</div>
-    </div>""", unsafe_allow_html=True)
-with col3:
-    cv_color = C_ANOMALY if cv > 50 else C_WARN
-    st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-label">Volatilitas (CV)</div>
-        <div class="metric-value" style="color:{cv_color}">{cv:.1f}%</div>
-        <div class="metric-delta" style="color:{C_WARN}">Sangat Volatile</div>
-    </div>""", unsafe_allow_html=True)
-with col4:
-    st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-label">Total Akumulasi</div>
-        <div class="metric-value" style="color:{C_WARN}">{total_ns:.1f} Tn</div>
-        <div class="metric-delta" style="color:#AAA">{year_start}–{year_end}</div>
-    </div>""", unsafe_allow_html=True)
-
-st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
-
 
 # ══════════════════════════════════════════════════
-# 4.1 TIME SERIES + ANOMALI
+# 4.2 TIME SERIES + ANOMALI (DAMPAK Y)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader("4.1 Time Series Net Sell Obligasi + Deteksi Anomali")
-st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Anomaly Detection</span>', unsafe_allow_html=True)
+st.subheader("4.2 Dampak Ekonomi (Y): Time Series Net Sell & Deteksi Anomali Volatilitas")
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Anomaly Detection (Variabel Y)</span>', unsafe_allow_html=True)
 
 ts_narr = """Grafik batang di bawah menampilkan fluktuasi ekstrem net sell per periode. Dari rata-rata historis **{mean:.2f} IDR Tn**, algoritma mendeteksi **{n_anom} minggu anomali** (batang merah, Z > 2) dan **{n_high} minggu elevated** (oranye, Z > 1) di mana kepanikan institusional memicu pelarian modal masif. Spike merah ini tidak tersebar acak melainkan **terkonsentrasi (clustering)** pada periode krisis kepercayaan hukum. Rekor kepanikan terpanjang mencapai **{streak} minggu berturut-turut** di atas rata-rata — mengonfirmasi bahwa *regulatory shock* memicu efek domino bagi penarikan likuiditas pasar."""
 
@@ -376,11 +334,11 @@ st.plotly_chart(fig_ts, use_container_width=True)
 
 
 # ══════════════════════════════════════════════════
-# 4.2 ISOLATION FOREST — DETEKSI ANOMALI
+# 4.3 ISOLATION FOREST — DETEKSI ANOMALI (DAMPAK Y)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader("4.2 Isolation Forest — Deteksi Anomali Capital Flight")
-st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Isolation Forest</span>', unsafe_allow_html=True)
+st.subheader("4.3 Dampak Ekonomi (Y): Isolation Forest — Zonasi Capital Flight")
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Machine Learning Isolation Forest (Variabel Y)</span>', unsafe_allow_html=True)
 
 iso_narr = """Algoritma **Isolation Forest** (Liu et al., 2008) mengisolasi data outlier melalui partisi acak rekursif. Prinsipnya: data anomali lebih mudah dipisahkan karena jumlahnya sedikit dan nilainya ekstrem. Dari {n} observasi, model mendeteksi **{n_anom} episode anomali** yang jatuh di dalam *zona merah* (decision boundary). Area merah pada grafik merepresentasikan wilayah di mana algoritma mengklasifikasikan observasi sebagai pelarian modal di luar pola normal — titik-titik di zona ini bukan fluktuasi wajar melainkan *capital flight episodes* yang dipicu guncangan regulasi."""
 
@@ -450,11 +408,11 @@ st.plotly_chart(fig_iso, use_container_width=True)
 
 
 # ══════════════════════════════════════════════════
-# 4.3 AGREGASI KUARTAL
+# 4.4 AGREGASI KUARTAL (DAMPAK Y)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader("4.3 Agregasi Kuartal — Tren Makro Capital Outflow")
-st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Quarterly Aggregation</span>', unsafe_allow_html=True)
+st.subheader("4.4 Dampak Ekonomi (Y): Agregasi Kuartal — Tren Makro Ekstrem")
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Quarterly Aggregation (Variabel Y)</span>', unsafe_allow_html=True)
 
 q_narr = """Agregasi kuartalan menyaring *noise* mingguan untuk mengungkap daya rusak makroekonomi dari pencabutan kebijakan hukum. Kuartal terburuk berpusat pada **{worst_q}** yang menyapu bersih likuiditas hingga **{worst_val:.2f} IDR Tn / Triliun**. Jika lonjakan *outflow* tinggi pada satu kuartal namun segera mereda, itu terhitung reaksi syok sesaat. Namun, tinggi batang yang terus persisten di rasio atas mengindikasikan *regulatory reversal* bukan sekadar insiden tunggal, melainkan telah membeku menjadi iklim usaha yang struktural-destruktif bagi sentimen investasi."""
 
@@ -508,11 +466,11 @@ if len(q_agg) > 0:
 
 
 # ══════════════════════════════════════════════════
-# 4.4 TABEL EPISODE ANOMALI
+# 4.5 TABEL EPISODE ANOMALI
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader("4.4 Episode Capital Flight — Deteksi Anomali")
-st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Episode Detection</span>', unsafe_allow_html=True)
+st.subheader("4.5 Dampak Ekonomi (Y): Log Episode Kepanikan (Z > 2)")
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Episode Detection (Variabel Y)</span>', unsafe_allow_html=True)
 
 tbl_narr = """Deteksi anomali statistik mencatat titik nadir pelarian modal pada **{max_date}** dengan nilai fantastis **{max_val:.2f} IDR Tn** (Z-Score **{max_z:.2f}**). Tabel di bawah memetakan secara kronologis seluruh episode anomali (Z > 2) dan elevated (Z > 1) yang berfungsi sebagai **jejak forensik aliran modal**. Analis penegakan hukum dapat langsung melakukan *overlay* kalender kejadian—menguji korelasi persisnya jatuhnya triliunan rupiah dengan diumumkannya pencabutan izin tambang, perombakan mendadak pejabat kunci, atau intervensi retroaktif dalam kontrak esensial."""
 
@@ -539,47 +497,23 @@ st.markdown("---")
 st.subheader("Interpretasi & Temuan Utama")
 
 temuan = """
-**Analisis Temuan Utama H4 — Regulatory Reversal Risk:**
+**Sintesis Temuan Utama (Law & Economics):**
 
-Data capital outflow **{n} observasi** ({start} – {end}) memperlihatkan pola
-pelarian modal yang konsisten dengan hipotesis regulatory reversal:
+Sesuai dengan kerangka kerja Law & Economics, analisis *Regulatory Reversal* ini mengonfirmasi rantai kausalitas berikut:
+`Regulasi Berubah → Ketidakpastian Aturan → Persepsi Risiko (Stranded Asset) → Capital Flight → Keputusan Likuidasi (Y)`
 
-1. **Volatilitas Ekstrem** — Coefficient of Variation sebesar **{cv:.1f}%** menunjukkan
-   net sell sangat tidak stabil. Nilai terendah hanya **{min_val:.2f} IDR Tn / Triliun** namun tertinggi
-   mencapai **{max_val:.2f} IDR Tn / Triliun** — rasio {ratio:.0f}x lipat.
+1. **Instabilitas Aturan & Diskresi Ekstrem (Variabel X)** — Adanya rekor *Regulatory Churn Rate* dan indikasi pembatalan izin secara ad-hoc menciptakan iklim regulasi yang tidak dapat diprediksi. Bagi modal asing, absennya garansi hukum adalah lonceng bahaya untuk investasi yang memakan modal perizinan tinggi (capital-intensive).
+ 
+2. **Kenaikan Biaya Ekonomi & Risk Premium (Variabel Y)** — Volatilitas yang terefleksi pada pelarian obligasi (CV **{cv:.1f}%**) menjadi metrik akurat atas **premium risiko**. Ketidakpastian diterjemahkan menjadi **{n_anom} episode anomali kepanikan** yang melonjak tajam secara sporadis, di mana dalam satu periode krisis, institusi bisa menyedot keluar likuiditas hingga **{max_val:.2f} IDR Triliun**.
+   
+3. **Keputusan Pembatalan & Likuidasi Investasi (Variabel Y)** — Akumulasi *Capital Flight* ini terstruktur sebagai respons atas disrupsi rezim. Kuartal terburuk pada **{worst_q}** yang meraup net sell **{worst_val:.2f} IDR Tn** bertindak sebagai *"vote of no confidence"* dari investor terhadap guncangan regulasi yang memutarbalikkan skenario keekonomian asali.
 
-2. **Episode Anomali Terkonsentrasi** — Dari {n} observasi, **{n_anom} episode anomali** (Z > 2)
-   dan **{n_high} elevated** (Z > 1) terdeteksi. Anomali tidak tersebar merata, tapi
-   **terkonsentrasi** di periode-periode tertentu — pola khas *regulatory shock*.
-
-3. **Tren Keseluruhan** — Rata-rata net sell paruh kedua **{trend}** sebesar **{trend_chg:.1f}%**
-   dibanding paruh pertama. {trend_interp_final}
-
-4. **Kuartal Terburuk** — **{worst_q}** mencatat total net sell **{worst_val:.2f} IDR Tn / Triliun**,
-   kuartal dengan tekanan capital flight terbesar.
-
-**Implikasi:**
-Ketika investor merespons perubahan regulasi dengan menarik modal secara masif dan mendadak,
-ini menciptakan *self-reinforcing cycle*: pelarian modal → tekanan rupiah → BI menaikkan suku bunga →
-biaya investasi naik → investor semakin enggan masuk. Regulatory reversal bukan hanya
-merugikan investor yang sudah ada, tapi juga **menaikkan barrier of entry** bagi investor baru.
-
-*Catatan: Net sell obligasi dipengaruhi banyak faktor global (Fed rate, DXY, geopolitik).
-Analisis ini menyajikan data sebagai proxy parsial — bukan klaim kausal tunggal terhadap
-regulatory reversal.*
+**Implikasi Final Rekomendasi:**
+Praktik "Bongkar-Pasang Aturan" ("Regulatory Reversal") tidak dapat lagi dipandang semata sebagai manuver administratif, melainkan guncangan **likuiditas makroekonomi sistemik**. Selama keran diskresi dibiarkan bocor menabrak kestabilan yurisprudensi asali, Indonesia secara absolut menekan investor ke titik putus asa yang memaksa triliunan rupiah uang tunjangan berhamburan lari menyeberang (Capital Flight).
 """
 
-if trend_change > 10:
-    trend_interp_final = "Tekanan yang meningkat ini memperkuat argumen bahwa ketidakpastian regulasi memburuk."
-elif trend_change < -10:
-    trend_interp_final = "Meskipun mereda, level absolut tetap jauh lebih tinggi dari nol — tekanan belum sepenuhnya hilang."
-else:
-    trend_interp_final = "Stabilitas relatif ini bisa berarti tekanan sudah menjadi *structural baseline* — investor sudah terbiasa menarik modal."
-
 st.markdown(temuan.format(
-    n=n_obs, start=date_start, end=date_end,
-    cv=cv, min_val=min_ns, max_val=max_ns, ratio=max_ns/min_ns if min_ns > 0 else 0,
-    n_anom=n_anomaly, n_high=n_high,
-    trend=trend_word, trend_chg=abs(trend_change), trend_interp_final=trend_interp_final,
+    cv=cv, max_val=max_ns,
+    n_anom=n_anomaly,
     worst_q=worst_q, worst_val=worst_q_val
 ))
