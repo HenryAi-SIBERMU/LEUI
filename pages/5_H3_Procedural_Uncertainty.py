@@ -51,7 +51,7 @@ C_BG = "#1E1E1E"
 
 # ── Load data ──
 BASE = os.path.dirname(os.path.dirname(__file__))
-DATA = os.path.join(BASE, "data", "processed")
+DATA = os.path.join(BASE, "data", "final")
 
 @st.cache_data
 def load_data():
@@ -168,35 +168,18 @@ st.markdown(f'<p style="font-size: 1.1rem; color: #66BB6A; font-weight: 500; mar
 # ── Methodology ──
 with st.expander(_("Metodologi: Analisis Procedural Uncertainty (H3)"), expanded=False):
     st.markdown(_("""
-    **Premis:** Proses hukum yang berlarut-larut, tumpang tindih kewenangan, dan penyitaan aset
-    sebelum putusan inkracht menciptakan **delay cost** — biaya laten yang tidak tercatat dalam
-    neraca perusahaan namun sangat nyata bagi investor.
-
     **Causal Chain:**
-    `Procedural Uncertainty → Delay Cost → ICOR Naik → Investasi Makin Tidak Efisien → Growth Terhambat`
+    `Durasi Sengketa Berlarut (SIPP) → Delay Cost Meningkat → ICOR Naik → Investasi Tidak Efisien`
 
-    **Metode:**
-    1. **ICOR sebagai Delay Cost Indicator**
-       - ICOR = Incremental Capital-Output Ratio
-       - Formula: `ICOR = Total Investasi / ΔGDP`
-       - ICOR naik = investasi makin tidak efisien (lebih banyak modal untuk hasil yang sama)
-       - Threshold inefisiensi: `ICOR > 6.0` (standar internasional)
-    2. **Spearman Rank Correlation** — Mengukur hubungan ICOR ↔ volume investasi
-       - Formula: `ρ = 1 - (6 × Σdᵢ²) / (n × (n² - 1))`
-       - Korelasi negatif = semakin mahal biaya, semakin sedikit investasi masuk
-       - Signifikansi: `p-value < 0.05` = hubungan signifikan secara statistik
-    3. **Lag Analysis** — ICOR tahun T vs investasi tahun T+1, T+2, T+3
-       - Formula: `Spearman(ICOR[t], Investasi[t+lag])` untuk lag = 0, 1, 2, 3
-       - Jika korelasi makin negatif pada lag lebih panjang → delay cost bersifat kumulatif
-    4. **Rate of Change** — Lonjakan tahunan ICOR
-       - Formula: `RoC = (ICOR[t] - ICOR[t-1]) / ICOR[t-1] × 100%`
-       - Lonjakan tajam = procedural shock (bukan perlambatan gradual)
-
-    **Istilah "Delay Cost":** Biaya yang muncul akibat keterlambatan — proses hukum berlarut-larut,
-    izin tertahan, atau keputusan yang ditunda. Semakin lama proses, semakin besar delay cost
-    yang terakumulasi dalam bentuk ICOR yang membengkak.
+    **Variabel Hukum (X):**
+    - Durasi proses perkara bisnis (wanprestasi, izin) di Pengadilan Negeri (SIPP)
+    - Data sampel dari 145 kasus hasil OSINT dan agregasi langsung
+    
+    **Dampak Ekonomi (Y):**
+    - ICOR Nasional sebagai *Delay Cost Indicator* (ICOR > 6.0 = inefisien)
+    - Korelasi Spearman ICOR vs Volume Investasi
+    - Lag Analysis (ICOR tahun T menggerus investasi tahun T+lag)
     """))
-
 
 # ── Intro Narrative ──
 intro = _("""Analisis efisiensi investasi Indonesia sepanjang **{yr_f}–{yr_l}** ({n_yr} tahun data ICOR)
@@ -230,10 +213,83 @@ st.markdown(
         worst_yr=worst_jump_yr, worst_val=worst_jump_val,
         corr=corr_pma, pval=pval_pma
     ) +
-    f"\n\n<small>📁 <b>Sumber:</b> {intro_src.format(n_yr=n_years, yr_f=yr_first, yr_l=yr_last)}</small>",
+    f"\n\n<small><b>Sumber:</b> {intro_src.format(n_yr=n_years, yr_f=yr_first, yr_l=yr_last)}</small>",
     unsafe_allow_html=True
 )
-st.caption(_("📊 Visualisasi: Empat panel — (1) Tren ICOR, (2) ICOR vs Volume Investasi, (3) Lag Correlation, (4) Rate of Change. Semua threshold dihitung dari data."))
+st.caption(_("Visualisasi: Analisis Dua Layer — (A) Durasi Sengketa SIPP, (B) Empat Panel ICOR. Semua threshold dihitung dari data."))
+
+st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
+
+# ── 1. Variabel Hukum (X) ──
+st.markdown("### 1. Variabel Hukum (X): Beban Prosedural & Waktu Sengketa SIPP")
+
+_sipp_dur_path = os.path.join(DATA, "sipp_durasi_distribution.csv")
+_sipp_pn_path = os.path.join(DATA, "sipp_pn_distribution.csv")
+
+_sc1, _sc2, _sc3 = st.columns(3)
+_total_sipp = 0
+_avg_durasi = 0
+_n_pn = 0
+
+if os.path.exists(_sipp_pn_path):
+    _df_pn = pd.read_csv(_sipp_pn_path)
+    _total_sipp = int(_df_pn['jumlah'].sum())
+    _avg_dur_vals = _df_pn['avg_durasi'].dropna()
+    _avg_durasi = _avg_dur_vals.mean() if len(_avg_dur_vals) > 0 else 0
+    _n_pn = len(_df_pn)
+
+with _sc1:
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-label">Total Perkara SIPP</div>
+        <div class="metric-value" style="color:#AB47BC">{_total_sipp}</div>
+        <div class="metric-delta" style="color:#AB47BC">Terekstraksi via OSINT/Web</div>
+    </div>
+    """, unsafe_allow_html=True)
+with _sc2:
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-label">Rata-rata Durasi Sengketa</div>
+        <div class="metric-value" style="color:#FF9800">{_avg_durasi:.0f} hari</div>
+        <div class="metric-delta" style="color:#FF9800">Waktu terbuang (Delay Cost)</div>
+    </div>
+    """, unsafe_allow_html=True)
+with _sc3:
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-label">Cakupan Pengadilan</div>
+        <div class="metric-value" style="color:#42A5F5">{_n_pn} PN</div>
+        <div class="metric-delta" style="color:#42A5F5">Sebaran wilayah nasional</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+if os.path.exists(_sipp_dur_path) and os.path.exists(_sipp_pn_path):
+    _df_dur = pd.read_csv(_sipp_dur_path)
+    _cc1, _cc2 = st.columns(2)
+    with _cc1:
+        st.markdown("#### Distribusi Durasi Perkara")
+        _fig_dur = px.bar(
+            _df_dur, x="durasi_bucket", y="jumlah",
+            color_discrete_sequence=["#AB47BC"],
+            template=PLOTLY_TEMPLATE, labels={"durasi_bucket": "Rentang", "jumlah": "Jumlah"}
+        )
+        _fig_dur.update_layout(height=320, margin=dict(l=10, r=10, t=10, b=10))
+        st.plotly_chart(_fig_dur, use_container_width=True)
+    with _cc2:
+        st.markdown("#### Top 10 PN dgn Perkara Terbanyak")
+        _df_pn_top = _df_pn.head(10).sort_values("jumlah", ascending=True)
+        _fig_pn = px.bar(
+            _df_pn_top, x="jumlah", y="pengadilan", orientation="h",
+            color_discrete_sequence=["#42A5F5"],
+            template=PLOTLY_TEMPLATE, labels={"jumlah": "Jumlah", "pengadilan": ""}
+        )
+        _fig_pn.update_layout(height=320, margin=dict(l=10, r=10, t=10, b=10))
+        st.plotly_chart(_fig_pn, use_container_width=True)
+
+st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
+
+# ── 2. Variabel Ekonomi (Y) ──
+st.markdown("### 2. Dampak Ekonomi (Y): ICOR & Inefisiensi Makro")
 
 
 # ── KPI Cards — Semua warna advokasi ──

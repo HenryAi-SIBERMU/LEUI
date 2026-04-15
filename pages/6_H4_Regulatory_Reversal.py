@@ -50,7 +50,7 @@ C_BG = "#1E1E1E"
 
 # ── Load data ──
 BASE = os.path.dirname(os.path.dirname(__file__))
-DATA = os.path.join(BASE, "data", "processed")
+DATA = os.path.join(BASE, "data", "final")
 
 @st.cache_data
 def load_data():
@@ -161,41 +161,102 @@ trend_word = "meningkat" if trend_change > 0 else "menurun"
 # ══════════════════════════════════════════════════
 # HEADER
 # ══════════════════════════════════════════════════
-st.title("H4: Regulatory Reversal Risk — Risiko Pencabutan Kebijakan")
-subtitle = "Analisis Capital Outflow (Net Sell Obligasi) sebagai Proxy Pelarian Modal akibat Ketidakpastian Regulasi"
-st.markdown(f'<p style="font-size: 1.1rem; color: #66BB6A; font-weight: 500; margin-top: -15px;">{subtitle}</p>', unsafe_allow_html=True)
+st.title("H4: Regulatory Reversal Risk")
 
 # ── Methodology ──
 with st.expander("Metodologi: Analisis Regulatory Reversal Risk (H4)", expanded=False):
     st.markdown("""
-    **Premis:** Pencabutan izin yang sudah sah, perubahan regulasi retroaktif, atau kriminalisasi
-    pasca pergantian pejabat menciptakan **stranded asset risk** — investor yang sudah menanamkan
-    modal tiba-tiba kehilangan jaminan hukum. Respons rasional? **Tarik modal secepat mungkin.**
-
     **Causal Chain:**
-    `Regulatory Reversal → Stranded Asset Fear → Capital Flight → Net Sell Obligasi Melonjak`
+    `Regulatory Churn (Regulasi Berubah) → Stranded Asset Fear → Capital Flight → Net Sell Obligasi`
 
-    **Metode:**
-    1. **Z-Score Anomaly Detection**
-       - Identifikasi minggu dengan net sell abnormal
-       - Formula: `Z = (x - μ) / σ`
-       - Threshold: `Z > 2` (anomali capital flight), `Z > 1` (elevated)
-    2. **Rolling Band Analysis**
-       - Batas atas fluktuasi wajar menggunakan moving average
-       - Formula: `Upper Band = Rolling Mean + (2 × Rolling SD)`
-       - Titik di luar band = capital flight episode
-    3. **Quarterly Aggregation**
-       - Agregasi data mingguan ke kuartalan
-       - Formula: `Sum(Net Sell)` per kuartal
-       - Fungsi: melihat tren makro & menghilangkan noise harian
-    4. **Trend Analysis**
-       - Perbandingan rata-rata paruh pertama vs kedua
-       - Formula: `Δ = (Mean[Akhir] - Mean[Awal]) / Mean[Awal] × 100%`
-
-    **Catatan:** Net sell obligasi harian dipengaruhi banyak faktor (Fed rate, global risk-off,
-    rupiah, dll). Analisis ini menyajikan data sebagai **proxy parsial** — spike yang muncul
-    bersamaan dengan ketidakpastian regulasi memperkuat hipotesis H4.
+    **Variabel Hukum (X):**
+    - **Regulatory Churn Rate**: Rasio (Persentase) regulasi yang dicabut/diubah per tahun terhadap total regulasi yang pernah ada, selama 52 tahun terakhir (sumber: Pasal.id REST API).
+    - **Reversal Timeline**: Tren jumlah regulasi yang masih berlaku vs tidak berlaku per tahun pengesahan.
+    
+    **Dampak Ekonomi (Y):**
+    - Capital Outflow bulanan (Net Sell Obligasi Pemerintah / IDR Triliun)
+    - Z-Score Anomaly Detection untuk mendeteksi *capital flight spike* pasca-reversal.
     """)
+
+# ── Regulatory Churn Rate (Variabel Hukum) ──
+
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
+_churn_path = os.path.join(DATA, "regulatory_churn_rate.csv")
+_rev_path = os.path.join(DATA, "h4_reversal_timeline.csv")
+
+if os.path.exists(_churn_path) and os.path.exists(_rev_path):
+    _df_churn = pd.read_csv(_churn_path)
+    _df_rev = pd.read_csv(_rev_path)
+    
+    # KPIs Hukum
+    _c1, _c2, _c3 = st.columns(3)
+    _latest_churn = _df_churn['churn_rate'].iloc[-1] if not _df_churn.empty else 0
+    _max_churn = _df_churn['churn_rate'].max() if not _df_churn.empty else 0
+    with _c1:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-label">Churn Rate Terkini</div>
+            <div class="metric-value" style="color:#FF9800">{_latest_churn:.1f}%</div>
+            <div class="metric-delta" style="color:#FF9800">Regulasi berubah per tahun</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with _c2:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-label">Churn Rate Maksimum</div>
+            <div class="metric-value" style="color:#E53935">{_max_churn:.1f}%</div>
+            <div class="metric-delta" style="color:#E53935">Puncak volatilitas aturan</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with _c3:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-label">Data Observasi</div>
+            <div class="metric-value" style="color:#42A5F5">52 Tahun</div>
+            <div class="metric-delta" style="color:#42A5F5">Sejarah regulasi via Pasal.id</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    st.markdown("### Grafik Dual-Axis: Regulatory Churn Rate (X) vs Capital Outflow (Y)")
+    st.markdown("*Melihat hubungan langsung antara instabilitas hukum dengan tekanan modal keluar secara tahunan.*")
+    
+    # Merge for dual-axis (yearly)
+    _df_outflow_yr = df.copy()
+    _df_outflow_yr['year'] = _df_outflow_yr['date'].dt.year
+    _df_outflow_yr = _df_outflow_yr.groupby('year')['net_sell_idr_tn'].sum().reset_index()
+    
+    _df_dual = pd.merge(_df_churn, _df_outflow_yr, on='year', how='inner').sort_values('year')
+    
+    if not _df_dual.empty:
+        fig_dual = make_subplots(specs=[[{"secondary_y": True}]])
+        
+        # Add Churn (Bar)
+        fig_dual.add_trace(
+            go.Bar(x=_df_dual['year'], y=_df_dual['churn_rate'], name="Churn Rate (%)", marker_color="#FF9800", opacity=0.7),
+            secondary_y=False,
+        )
+        # Add Outflow (Line)
+        fig_dual.add_trace(
+            go.Scatter(x=_df_dual['year'], y=_df_dual['net_sell_idr_tn'], name="Net Sell Outflow (IDR Tn)", mode='lines+markers', line=dict(color="#E53935", width=3)),
+            secondary_y=True,
+        )
+        
+        fig_dual.update_layout(
+            template="plotly_dark" if st.get_option("theme.base") == "dark" else "plotly_white",
+            height=400,
+            margin=dict(l=20, r=20, t=10, b=20),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+        )
+        fig_dual.update_yaxes(title_text="<b>Churn Rate</b> (%)", secondary_y=False)
+        fig_dual.update_yaxes(title_text="<b>Capital Outflow</b> (IDR Tn)", secondary_y=True)
+        
+        st.plotly_chart(fig_dual, use_container_width=True)
+
+st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
+
+# ── Capital Flight (Variabel Ekonomi) ──
 
 
 # ── Intro Narrative ──

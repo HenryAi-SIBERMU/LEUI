@@ -49,7 +49,7 @@ C_BG = "#1E1E1E"
 
 # ── Load data ──
 BASE = os.path.dirname(os.path.dirname(__file__))
-DATA = os.path.join(BASE, "data", "processed")
+DATA = os.path.join(BASE, "data", "final")
 
 @st.cache_data
 def load_data():

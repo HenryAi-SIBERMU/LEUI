@@ -50,7 +50,7 @@ C_BG = "#1E1E1E"
 
 # ── Load data ──
 BASE = os.path.dirname(os.path.dirname(__file__))
-DATA = os.path.join(BASE, "data", "processed")
+DATA = os.path.join(BASE, "data", "final")
 
 @st.cache_data
 def load_data():
@@ -154,29 +154,85 @@ st.markdown(f'<p style="font-size: 1.1rem; color: #66BB6A; font-weight: 500; mar
 # ── Methodology ──
 with st.expander("Metodologi: Analisis Criminalization Risk (H5)", expanded=False):
     st.markdown("""
-    **Premis:** Kriminalisasi keputusan bisnis atau kebijakan administratif menciptakan
-    **personal liability risk** — direksi takut dijerat pidana, pejabat daerah takut
-    tanda tangan, investor asing khawatir personal liability. Dampaknya: kepercayaan publik
-    runtuh, tercermin dalam **collapse** IKK Ekspektasi.
-
     **Causal Chain:**
-    `Criminalization Risk → Personal Liability Fear → Expectation Collapse → IKK Gap Melebar → Investment Freeze`
+    `Kriminalisasi Keputusan Bisnis / Judicial Review Konstan (MK) → Personal Liability Fear → Expectation Collapse → IKK Gap Melebar`
 
-    **Metode:**
-    1. **Gap Analysis (Expectation − Present)** — Selisih antara ekspektasi konsumen
-       dengan kondisi saat ini. Gap yang melebar = masyarakat berharap perbaikan tapi
-       realita memburuk. Gap > 2σ dari rata-rata = anomali struktural.
-    2. **Expectation Crash Detection** — Z-Score pada perubahan bulanan IKK Ekspektasi.
-       Z < -2 = crash mendadak. Pola crash mendadak konsisten dengan *shock event*
-       (kriminalisasi publik, penangkapan direksi, dsb).
-    3. **Rolling Gap Volatility** — Volatilitas gap dalam window 12 bulan.
-       Volatilitas tinggi = ketidakpastian tinggi — masyarakat tidak bisa memprediksi arah.
-    4. **Correlation Analysis** — Hubungan antara level ekspektasi dan lebar gap.
-
-    **Catatan:** IKK mengukur persepsi konsumen secara umum, bukan khusus investor.
-    Namun sebagai proxy sentimen, IKK mencerminkan kepercayaan publik yang juga
-    mempengaruhi iklim investasi.
+    **Variabel Hukum (X):**
+    - Sengketa Uji Materi (Judicial Review) regulasi strategis di Mahkamah Konstitusi (data OSINT 47 landmark verdicts).
+    - Konsentrasi objek sengketa (UU Cipta Kerja, UU Minerba, dll).
+    
+    **Dampak Ekonomi (Y):**
+    - Indeks Keyakinan Konsumen (IKK) Expectation vs Present Gap
+    - Z-Score untuk mendeteksi *Expectation Crash* mendadak.
     """)
+
+# ── Judicial Review MK (Variabel Hukum) ──
+
+import plotly.express as _px_legal
+
+_mk_yr_path = os.path.join(DATA, "putusan_mk_yearly.csv")
+_mk_breakdown_path = os.path.join(DATA, "mk_uu_breakdown.csv")
+
+if os.path.exists(_mk_yr_path) and os.path.exists(_mk_breakdown_path):
+    _df_mk_yr = pd.read_csv(_mk_yr_path)
+    _df_mk_uu = pd.read_csv(_mk_breakdown_path)
+    
+    _c1, _c2, _c3 = st.columns(3)
+    _total_mk = int(_df_mk_yr['total_putusan_mk'].sum()) if not _df_mk_yr.empty else 0
+    _top_uu = _df_mk_uu.iloc[0]['uu_diuji'] if not _df_mk_uu.empty else ""
+    _top_uu_cnt = _df_mk_uu.iloc[0]['jumlah'] if not _df_mk_uu.empty else 0
+    
+    with _c1:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-label">Landmark Verdicts MK</div>
+            <div class="metric-value" style="color:#AB47BC">{_total_mk}</div>
+            <div class="metric-delta" style="color:#AB47BC">Terkait ekonomi & investasi</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with _c2:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-label">UU Paling Banyak Diuji</div>
+            <div class="metric-value" style="color:#FF9800">{_top_uu}</div>
+            <div class="metric-delta" style="color:#FF9800">{_top_uu_cnt} putusan judicial review</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with _c3:
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-label">Indikasi Kriminalisasi</div>
+            <div class="metric-value" style="color:#E53935">Personal Liability ↑</div>
+            <div class="metric-delta" style="color:#E53935">Risiko pidana kebijakan bisnis</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    _cc1, _cc2 = st.columns([1.5, 1])
+    with _cc1:
+        st.markdown("### Volume Putusan MK per Tahun")
+        fig_mk = px.bar(
+            _df_mk_yr, x="year", y=["amar_ditolak", "amar_dikabulkan", "amar_lainnya"],
+            title="", 
+            color_discrete_map={"amar_ditolak": "#78909C", "amar_dikabulkan": "#E53935", "amar_lainnya": "#BDBDBD"},
+            labels={"year": "Tahun", "value": "Jumlah Putusan", "variable": "Amar Putusan"}
+        )
+        fig_mk.update_layout(barmode="stack", height=320, margin=dict(l=10, r=10, t=10, b=10))
+        st.plotly_chart(fig_mk, use_container_width=True)
+        
+    with _cc2:
+        st.markdown("### Objek Sengketa (UU Diuji)")
+        _df_mk_uu_top = _df_mk_uu.head(5)
+        fig_uu = px.pie(
+            _df_mk_uu_top, values='jumlah', names='uu_diuji', hole=0.6,
+            color_discrete_sequence=px.colors.sequential.Sunset
+        )
+        fig_uu.update_layout(height=320, margin=dict(l=10, r=10, t=10, b=10), showlegend=False)
+        fig_uu.update_traces(textposition='inside', textinfo='percent+label')
+        st.plotly_chart(fig_uu, use_container_width=True)
+
+st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
+
+# ── Expectation Collapse (Variabel Ekonomi) ──
 
 
 # ── Intro Narrative ──

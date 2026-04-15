@@ -1,13 +1,14 @@
 """
-Phase 3 v5: Scrape Putusan Mahkamah Konstitusi (mkri.id)
+Phase 3 v7: Scrape Putusan Mahkamah Konstitusi (mkri.id)
 Target: Judicial Review (PUU) terkait UU Ekonomi & Bisnis
-Strategy: Playwright Headless Browser (Bypass 403 WAF)
+Strategy: curl_cffi (TLS Spoofing) untuk pass Turnstile
 """
-from __future__ import annotations
 import pandas as pd
 import time
 import os
 import sys
+from bs4 import BeautifulSoup
+from curl_cffi import requests
 
 sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
@@ -19,8 +20,7 @@ LEUI_KEYWORDS = [
     "perizinan", "pajak", "kepailitan", "perseroan"
 ]
 
-def scrape_mk_keyword_playwright(page, keyword, max_pages=3):
-    """Scrape putusan MK using Playwright to bypass WAF."""
+def scrape_mk_keyword_curl(session, keyword, max_pages=3):
     records = []
     
     for page_num in range(1, max_pages + 1):
@@ -28,35 +28,37 @@ def scrape_mk_keyword_playwright(page, keyword, max_pages=3):
         url = f"{BASE_URL}?page=web.Putusan&id=&kat=1&cari={keyword}&hlm={page_num}"
         
         try:
-            page.goto(url, wait_until="domcontentloaded", timeout=45000)
-            time.sleep(3)
+            # Menggunakan curl_cffi session
+            resp = session.get(url, timeout=30)
             
-            # Cek block
-            content = page.content()
-            if "forbidden" in content.lower() or "403" in page.title():
-                print("[ERR:403 Forbidden]", end=" ")
+            if resp.status_code != 200:
+                print(f"[ERR:{resp.status_code}]", end=" ")
                 break
                 
-            # Parse tabel
-            rows = page.query_selector_all("table.table tbody tr")
+            if "Just a moment..." in resp.text or "cf-browser-verification" in resp.text:
+                 print("[CF-Blocked]", end=" ")
+                 break
+
+            soup = BeautifulSoup(resp.text, "html.parser")
+            
+            # Find the results table
+            rows = soup.select("table.table tbody tr")
             if not rows or len(rows) == 0:
                 print("[End of results]")
                 break
                 
             new_recs = 0
             for row in rows:
-                cells = row.query_selector_all("td")
+                cells = row.find_all("td")
                 if len(cells) >= 3:
-                    nomor = cells[0].inner_text().strip()
-                    perihal = cells[1].inner_text().strip()
-                    tanggal = cells[2].inner_text().strip()
+                    nomor = cells[0].text.strip()
+                    perihal = cells[1].text.strip()
+                    tanggal = cells[2].text.strip()
                     
                     pdf_link = ""
-                    links = cells[1].query_selector_all("a")
-                    for link in links:
-                        href = link.get_attribute("href") or ""
-                        if ".pdf" in href:
-                            pdf_link = "https://mkri.id" + href if href.startswith("/") else href
+                    for a in cells[1].find_all('a'):
+                        if 'href' in a.attrs and '.pdf' in a['href']:
+                            pdf_link = "https://mkri.id" + a['href'] if a['href'].startswith('/') else a['href']
                             break
                             
                     records.append({
@@ -72,9 +74,10 @@ def scrape_mk_keyword_playwright(page, keyword, max_pages=3):
             if new_recs == 0:
                 break
                 
+            time.sleep(1.5)
+            
         except Exception as e:
-            err = str(e).split('\n')[0][:50]
-            print(f"[ERR: {err}]")
+            print(f"[EXCEPTION: {str(e)[:50]}]")
             break
             
     return records
@@ -82,46 +85,36 @@ def scrape_mk_keyword_playwright(page, keyword, max_pages=3):
 
 def main():
     print("=" * 70)
-    print("PHASE 3 v5: Scraping Putusan Mahkamah Konstitusi (mkri.id)")
-    print("Strategy: Playwright Headless Browser (WAF Bypass)")
+    print("PHASE 3 v7: Scraping Putusan Mahkamah Konstitusi (mkri.id)")
+    print("Strategy: curl_cffi TLS Spoofing Chrome 101")
     print("=" * 70)
     
-    from playwright.sync_api import sync_playwright
+    # Init spoofing session, nonaktifkan cert verify seperti kasus MA sebelumnya
+    session = requests.Session(impersonate="chrome101", verify=False)
     
+    print("[STEP 1] Testing MKRI connection...")
+    try:
+        resp = session.get("https://mkri.id/", timeout=30)
+        print(f"  Status: {resp.status_code}")
+        
+        if "Just a moment..." in resp.text:
+            print("  [WARN] Cloudflare Turnstile masih aktif. Spoofing gagal.")
+        else:
+            print("  [OK] Berhasil tembus halaman utama tanpa Turnstile!")
+            
+    except Exception as e:
+        print(f"  [FATAL] Gagal akses: {e}")
+        return
+
+    print("\n[STEP 2] Running searches...")
     all_decisions = []
     
-    with sync_playwright() as p:
-        print("\n[LAUNCH] Starting Chromium (stealth mode)...")
-        browser = p.chromium.launch(
-            headless=True,
-            args=['--disable-blink-features=AutomationControlled', '--no-sandbox']
-        )
-        
-        context = browser.new_context(
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            viewport={"width": 1920, "height": 1080}
-        )
-        page = context.new_page()
-        
-        # Test connection
-        print("[STEP 1] Testing MKRI connection...")
-        try:
-            page.goto("https://mkri.id/", wait_until="domcontentloaded", timeout=30000)
-            time.sleep(2)
-            print(f"  Title: '{page.title()}' [OK]")
-        except Exception as e:
-            print(f"  [WARN] Failed to load homepage: {str(e)[:50]}")
+    for kw in LEUI_KEYWORDS:
+        print(f"\n[SEARCH] '{kw}'")
+        results = scrape_mk_keyword_curl(session, kw, max_pages=3)
+        if results:
+            all_decisions.extend(results)
             
-        # Search loop
-        print(f"\n[STEP 2] Running searches...")
-        for kw in LEUI_KEYWORDS:
-            print(f"\n[SEARCH] '{kw}'")
-            results = scrape_mk_keyword_playwright(page, kw, max_pages=3)
-            if results:
-                all_decisions.extend(results)
-                
-        browser.close()
-        
     if all_decisions:
         df = pd.DataFrame(all_decisions)
         
@@ -154,7 +147,7 @@ def main():
         print(f"[SAVED] {output_path}")
         
     else:
-        print("\n\n[FAILED] Tidak ada data. WAF MKRI menetapkan blokir total.")
+        print("\n\n[FAILED] Tidak ada data. WAF MKRI masih menetapkan blokir.")
 
 
 if __name__ == "__main__":

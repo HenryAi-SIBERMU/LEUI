@@ -39,7 +39,7 @@ C_WARN = "#FF9800"
 C_ANOMALY = "#E53935"
 
 # ── Data Loading ──
-DATA_DIR = os.path.join(os.path.dirname(__file__), "data", "processed")
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data", "final")
 
 @st.cache_data
 def load_data():
@@ -74,6 +74,44 @@ def load_summary():
             stats['ikk_gap'] = df.iloc[-1].get('ikk_gap', 0)
     return stats
 
+@st.cache_data
+def load_legal_summary():
+    legal = {}
+    # MA yearly
+    p = os.path.join(DATA_DIR, "putusan_ma_yearly.csv")
+    if os.path.exists(p):
+        df = pd.read_csv(p)
+        legal['total_ma'] = int(df['total_putusan'].sum()) if not df.empty else 0
+    # MK yearly
+    p = os.path.join(DATA_DIR, "putusan_mk_yearly.csv")
+    if os.path.exists(p):
+        df = pd.read_csv(p)
+        legal['total_mk'] = int(df['total_putusan_mk'].sum()) if not df.empty else 0
+    # SIPP yearly
+    p = os.path.join(DATA_DIR, "sipp_yearly.csv")
+    if os.path.exists(p):
+        df = pd.read_csv(p)
+        legal['total_sipp'] = int(df['total_perkara'].sum()) if not df.empty else 0
+    # Regulasi summary
+    p = os.path.join(DATA_DIR, "regulasi_summary_per_hipotesis.csv")
+    if os.path.exists(p):
+        df = pd.read_csv(p)
+        legal['total_regulasi'] = int(df['count'].sum()) if not df.empty else 0
+    # Churn rate
+    p = os.path.join(DATA_DIR, "regulatory_churn_rate.csv")
+    if os.path.exists(p):
+        df = pd.read_csv(p)
+        if not df.empty:
+            legal['churn_latest'] = df.iloc[-1].get('churn_rate', 0)
+            legal['churn_year'] = int(df.iloc[-1].get('year', 0))
+    # MA Statistik
+    p = os.path.join(DATA_DIR, "laporan_ma_statistik.csv")
+    if os.path.exists(p):
+        df = pd.read_csv(p)
+        if not df.empty:
+            legal['reversal_rate'] = df.iloc[0].get('reversal_rate_pct', 0)
+    return legal
+
 # Initialize
 df_asing, df_domestik, df_icor = load_data()
 stats = load_summary()
@@ -88,21 +126,75 @@ st.markdown('<p style="font-size: 1.1rem; color: #9E9E9E; margin-top: 5px;">Dash
 st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════
-# OVERVIEW NASIONAL
+# LAYER 1: VARIABEL HUKUM (KPI CARDS)
 # ══════════════════════════════════════════════════
-st.markdown("## Overview Nasional & Tren Risiko")
-st.markdown('<p style="font-size: 1.05rem; color: #66BB6A; font-weight: 500; margin-top: -15px;">Statistik Deskriptif & Indikator Utama Analisis</p>', unsafe_allow_html=True)
+legal = load_legal_summary()
 
-with st.expander("ℹ️ Metodologi: Analisis Tren & Overview Nasional Dashboard LEUI", expanded=False):
+st.markdown("## Data Primer Penegakan Hukum")
+st.markdown('<p style="font-size: 1.05rem; color: #66BB6A; font-weight: 500; margin-top: -15px;">Overview Sumber Ketidakpastian Lingkungan Bisnis</p>', unsafe_allow_html=True)
+
+with st.expander("Metodologi: Model Hukum → Ekonomi", expanded=False):
     st.markdown("""
-    **Premis Utama:** Bukan hukum buruk yang paling mahal, tapi **hukum yang tak bisa diprediksi.**
-    Dashboard ini mengagregasi 5 hipotesis ketidakpastian hukum (H1-H5) untuk melihat bagaimana investor 
-    menerjemahkan risiko regulasi menjadi *cost of capital*.
+    **Model Kausalitas:** `Penegakan Hukum (X) → Respons Ekonomi (Y)`
+    
+    Dashboard ini menggunakan model kausalitas untuk menyelaraskan narasi:
+    - **Variabel Independen (X):** Data hukum primer — putusan pengadilan, regulasi, durasi sengketa
+    - **Variabel Dependen (Y):** Data ekonomi — ICOR, IKK, PMI, Capital Outflow, Realisasi Investasi
+    
+    Pertanyaan riset: *"Apakah variabel hukum (X) mempengaruhi respons ekonomi (Y)?"*
     """)
 
 st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
-# --- KPI Cards ---
+# --- Legal KPI Cards ---
+lc1, lc2, lc3, lc4 = st.columns(4)
+with lc1:
+    total_kasus = legal.get('total_ma', 0) + legal.get('total_mk', 0) + legal.get('total_sipp', 0)
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-label">Total Kasus Hukum Bisnis</div>
+        <div class="metric-value" style="color:#AB47BC">{total_kasus}</div>
+        <div class="metric-delta" style="color:#AB47BC">MA ({legal.get('total_ma',0)}) + MK ({legal.get('total_mk',0)}) + SIPP ({legal.get('total_sipp',0)})</div>
+    </div>
+    """, unsafe_allow_html=True)
+with lc2:
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-label">Regulasi Bisnis Aktif</div>
+        <div class="metric-value" style="color:#42A5F5">{legal.get('total_regulasi', 0)}</div>
+        <div class="metric-delta" style="color:#42A5F5">Tersebar di 5 hipotesis H1–H5</div>
+    </div>
+    """, unsafe_allow_html=True)
+with lc3:
+    churn = legal.get('churn_latest', 0)
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-label">Regulatory Churn Rate</div>
+        <div class="metric-value" style="color:#FF9800">{churn:.1f}%</div>
+        <div class="metric-delta" style="color:#FF9800">Regulasi dicabut/diubah per tahun</div>
+    </div>
+    """, unsafe_allow_html=True)
+with lc4:
+    rev = legal.get('reversal_rate', 0)
+    st.markdown(f"""
+    <div class="metric-card">
+        <div class="metric-label">Reversal Rate MA</div>
+        <div class="metric-value" style="color:#E53935">{rev:.2f}%</div>
+        <div class="metric-delta" style="color:#E53935">Putusan MA yang dikabulkan (2023)</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
+
+# ══════════════════════════════════════════════════
+# LAYER 2: DAMPAK EKONOMI (KPI CARDS)
+# ══════════════════════════════════════════════════
+st.markdown("## Dampak Makroekonomi Nasional")
+st.markdown('<p style="font-size: 1.05rem; color: #66BB6A; font-weight: 500; margin-top: -15px;">Respons Pasar & Investor terhadap Ketidakpastian Hukum</p>', unsafe_allow_html=True)
+
+st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+
+# --- Economic KPI Cards ---
 col1, col2, col3, col4 = st.columns(4)
 with col1:
     icor_val = stats.get('icor_pma', 0)
@@ -145,9 +237,9 @@ with col4:
 st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════
-# BAGIAN H1 (SEMUA GRAFIK)
+# BAGIAN H1 (GRAFIK OVERVIEW)
 # ══════════════════════════════════════════════════
-st.markdown("## 1. Analisis H1: Inconsistency Risk (Ketidakkonsistenan Hukum)")
+st.markdown("## 📈 Analisis H1: Dampak Inkonsistensi Hukum pada Distribusi Investasi")
 st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
 # --- Helper logic for H1 ---
