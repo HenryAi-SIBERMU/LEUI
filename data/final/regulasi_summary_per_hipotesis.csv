@@ -1,0 +1,15 @@
+﻿hipotesis,status,count
+H1,berlaku,49
+H1,tidak_berlaku,11
+H1; H3,berlaku,8
+H1; H3; H4,berlaku,2
+H1; H4,berlaku,1
+H2,berlaku,7
+H2; H4,berlaku,1
+H3,berlaku,12
+H3,tidak_berlaku,1
+H3; H4,berlaku,7
+H4,berlaku,57
+H4,diubah,1
+H4,tidak_berlaku,5
+H5,berlaku,8
