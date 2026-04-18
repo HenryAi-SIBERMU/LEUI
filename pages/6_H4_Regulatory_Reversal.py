@@ -184,20 +184,19 @@ if os.path.exists(_churn_path) and os.path.exists(_rev_path):
 with st.expander(_("Metodologi: Analisis Regulatory Reversal Risk (H4)"), expanded=False):
     st.markdown(_("""
     **Causal Chain Law & Economics:**
-    `Regulasi Berubah (X) → Ketidakpastian Ketentuan → Persepsi Risiko (Stranded Asset) → Capital Flight (Biaya) → Net Sell Obligasi (Y)`
+    `Perubahan Aturan Hukum → Ketidakpastian → Persepsi Risiko → Biaya Ekonomi → Keputusan Investasi`
 
     **Variabel Independen (X):**
-    - **Regulatory Churn Rate**: Rasio (Persentase) regulasi yang dicabut/diubah per tahun terhadap total regulasi yang pernah ada (sumber: Pasal.id REST API).
+    - **Perubahan Aturan Hukum (Regulatory Churn Rate)**: Rasio (persentase) regulasi yang dicabut/diubah per tahun terhadap total regulasi kumulatif yang pernah ada (sumber: Pasal.id REST API).
     
     **Variabel Dependen (Y):**
-    - Capital Outflow bulanan (Net Sell Obligasi Pemerintah / IDR Triliun).
-    - Z-Score Anomaly Detection untuk mendeteksi *capital flight spike* pasca-reversal.
+    - **Keputusan Investasi (Capital Outflow)**: Terefleksi pada nilai Net Sell Obligasi Pemerintah (IDR Triliun). Penarikan modal massal bereaksi secara proporsional terhadap tingginya beban **Biaya Ekonomi** (Premium risiko *Stranded Asset*) akibat lonjakan anomali fluktuasi kebijakan pasca-*reversal*.
     """))
 
 # ── Intro Narrative ──
-intro = _("""Kerangka empiris **Regulatory Reversal Risk** membuktikan pelarian modal bukan sekadar fluktuasi pasar, melainkan reaksi atas ketidakpastian regulasi. Data historis mencatat tingkat **Regulatory Churn (Rasio Perubahan Regulasi)** mencapai puncaknya di **{max_churn:.1f}%**. Aturan (seperti diskresi izin tambang/ekspor) yang dicabut secara mendadak menciptakan iklim **ketidakpastian absolut** yang diterjemahkan investor sebagai risiko *stranded asset* (aset tersandera). 
+intro = _("""Kerangka empiris **Regulatory Reversal Risk** menyoroti dampak destruktif dari perubahan kebijakan yang tiba-tiba terhadap stabilitas arus modal. Mengikuti rantai transmisi hukum: **Perubahan Aturan → Ketidakpastian → Persepsi Risiko → Biaya Ekonomi → Keputusan Investasi**, palka data historis mencatat **Regulatory Churn** berada di rekor puncaknya sebesar **{max_churn:.1f}%**. Aturan yang dicabut mendadak menciptakan iklim ketidakpastian absolut, mengangkat eskalasi **persepsi risiko** investor pada ancaman *stranded asset* (aset yang tidak bernilai/tersandera oleh diskresi sepihak pemerintah). 
 
-Risiko yang tak terprediksi ini memaksa *fund manager* institusional menuntut *Risk Premium* ekstrem yang memicu lonjakan **Capital Flight**. Selama {n_obs} periode terakhir ({yr_start}–{yr_end}), pelarian dari aset obligasi melahirkan **{n_anom} episode anomali kepanikan** dengan puncak *Net Sell* menyentuh **{max_ns:.1f} Triliun Rupiah** (Z-Score {max_z:.2f}). Besarnya kapitalisasi modal keluar yang berskala raksasa ini menegaskan bahwa **keputusan penarikan investasi (Y)** sangat rentan (elastis) terhadap rezim hukum *in-motion* yang sewenang-wenang.""")
+Ketidakpastian fundamental ini secara simetris mendongkrak **biaya ekonomi** tak terlihat dalam wujud tarikan *Risk Premium* ekstrem dari para manajer lindung nilai. Semua kerugian itu lantas dikonversi menjadi pergerakan sentimen **keputusan investasi** yang brutal berupa gelombang *Capital Flight*. Dalam {n_obs} periode kuartil observasi ({yr_start}–{yr_end}), panik masif mencetak **{n_anom} episode anomali ekstrem** dengan rekor *Net Sell* di titik tertinggi **{max_ns:.1f} Triliun Rupiah** (Z-Score {max_z:.2f}). Lenyapnya likuiditas skala makro membuktikan bahwa manuver hukum *"bongkar-pasang"* sama dengan tindakan melelang kepercayaan investasi ke titik terendah.""")
 
 intro_src = _("Pasal.id API (Variabel Hukum/X) & Bond Net Sell Data CEIC/Bloomberg (Variabel Makroekonomi/Y).")
 
@@ -499,17 +498,17 @@ st.subheader("Interpretasi & Temuan Utama")
 temuan = """
 **Sintesis Temuan Utama (Law & Economics):**
 
-Sesuai dengan kerangka kerja Law & Economics, analisis *Regulatory Reversal* ini mengonfirmasi rantai kausalitas berikut:
-`Regulasi Berubah → Ketidakpastian Aturan → Persepsi Risiko (Stranded Asset) → Capital Flight → Keputusan Likuidasi (Y)`
+Sesuai dengan kerangka kerja Law & Economics, analisis empiris *Regulatory Reversal* ini membuktikan presisi struktur transmisi risiko yang berjalan mulus dan destruktif:
+`Perubahan Aturan Hukum → Ketidakpastian → Persepsi Risiko → Biaya Ekonomi → Keputusan Investasi`
 
-1. **Instabilitas Aturan & Diskresi Ekstrem (Variabel X)** — Adanya rekor *Regulatory Churn Rate* dan indikasi pembatalan izin secara ad-hoc menciptakan iklim regulasi yang tidak dapat diprediksi. Bagi modal asing, absennya garansi hukum adalah lonceng bahaya untuk investasi yang memakan modal perizinan tinggi (capital-intensive).
+1. **Perubahan Aturan & Guncangan Ketidakpastian (Variabel X)** — Skala masif *Regulatory Churn Rate* (*turnover* regulasi) memproduksi instabilitas kebijakan tak terkendali. Lenyapnya preseden hukum konstan adalah defisit keadilan esensial yang membuat iklim korporasi dan modal asing berada pada posisi super rentan tanpa proteksi legal-statis.
  
-2. **Kenaikan Biaya Ekonomi & Risk Premium (Variabel Y)** — Volatilitas yang terefleksi pada pelarian obligasi (CV **{cv:.1f}%**) menjadi metrik akurat atas **premium risiko**. Ketidakpastian diterjemahkan menjadi **{n_anom} episode anomali kepanikan** yang melonjak tajam secara sporadis, di mana dalam satu periode krisis, institusi bisa menyedot keluar likuiditas hingga **{max_val:.2f} IDR Triliun**.
+2. **Persepsi Risiko & Lonjakan Biaya Ekonomi (Variabel Y)** — Sinyal guncangan itu langsung menjelma menjadi ancaman ketakutan *Stranded Asset*. Merespons persepsi risiko ini, volatilitas ekuivalen modal lari mencatatkan (CV bernilai tinggi **{cv:.1f}%**). Besaran inflasi pada struktur volatilitas ini adalah refleksi utuh **Biaya Ekonomi Premium**; mencetak sekurang-kurangnya **{n_anom} episode anomali kepanikan** di mana investor mengevakuasi likuiditas mereka menembus titik api **{max_val:.2f} IDR Triliun** pada 1 sumbu krisis.
    
-3. **Keputusan Pembatalan & Likuidasi Investasi (Variabel Y)** — Akumulasi *Capital Flight* ini terstruktur sebagai respons atas disrupsi rezim. Kuartal terburuk pada **{worst_q}** yang meraup net sell **{worst_val:.2f} IDR Tn** bertindak sebagai *"vote of no confidence"* dari investor terhadap guncangan regulasi yang memutarbalikkan skenario keekonomian asali.
+3. **Realisasi Keputusan Tarik Investasi (Variabel Y)** — Tercekik oleh ongkos mitigasi dan ekspektasi laba yang tersandera di meja birokrasi, investor langsung melikuidasi portofolio mereka (*Capital Outflow*). Pada rekor ledakan terburuk di rezim **{worst_q}**, *net sell* menggulung nyaris **{worst_val:.2f} IDR Tn**. Lenyapnya modal ini merepresentasikan pukulan *"vote of no confidence"* institusional terhadap anomali diskresi struktural pemerintah.
 
 **Implikasi Final Rekomendasi:**
-Praktik "Bongkar-Pasang Aturan" ("Regulatory Reversal") tidak dapat lagi dipandang semata sebagai manuver administratif, melainkan guncangan **likuiditas makroekonomi sistemik**. Selama keran diskresi dibiarkan bocor menabrak kestabilan yurisprudensi asali, Indonesia secara absolut menekan investor ke titik putus asa yang memaksa triliunan rupiah uang tunjangan berhamburan lari menyeberang (Capital Flight).
+Kebiasaan mencetak *"Regulatory Reversal"* alias modifikasi dan pembatalan sepihak tak lagi semata sebuah manuver administratif; melainkan tindakan reaktif yang **mensabotase likuiditas makroekonomi secara absolut**. Jika instrumen regulasi dipermainkan seperti rezim otoriter yang mudah diputarbalikkan, investor rasional akan menolak berinvestasi panjang; mengukuhkan posisi Indonesia di kelas papan bawah *investable-grade rating*.
 """
 
 st.markdown(temuan.format(
