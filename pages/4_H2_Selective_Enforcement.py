@@ -52,13 +52,24 @@ BASE = os.path.dirname(os.path.dirname(__file__))
 DATA = os.path.join(BASE, "data", "final")
 
 @st.cache_data(ttl=3600)
-def load_data_h2():
+def load_data_h2_sipp():
     df_ikk = pd.read_csv(os.path.join(DATA, "ikk_expect_vs_present.csv"), parse_dates=["date"])
     df_pmi = pd.read_csv(os.path.join(DATA, "pmi_manufaktur.csv"), parse_dates=["date"])
-    df_wb = pd.read_csv(os.path.join(DATA, "kualitas_hukum_h2.csv"))
-    return df_ikk, df_pmi, df_wb
+    
+    # Load and process SIPP Wanprestasi Massal for Layer X
+    sipp_path = os.path.join(BASE, "data", "processed", "sipp_nasional_wanprestasi_massal.csv")
+    df_sipp_raw = pd.read_csv(sipp_path)
+    df_sipp_raw["Tanggal Daftar"] = pd.to_datetime(df_sipp_raw["Tanggal Daftar"], format="%d %b %Y", errors="coerce")
+    df_sipp_valid = df_sipp_raw.dropna(subset=["Tanggal Daftar"]).copy()
+    df_sipp_valid["year_month"] = df_sipp_valid["Tanggal Daftar"].dt.to_period("M")
+    
+    df_sipp_monthly = df_sipp_valid.groupby("year_month").size().reset_index(name="jumlah_perkara")
+    df_sipp_monthly["date"] = df_sipp_monthly["year_month"].dt.to_timestamp()
+    df_sipp_monthly = df_sipp_monthly.sort_values("date").reset_index(drop=True)
+    
+    return df_ikk, df_pmi, df_sipp_monthly
 
-df_ikk, df_pmi, df_wb = load_data_h2()
+df_ikk, df_pmi, df_sipp = load_data_h2_sipp()
 
 
 # ══════════════════════════════════════════════════
@@ -160,14 +171,14 @@ with st.expander(_("ℹ️ Metodologi: Analisis Selective Enforcement (H2)"), ex
 
 
 # ── Intro Narrative ──
-intro = _("""Analisis ini membagi kausalitas menjadi 2 layer: **Layer X (Indeks Persepsi Korupsi TI)** dan **Layer Y (Dampak Ekonomi Riil)**.
-Data Transparency International (CPI) menunjukkan stagnansi/menurunnya skor persepsi korupsi aparat hukum. Stagnansi ini beriringan dengan rentetan kejatuhan kepercayaan konsumen dalam observasi **{ikk_start}–{ikk_end}** ({ikk_n} bulan data IKK), 
+intro = _("""Analisis ini membagi kausalitas menjadi 2 layer: **Layer X (Volume Perkara Wanprestasi SIPP sebagai proxy Kepastian Hukum/Selective Enforcement)** dan **Layer Y (Dampak Ekonomi Riil)**.
+Data Sistem Informasi Penelusuran Perkara (SIPP) MA merekam tingginya volatilitas gugatan bisnis. Fluktuasi konflik hukum ini beriringan dengan kejatuhan kepercayaan konsumen dalam observasi **{ikk_start}–{ikk_end}** ({ikk_n} bulan data IKK), 
 dimana deteksi Z-Score menemukan **{n_anom} episode** IKK Ekspektasi jatuh secara abnormal. 
 Episode terparah terjadi pada **{worst_date}** dengan IKK turun **{worst_pct:.1f}%** dalam sebulan (Z={worst_z:.2f}).
 Di sisi manufaktur, PMI terkontraksi (<50) selama **{n_kon} dari {pmi_n} bulan** observasi.
-Kepanikan publik yang tergambar di volatilitas gap ekspektasi-present ini menguatkan argumen bahwa *selective enforcement* menciptakan **shock kepercayaan yang fatal.**""")
+Kepanikan publik yang tergambar di volatilitas gap ekspektasi-present ini menguatkan argumen bahwa *selective enforcement* dan volatilitas kepastian bisnis menciptakan **shock kepercayaan yang fatal.**""")
 
-intro_src = _("Data <code>kualitas_hukum_h2.csv</code> (Transparency International), <code>ikk_expect_vs_present.csv</code>, dan <code>pmi_manufaktur.csv</code>.")
+intro_src = _("Data <code>sipp_nasional_wanprestasi_massal.csv</code> (SIPP MA RI), <code>ikk_expect_vs_present.csv</code>, dan <code>pmi_manufaktur.csv</code>.")
 
 st.markdown(
     intro.format(
@@ -224,28 +235,27 @@ st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════
-# 2.1 LAYER X: KUALITAS HUKUM (TRANSPARENCY INTERNATIONAL)
+# 2.1 LAYER X: LONJAKAN SENGKETA BISNIS WAKTU NYATA (SIPP MA RI)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("2.1 Layer X: Indeks Persepsi Korupsi (Transparency International)"))
-st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Transparency International CPI Dataset Extraction</span>', unsafe_allow_html=True)
+st.subheader(_("2.1 Layer X: Volatilitas Proses Hukum Bisnis / Wanprestasi"))
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Proxy Selective Enforcement: Data Gugatan SIPP Mahkamah Agung</span>', unsafe_allow_html=True)
 
-wb_narr = _("""Data **Transparency International CPI** mengukur tingkat persepsi korupsi sektor publik (skala 0=sangat korup hingga 100=sangat bersih).
-Menurunnya atau stagnannya skor ini merepresentasikan melemahnya penegakan hukum yang konsisten, membuka ruang untuk *selective enforcement* atau politisasi hukum bisnis.
-Data layer X ini menjadi katalis krisis kepercayaan dan kepanikan ekonomi yang diukur di Layer Y (IKK/PMI).""")
+wb_narr = _("""Data **Sistem Informasi Penelusuran Perkara (SIPP)** merepresentasikan sengketa ekonomi di pengadilan tingkat pertama.
+Lonjakan gugatan perdata (seperti wanprestasi) pada waktu-waktu spesifik seringkali mencerminkan kerentanan struktural: hukum menjadi instrumen tekan (tajam ke lawan, tumpul ke kawan).
+Bulan-bulan dengan anomali gugatan tinggi merepresentasikan eskalasi risiko hukum politis atau *selective enforcement*, yang kemudian merembet dan menjadi katalis krisis kepercayaan makro (IKK/PMI).""")
 
-wb_src = _("Data <code>kualitas_hukum_h2.csv</code>. Sumber: Transparency International Open Data.")
+wb_src = _("Data <code>sipp_nasional_wanprestasi_massal.csv</code> dianotasi & diagregasi bulanan. Sumber: Scrape Direktori MA RI / SIPP PN.")
 st.markdown(wb_narr + f"\n\n<small>📁 <b>Sumber:</b> {wb_src}</small>", unsafe_allow_html=True)
 
-fig_wb = px.line(df_wb, x="tahun", y="skor_transparansi_korupsi", markers=True)
-fig_wb.update_traces(line_color="#E53935", marker=dict(size=8, line=dict(color='white', width=2)))
-fig_wb.update_layout(
+fig_sipp = px.bar(df_sipp, x="date", y="jumlah_perkara", text="jumlah_perkara")
+fig_sipp.update_traces(marker_color="#1E88E5", textposition='outside', textfont_size=10)
+fig_sipp.update_layout(
     template=PLOTLY_TEMPLATE, height=350,
-    yaxis_title="Skor CPI (0=Korup, 100=Bersih)", xaxis_title="Tahun",
+    yaxis_title="Jumlah Gugatan Wanprestasi Terdaftar", xaxis_title="",
     margin=dict(l=20, r=20, t=40, b=20)
 )
-fig_wb.update_yaxes(range=[0, 100], gridcolor='#333333')
-st.plotly_chart(fig_wb, use_container_width=True)
+st.plotly_chart(fig_sipp, use_container_width=True)
 
 # ══════════════════════════════════════════════════
 # 2.2 IKK TIME SERIES + ANOMALY
