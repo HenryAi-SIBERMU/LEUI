@@ -55,9 +55,10 @@ DATA = os.path.join(BASE, "data", "final")
 def load_data():
     df_ikk = pd.read_csv(os.path.join(DATA, "ikk_expect_vs_present.csv"), parse_dates=["date"])
     df_pmi = pd.read_csv(os.path.join(DATA, "pmi_manufaktur.csv"), parse_dates=["date"])
-    return df_ikk, df_pmi
+    df_wb = pd.read_csv(os.path.join(DATA, "kualitas_hukum_h2.csv"))
+    return df_ikk, df_pmi, df_wb
 
-df_ikk, df_pmi = load_data()
+df_ikk, df_pmi, df_wb = load_data()
 
 
 # ══════════════════════════════════════════════════
@@ -159,20 +160,14 @@ with st.expander(_("ℹ️ Metodologi: Analisis Selective Enforcement (H2)"), ex
 
 
 # ── Intro Narrative ──
-intro = _("""Analisis kepercayaan ekonomi Indonesia selama **{ikk_start}–{ikk_end}** ({ikk_n} bulan data IKK)
-dan **{pmi_start}–{pmi_end}** ({pmi_n} bulan data PMI) memperlihatkan pola yang mengkhawatirkan:
-deteksi anomali statistik (Z-Score < -2) menemukan **{n_anom} episode** dimana kepercayaan konsumen
-**jatuh secara abnormal** — jauh di luar fluktuasi wajar. Episode terparah terjadi pada
-**{worst_date}** dengan IKK Ekspektasi turun **{worst_pct:.1f}%** dalam satu bulan (Z={worst_z:.2f}).
-Di sisi manufaktur, PMI mengalami kontraksi (<50) selama **{n_kon} dari {pmi_n} bulan** yang diamati.
-Gap antara IKK Ekspektasi dan Present — ukuran \"kepanikan\" — mencapai titik tertinggi pada
-**{max_gap_date}** ({max_gap:.1f} poin) dan terendah pada **{min_gap_date}** ({min_gap:.1f} poin).
-Pola-pola ini konsisten dengan hipotesis bahwa *enforcement selektif* —
-penegakan hukum yang muncul di momentum tertentu — menciptakan **shock kepercayaan yang tidak
-bisa diprediksi oleh fundamental ekonomi**.""")
+intro = _("""Analisis ini membagi kausalitas menjadi 2 layer: **Layer X (Skor Transparansi & Korupsi World Bank)** dan **Layer Y (Dampak Ekonomi Riil)**.
+Data World Bank menunjukkan stagnansi/hancurnya transparansi aparat hukum. Stagnansi ini beriringan dengan rentetan kejatuhan kepercayaan konsumen dalam observasi **{ikk_start}–{ikk_end}** ({ikk_n} bulan data IKK), 
+dimana deteksi Z-Score menemukan **{n_anom} episode** IKK Ekspektasi jatuh secara abnormal. 
+Episode terparah terjadi pada **{worst_date}** dengan IKK turun **{worst_pct:.1f}%** dalam sebulan (Z={worst_z:.2f}).
+Di sisi manufaktur, PMI terkontraksi (<50) selama **{n_kon} dari {pmi_n} bulan** observasi.
+Kepanikan publik yang tergambar di volatilitas gap ekspektasi-present ini menguatkan argumen bahwa *selective enforcement* menciptakan **shock kepercayaan yang fatal.**""")
 
-intro_src = _("Data dari <code>ikk_expect_vs_present.csv</code> ({ikk_n} baris, {ikk_start}-{ikk_end}) dan "
-              "<code>pmi_manufaktur.csv</code> ({pmi_n} baris, {pmi_start}-{pmi_end}). Sumber: Bank Indonesia & S&P Global.")
+intro_src = _("Data <code>kualitas_hukum_h2.csv</code> (World Bank WGI), <code>ikk_expect_vs_present.csv</code>, dan <code>pmi_manufaktur.csv</code>.")
 
 st.markdown(
     intro.format(
@@ -229,10 +224,33 @@ st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════
-# 2.1 IKK TIME SERIES + ANOMALY
+# 2.1 LAYER X: KUALITAS HUKUM (WORLD BANK)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("2.1 IKK Ekspektasi vs Present — Deteksi Anomali"))
+st.subheader(_("2.1 Layer X: Transparansi & Korupsi Sektor Publik (World Bank WGI)"))
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: World Bank CPIA Indicator extraction</span>', unsafe_allow_html=True)
+
+wb_narr = _("""Data **World Bank (Indicator: IQ.CPA.TRAN.XQ)** mengukur "Transparency, accountability, and corruption in the public sector rating" (skala 1=rendah hingga 6=tinggi).
+Menurunnya atau stagnannya skor ini merepresentasikan melemahnya penegakan hukum yang konsisten, membuka ruang untuk *selective enforcement* atau politisasi hukum bisnis.
+Data layer X ini menjadi katalis krisis kepercayaan dan kepanikan ekonomi yang diukur di Layer Y (IKK/PMI).""")
+
+wb_src = _("Data <code>kualitas_hukum_h2.csv</code>. Sumber: World Bank Open Data API.")
+st.markdown(wb_narr + f"\n\n<small>📁 <b>Sumber:</b> {wb_src}</small>", unsafe_allow_html=True)
+
+fig_wb = px.line(df_wb, x="tahun", y="skor_transparansi_korupsi", markers=True)
+fig_wb.update_traces(line_color="#E53935", marker=dict(size=8, line=dict(color='white', width=2)))
+fig_wb.update_layout(
+    template=PLOTLY_TEMPLATE, height=350,
+    yaxis_title="Skor (1=Low, 6=High)", xaxis_title="Tahun",
+    margin=dict(l=20, r=20, t=40, b=20)
+)
+st.plotly_chart(fig_wb, use_container_width=True)
+
+# ══════════════════════════════════════════════════
+# 2.2 IKK TIME SERIES + ANOMALY
+# ══════════════════════════════════════════════════
+st.markdown("---")
+st.subheader(_("2.2 Layer Y: IKK Ekspektasi vs Present — Deteksi Anomali"))
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Anomaly Detection</span>', unsafe_allow_html=True)
 
 ikk_narr = _("""Menggunakan metode **Z-Score Anomaly Detection** pada perubahan bulanan IKK Ekspektasi.
@@ -279,10 +297,10 @@ st.plotly_chart(fig_ikk, use_container_width=True)
 
 
 # ══════════════════════════════════════════════════
-# 2.2 IKK GAP ANALYSIS
+# 2.3 IKK GAP ANALYSIS
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("2.2 IKK Gap Analysis — Ukuran Kepanikan"))
+st.subheader(_("2.3 IKK Gap Analysis — Ukuran Kepanikan"))
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Gap Analysis + Z-Score</span>', unsafe_allow_html=True)
 
 gap_narr = _("""Menggunakan metode **Gap Analysis** (selisih Ekspektasi − Present) dan Z-Score pada perubahan gap.
@@ -333,10 +351,10 @@ st.plotly_chart(fig_gap, use_container_width=True)
 
 
 # ══════════════════════════════════════════════════
-# 2.3 PMI KONTRAKSI
+# 2.4 PMI KONTRAKSI
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("2.3 PMI Manufaktur — Zona Kontraksi"))
+st.subheader(_("2.4 PMI Manufaktur — Zona Kontraksi"))
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: PMI Kontraksi Detection</span>', unsafe_allow_html=True)
 
 pmi_narr = _("""Menggunakan metode **PMI Kontraksi Detection** (threshold PMI < 50 = kontraksi sektor manufaktur).
@@ -375,10 +393,10 @@ st.plotly_chart(fig_pmi, use_container_width=True)
 
 
 # ══════════════════════════════════════════════════
-# 2.4 TABEL EPISODE ANOMALI
+# 2.5 TABEL EPISODE ANOMALI
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("2.4 Daftar Episode Anomali (Data-Driven)"))
+st.subheader(_("2.5 Daftar Episode Anomali (Data-Driven)"))
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Episode Detection</span>', unsafe_allow_html=True)
 
 tbl_narr = _("""Menggunakan metode **Z-Score Episode Detection** untuk mengidentifikasi semua episode anomali secara algoritmik. Tabel di bawah menyajikan **semua episode** dimana IKK Ekspektasi mengalami
