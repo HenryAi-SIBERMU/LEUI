@@ -2,9 +2,9 @@
 Page 3 — H3: Procedural Uncertainty
 Analisis delay cost dan inefisiensi investasi menggunakan ICOR sebagai proxy
 ketidakpastian prosedural hukum.
-    `Procedural Uncertainty → Delay Cost → ICOR Naik → Investasi Makin Tidak Efisien → Growth Terhambat`
+    `Alur: Penegakan Hukum → Ketidakpastian → Persepsi Risiko → Biaya Ekonomi → Keputusan Investasi`
 
-Causal Chain: Procedural Uncertainty → Delay Cost → ICOR Naik → Investasi Makin Tidak Efisien
+Causal Chain: Penegakan Hukum → Ketidakpastian → Persepsi Risiko → Biaya Ekonomi → Keputusan Investasi
 """
 import streamlit as st
 import pandas as pd
@@ -179,7 +179,13 @@ if os.path.exists(_sipp_pn_path):
 with st.expander(_("Metodologi: Analisis Procedural Uncertainty (H3)"), expanded=False):
     st.markdown(_("""
     **Causal Chain Law & Economics:**
-    `Penegakan Hukum Berlarut (X) → Ketidakpastian Waktu → Persepsi Risiko Investor → Biaya Ekonomi Naik (Delay Cost/ICOR) → Keputusan Investasi Terhambat (Y)`
+    `Penegakan Hukum → Ketidakpastian → Persepsi Risiko → Biaya Ekonomi → Keputusan Investasi`
+
+    Penegakan hukum yang prosesnya panjang, mahal, dan tumpang tindih menimbulkan ketidakpastian bagi pelaku usaha. Ketidakpastian ini kemudian diterjemahkan oleh investor sebagai risiko yang akhirnya "dihargai" dalam keputusan investasi, misalnya melalui:
+    - Permintaan keuntungan yang lebih tinggi (*risk premium*)
+    - Kenaikan biaya modal atau bunga pinjaman
+    - Biaya asuransi dan perlindungan hukum yang lebih besar
+    - Penundaan investasi, atau bahkan keputusan tidak masuk sama sekali.
 
     **Variabel Independen (X):**
     - Durasi proses perkara perdata khusus & bisnis di tingkat Pengadilan Negeri (Data SIPP OSINT).
@@ -190,9 +196,9 @@ with st.expander(_("Metodologi: Analisis Procedural Uncertainty (H3)"), expanded
     """))
 
 # ── Intro Narrative ──
-intro = _("""Kerangka empiris **Procedural Uncertainty** membuktikan secara langsung alur kausalitas antara kacaunya penegakan hukum dan mandeknya investasi. Berdasarkan sampel SIPP, sengketa bisnis di Indonesia memakan waktu **rata-rata {_avg_durasi:.0f} hari**. Lambat dan mahalnya proses hukum ini menciptakan **ketidakpastian absolut** bagi pelaku usaha. Investor menerjemahkan ketidakpastian waktu ini menjadi **persepsi risiko tinggi**. 
+intro = _("""Kerangka empiris **Procedural Uncertainty** membuktikan alur kausalitas: **Penegakan Hukum → Ketidakpastian → Persepsi Risiko → Biaya Ekonomi → Keputusan Investasi**. Proses hukum yang panjang, mahal, dan tumpang tindih merupakan bentuk kepastian prosedural yang buruk. Berdasarkan sampel SIPP, sengketa bisnis di Indonesia memakan waktu **rata-rata {_avg_durasi:.0f} hari**.
 
-Sebagai respons, risiko ini dikonversi menjadi **biaya ekonomi** berupa _Risk Premium_ dan _Delay Cost_ yang harus ditanggung investor. Hal ini terekam jelas dalam indikator efisiensi modal (**ICOR**) yang terus membengkak (saat ini {icor_avg_last:.2f}) — membuat ongkos ekspansi di Indonesia menjadi mahal dan inefisien. Rantai kausalitas ini berpuncak pada **keputusan menekan investasi (Y)**: terbukti dari korelasi **r = {corr:.3f}** antara lonjakan ICOR dan tertekannya sentimen volume investasi modal asing secara signifikan.""")
+Penegakan hukum berlarut ini diterjemahkan oleh investor sebagai risiko yang akhirnya "dihargai" menjadi **biaya ekonomi** — baik berupa permintaan _risk premium_ yang lebih tinggi, kenaikan biaya modal, besarnya biaya asuransi perlindungan hukum, hingga penundaan investasi. Hal ini terekam jelas pada efisiensi modal nasional (**ICOR**) yang terus membengkak (saat ini {icor_avg_last:.2f}), membuat ongkos ekspansi di Indonesia menjadi mahal dan tak kompetitif. Puncaknya, risiko ini terefleksi pada mandat akhir **keputusan investasi (Y)**: terbukti dari korelasi **r = {corr:.3f}** antara lonjakan ICOR dan tertekannya sentimen investasi.""")
 
 intro_src = _("SIPP Mahkamah Agung (Variabel Hukum/X) & Panel ICOR Investasi BPS-BKPM (Variabel Makroekonomi/Y).")
 
@@ -473,14 +479,14 @@ st.subheader(_("Interpretasi & Temuan Utama"))
 temuan = _("""
 **Sintesis Temuan Utama (Law & Economics):**
 
-Sesuai dengan kerangka kerja Law & Economics, analisis ini mengonfirmasi rantai kausalitas berikut:
-`Penegakan Hukum → Ketidakpastian Waktu → Persepsi Risiko → Biaya Ekonomi → Keputusan Investasi`
+Sesuai dengan kerangka kerja Law & Economics, analisis ini mengonfirmasi rantai kausalitas:
+`Penegakan Hukum → Ketidakpastian → Persepsi Risiko → Biaya Ekonomi → Keputusan Investasi`
 
 1. **Penegakan Hukum & Ketidakpastian (Variabel X)** — Berdasarkan ekstraksi data pengadilan tinggi dan SIPP Pengadilan Negeri, porsi sengketa bisnis membutuhkan waktu penyelesaian komprehensif **{avg_dur:.0f} hari**. Absennya kepastian durasi hukum yang transparan ini adalah episentrum masalah yang melumpuhkan rencana kerja pelaku usaha.
  
-2. **Kenaikan Biaya Ekonomi/Risiko (Variabel Y)** — Investor menerjemahkan ketidakpastian waktu ini menjadi *Risk Premium*. Hal ini tercermin nyata pada memburuknya ICOR PMA yang menyentuh angka **{icor_l:.2f}** (Status: **{status}**). Ini berarti investor "membakar" modal operasional sangat besar hanya untuk menambal kelemahan struktural (waktu tunggu sengketa, asuransi aset, delay regulasi).
+2. **Kenaikan Biaya Ekonomi/Risiko (Variabel Y)** — Risiko yang dipersepsikan investor akhirnya "dihargai" dalam wujud nyata *Risk Premium*. Hal ini tercermin pada ICOR yang menyentuh **{icor_l:.2f}** (Status: **{status}**). Ini berarti investor harus membakar modal yang sangat besar (termasuk biaya modal pinjaman dan asuransi berlapis) hanya untuk menambal kelemahan dan tumpang-tindih durasi hukum.
    
-3. **Keputusan Menahan Investasi (Variabel Y)** — Ongkos yang membengkak ini secara langsung membatalkan keputusan ekspansi masuk. Hal ini dikonfirmasi oleh korelasi signifikan (**r = {corr:.3f}**) di mana ledakan ICOR secara konsisten diikuti penurunan sentimen realisasi investasi. 
+3. **Keputusan Menahan Investasi (Variabel Y)** — Ongkos yang membengkak ini secara langsung memaksa penundaan investasi atau bahkan putusan inkubator agar sama sekali batal masuk. Hal ini dikonfirmasi oleh korelasi signifikan (**r = {corr:.3f}**) di mana ledakan ICOR secara konsisten diikuti penurunan nyata realisasi investasi asing.
 
 **Implikasi Final Rekomendasi:**
 Waktu penyelesaian proses hukum perdata peradilan ("Procedural Uncertainty") bukanlah isu hukum teknis persidangan semata, melainkan **hambatan fundamental makroekonomi**. Selama rezim durasi kepastian hukum tidak dijamin oleh negara, investor akan membebani harga risiko di dalam ICOR, secara perlahan melucuti daya tarik Indonesia pada lanskap _foreign direct investments_ (FDI).
