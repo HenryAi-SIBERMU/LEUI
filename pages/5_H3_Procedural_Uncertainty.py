@@ -172,7 +172,7 @@ _avg_durasi = 0
 if os.path.exists(_sipp_pn_path):
     _df_pn = pd.read_csv(_sipp_pn_path)
     _total_sipp = int(_df_pn['jumlah'].sum())
-    _avg_dur_vals = _df_pn['avg_durasi'].dropna()
+    _avg_dur_vals = _df_pn['Avg_Lama_Proses'].dropna()
     _avg_durasi = _avg_dur_vals.mean() if len(_avg_dur_vals) > 0 else 0
 
 # ── Methodology ──
