@@ -28,7 +28,7 @@ st.markdown(_("""
 csv_files = get_all_csvs()
 
 if not csv_files:
-    st.error(_("Tidak ada file CSV ditemukan di data/processed/. Jalankan parse_ref.py terlebih dahulu."))
+    st.error(_("Tidak ada file CSV ditemukan di direktori data/final/. Pastikan pipeline data telah dijalankan."))
     st.stop()
 
 # --- Dataset selector ---

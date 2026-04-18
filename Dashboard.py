@@ -15,19 +15,10 @@ st.set_page_config(
     layout="wide"
 )
 
-# ── MODE PENGEMBANGAN (MAINTENANCE) ──
-st.markdown("""
-    <style>
-    [data-testid="collapsedControl"] { display: none; }
-    [data-testid="stSidebar"] { display: none; }
-    </style>
-""", unsafe_allow_html=True)
-
-st.markdown("<br><br><br>", unsafe_allow_html=True)
-st.warning("### 🚧 Mode Pengembangan 🚧\n\nDashboard **CELIOS LEUI (Legal Enforcement Uncertainty Index)** saat ini sedang dinonaktifkan sementara untuk keperluan *maintenance* dan sinkronisasi data ke struktur *Law & Economics* yang baru.\n\nSilakan kembali beberapa saat lagi.")
-st.stop()
-
 render_sidebar()
+
+# ── MODE PENGEMBANGAN (BANNER ONLY) ──
+st.warning("### 🚧 Mode Pengembangan 🚧\n\nHalaman **Dashboard Executive Summary** saat ini sedang dalam tahap *maintenance* dan sinkronisasi data ke struktur *Law & Economics* yang baru.\n\nSilakan gunakan **sidebar di kiri** untuk mengakses halaman analisis per hipotesis (H1–H5).")
 
 # ── Styles ──
 st.markdown("""

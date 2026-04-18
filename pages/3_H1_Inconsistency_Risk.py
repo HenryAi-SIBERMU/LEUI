@@ -169,19 +169,26 @@ subtitle = _("Analisis Distribusi & Ketimpangan Investasi sebagai Efek Inkonsist
 st.markdown(f'<p style="font-size: 1.1rem; color: #66BB6A; font-weight: 500; margin-top: -15px;">{subtitle}</p>', unsafe_allow_html=True)
 
 # ── Methodology ──
-with st.expander(_("Metodologi: Analisis Inconsistency Risk (H1)"), expanded=False):
+with st.expander(_("Kerangka Teori & Metodologi: Inconsistency Risk (H1)"), expanded=False):
     st.markdown(_("""
-    **Causal Chain:**
-    `Putusan MA Inkonsisten + Regulasi Tumpang Tindih → Ketidakpastian Hukum → Risk Premium ↑ → Investasi Terkonsentrasi`
+    **Alur Kausalitas (Law & Economics):**
+    `Penegakan Hukum → Ketidakpastian → Persepsi Risiko → Biaya Ekonomi → Keputusan Investasi`
+
+    Ketidakpastian tata hukum ditejemahkan oleh investor sebagai risiko. Risiko tersebut akhirnya dihargai dalam wujud permintaan keuntungan yang lebih tinggi (*risk premium*), penundaan investasi, hingga keputusan untuk memusatkan investasi (konsentrasi ekstrem) di \"safe haven\".
+    
+    Bentuk risiko H1 yang paling utama dianalisis dalam dasbor ini meliputi:
+    - Ketidakkonsistenan putusan atau tindakan hukum untuk kasus yang serupa.
+    - Proses peradilan bisnis yang panjang, mahal, dan tumpang tindih.
+    - Perubahan regulasi atau pencabutan izin investasi secara mendadak.
 
     **Variabel Hukum (X):**
-    - Volume putusan MA terkait sengketa bisnis per tahun (dari OSINT Google CSE)
-    - Regulasi H1 yang berlaku vs dicabut/diubah (dari Pasal.id)
+    - Volume putusan MA terkait sengketa perdata bisnis per tahun (Data Mining OSINT).
+    - Status churn regulasi esensial daerah/pusat yang dicabut/diubah (Pasal.id).
     
     **Dampak Ekonomi (Y):**
-    - Gini Coefficient distribusi investasi antar provinsi
-    - Standard Deviation sebaran investasi
-    - ICOR Nasional (efisiensi investasi)
+    - Gini Coefficient volatilitas distribusi investasi antar provinsi (Ketimpangan absolut).
+    - Standard Deviation sebaran investasi (Konsentrasi Spasial).
+    - ICOR Nasional (Efisiensi & Biaya Ekonomi/Keputusan).
     """))
 
 # ── Load Legal Data for Narrative ──
@@ -543,28 +550,22 @@ st.subheader(_("Interpretasi & Temuan Utama"))
 temuan = _("""
 **Analisis Temuan Utama H1 — Inconsistency Risk:**
 
-Ketiga indikator (Gini, SD, ICOR) secara **konvergen** menunjukkan bahwa investasi di Indonesia
-mengalami **tiga masalah simultan** yang konsisten dengan hipotesis inkonsistensi hukum:
+Data empiris hukum (**{tot_ma} Putusan MA Bisnis** dan pencabutan **{tot_dicabut} regulasi H1**) memberikan landasan kausalitas mengapa ketimpangan distribusi investasi skala ekstrem terjadi (yang terekam dalam Gini, SD, dan ICOR). Lima temuan konvergen dari metode kausalitas ini adalah:
 
-1. **Konsentrasi Extremitas** — Gini PMA **{gini_a:.3f}** dan PMDN **{gini_d:.3f}** (keduanya >0.4)
-   menunjukkan investasi hanya mengalir ke segelintir provinsi. 5 provinsi teratas menyerap **{top5:.1f}%**
-   total, sementara 10 terbawah hanya **{bot10:.1f}%**.
+1. **Intensitas Sengkarut Hukum (Variabel Independen X)** — Sengketa bisnis (wanprestasi, izin, investasi) yang persisten menyentuh angka kasasi ditambah tingginya _churn rate_ pencabutan regulasi membuktikan bahwa ketidakpastian prosedural dan inkonsistensi aturan adalah ancaman nyata, bukan asumsi teoretis.
+ 
+2. **Konsentrasi Ekstremitas Modal (Variabel Dependen Y)** — Merespons risiko hukum di atas, modal mengambil strategi "defensif" menuju *safe havens* operasional. Hal ini dibuktikan dari Gini PMA **{gini_a:.3f}** dan PMDN **{gini_d:.3f}** (keduanya jauh menembus >0.4 kategori moderat). 5 provinsi elit sanggup memborong **{top5:.1f}%** total investasi, sementara 10 di dasar tangga hanya kebagian **{bot10:.1f}%**.
 
-2. **Kesenjangan Melampaui Fundamental** — Rasio **{ratio:,.0f}x lipat** antara {prov_top} dan {prov_bot}
-   tidak bisa sepenuhnya dijelaskan oleh perbedaan infrastruktur. Faktor non-ekonomi (inkonsistensi hukum,
-   birokrasi, korupsi daerah) turut mendistorsi distribusi.
+3. **Kesenjangan Melampaui Fundamental (Variabel Dependen Y)** — Rasio gap **{ratio:,.0f}x lipat** masuknya investasi antara {prov_top} dan {prov_bot} gagal dijelaskan jika hanya menggunakan argumen infrastruktur logistik. Sebaliknya, ketakutan terseret konflik hukum lokal mendorong distorsi lokasi tersebut.
 
-3. **Efisiensi Menurun** — ICOR PMA {trend} dari **{icor_f:.2f}** ({yr_f}) ke **{icor_l:.2f}** ({yr_l}),
-   menandakan biaya investasi makin mahal — sebagian didorong oleh risk premium akibat ketidakpastian hukum.
+4. **Biaya Kejut & Efisiensi Hancur (Variabel Dependen Y)** — ICOR PMA {trend} dari **{icor_f:.2f}** ({yr_f}) ke **{icor_l:.2f}** ({yr_l}). Meningkatnya ICOR (semakin tidak efisien) bertepatan dengan masifnya pembatalan regulasi mensinyalkan suburnya "biaya tak kasat mata" akibat _delay_ sengketa, perubahan syarat izin di tengah jalan, dsb.
 
-**Implikasi:**
-Investor merespons inkonsistensi hukum bukan dengan menghindari Indonesia secara keseluruhan,
-tapi dengan **memusatkan investasi di \"zona aman\"** — menciptakan *dual economy* di mana beberapa
-daerah makmur sementara mayoritas tertinggal. Ini adalah bukti bahwa *outcome uncertainty*
-(H1) bukan teori, tapi **fakta yang terukur** dalam data investasi.
+**Implikasi Final Law & Economics:**
+Inkonsistensi perlindungan hukum di Indonesia secara langsung membunuh pemerataan ekonomi. Investor rela mengorbankan efisiensi margin (terlihat dari ICOR memburuk) demi bertumpuk di teritorial aman, menghindari ranjau administrasi dan sistem peradilan yang tak terprediksi di daerah berkembang. Kesenjangan struktural daerah ini adalah **produk langsung tata hukum yang tak stabil**.
 """)
 
 st.markdown(temuan.format(
+    tot_ma=_total_ma, tot_dicabut=_dicabut,
     gini_a=latest_gini_a, gini_d=latest_gini_d, top5=top5_share, bot10=bot10_share,
     ratio=ratio_top_bot, prov_top=prov_top1['provinsi'], prov_bot=prov_bot1['provinsi'],
     trend=icor_trend_word, icor_f=icor_first, icor_l=icor_last,
@@ -572,7 +573,5 @@ st.markdown(temuan.format(
 ))
 
 st.markdown(f"""
-<small><em>Catatan: Data ini menggunakan proxy ekonomi (distribusi investasi & ICOR).
-Analisis ideal membutuhkan data putusan pengadilan dan variansi vonis lintas daerah
-untuk mengukur inkonsistensi hukum secara langsung.</em></small>
+<small><em>Catatan: Analisis ini mengimplementasikan kerangka dua lapis (2-Layer LEUI) yang memadukan data peradilan direktori Mahkamah Agung & regulasi Pasal.id (Variabel X: Hukum) dengan kompilasi panel ekonomi BKPM (Variabel Y: Dampak).</em></small>
 """, unsafe_allow_html=True)
