@@ -180,6 +180,7 @@ _dicabut = 0
 _df_reg_h1 = None
 if os.path.exists(_reg_h1_path):
     _df_reg_h1 = pd.read_csv(_reg_h1_path)
+    _df_reg_h1 = _df_reg_h1[_df_reg_h1['year'] >= 2000]
     _total_reg = int(_df_reg_h1['jumlah'].sum())
     _berlaku = int(_df_reg_h1[_df_reg_h1['status'] == 'berlaku']['jumlah'].sum()) if 'status' in _df_reg_h1.columns else _total_reg
     _dicabut = _total_reg - _berlaku
@@ -187,6 +188,7 @@ if os.path.exists(_reg_h1_path):
 _df_churn = None
 if os.path.exists(_churn_path):
     _df_churn = pd.read_csv(_churn_path)
+    _df_churn = _df_churn[_df_churn['year'] >= 2000]
 
 _df_ma_stat = None
 _reversal_rate = 0
