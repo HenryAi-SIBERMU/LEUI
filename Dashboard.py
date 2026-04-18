@@ -19,6 +19,7 @@ render_sidebar()
 
 # ── MODE PENGEMBANGAN (BANNER ONLY) ──
 st.warning("### 🚧 Mode Pengembangan 🚧\n\nHalaman **Dashboard Executive Summary** saat ini sedang dalam tahap *maintenance* dan sinkronisasi data ke struktur *Law & Economics* yang baru.\n\nSilakan gunakan **sidebar di kiri** untuk mengakses halaman analisis per hipotesis (H1–H5).")
+st.stop()
 
 # ── Styles ──
 st.markdown("""
