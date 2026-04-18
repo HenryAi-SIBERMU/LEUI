@@ -246,47 +246,60 @@ with c4:
 
 st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
 
+# ══════════════════════════════════════════════════════════
+# ═══════════ LAYER X: VARIABEL HUKUM ═════════════════════
+# ══════════════════════════════════════════════════════════
+st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
+st.markdown('<div style="background:#5C2B6A;color:#E1BEE7;padding:8px 16px;border-radius:8px;font-size:1rem;font-weight:700;display:inline-block;">LAYER X — VARIABEL HUKUM (INDEPENDEN)</div>', unsafe_allow_html=True)
+st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
+
 # ── 4.1 Variabel Hukum (X) ──
-from plotly.subplots import make_subplots
 st.markdown("---")
-st.subheader("4.1 Variabel Hukum (X): Regulasi Churn & Hubungan Dual-Axis Capital Flight")
-st.markdown('<span style="background:#5C2B6A;color:#E1BEE7;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Regulatory Churn Rate & Overlay Data Output CEIC</span>', unsafe_allow_html=True)
+st.subheader(_("4.1 Inkonsistensi Regulasi: Regulatory Churn Rate (Pencabutan & Revisi)"))
+st.markdown('<span style="background:#5C2B6A;color:#E1BEE7;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Regulatory Churn Test & Lifecycle Analysis (Variabel X)</span>', unsafe_allow_html=True)
 
-st.markdown("*Melihat hubungan langsung antara fluktuasi/revisi hukum dengan tekanan modal keluar secara tahunan.*")
+churn_narrative = _("""Menggunakan instrumen **Regulatory Churn Test**, kami mengukur tingkat ketidakpastian produk hukum (undang-undang, peraturan pemerintah, peraturan daerah, dll) yang secara langsung mendikte stabilitas iklim usaha dan investasi. 
 
-# Merge for dual-axis (yearly)
-_df_outflow_yr = df.copy()
-_df_outflow_yr['year'] = _df_outflow_yr['date'].dt.year
-_df_outflow_yr = _df_outflow_yr.groupby('year')['net_sell_idr_tn'].sum().reset_index()
+Grafik di bawah ini memvisualisasikan **tren Churn Rate** nasional — yakni rasio persentase regulasi bisnis yang dibatalkan, dicabut, atau direvisi setiap tahunnya. Lonjakan skor *churn rate* ke level puncak **{max_churn:.1f}%** mengonfirmasi keberadaan fenomena *"bongkar-pasang"* aturan. Bagi pemodal asing dengan kapital besar, regulasi yang direvisi secara *ad-hoc* menciptakan ancaman hukum absolut: hak operasional investasi (konsesi izin tambang, hak komersial, kontrak esensial, dsbg) yang dijamin oleh konstitusi hari ini bisa saja disapu bersih esok hari secara retroaktif. Konsekuensi dari defisit garansi yurisprudensi inilah yang akan membengkakkan *Risk Premium*.""")
+
+churn_src = _("Ekstraksi status riwayat hukum dari Pasal.id REST API & JDIH Nasional, difilter berdasarkan indeks keyword subsektoral regulasi esensial H4.")
+
+st.markdown(churn_narrative.format(max_churn=_max_churn) + f"\n\n<small>📁 <b>Sumber:</b> {churn_src}</small>", unsafe_allow_html=True)
 
 if not _df_churn.empty:
-    _df_dual = pd.merge(_df_churn, _df_outflow_yr, on='year', how='inner').sort_values('year')
-    if not _df_dual.empty:
-        fig_dual = make_subplots(specs=[[{"secondary_y": True}]])
-        
-        # Add Churn (Bar)
-        fig_dual.add_trace(
-            go.Bar(x=_df_dual['year'], y=_df_dual['churn_rate'], name="Churn Rate (%)", marker_color="#FF9800", opacity=0.7),
-            secondary_y=False,
-        )
-        # Add Outflow (Line)
-        fig_dual.add_trace(
-            go.Scatter(x=_df_dual['year'], y=_df_dual['net_sell_idr_tn'], name="Net Sell Outflow (IDR Tn)", mode='lines+markers', line=dict(color="#E53935", width=3)),
-            secondary_y=True,
-        )
-        
-        fig_dual.update_layout(
-            template="plotly_dark",
-            height=400,
-            margin=dict(l=20, r=20, t=10, b=20),
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-        )
-        fig_dual.update_yaxes(title_text="<b>Churn Rate</b> (%)", secondary_y=False)
-        fig_dual.update_yaxes(title_text="<b>Capital Outflow</b> (IDR Tn)", secondary_y=True)
-        
-        st.plotly_chart(fig_dual, use_container_width=True)
+    st.caption(_("📊 Tren Fluktuasi Regulatory Churn Rate Nasional (% Regulasi Dicabut/Diubah per Tahun)"))
+    
+    df_churn_plot = _df_churn[_df_churn['year'] >= 2000]
+    
+    fig_churn = px.bar(
+        df_churn_plot, x="year", y="churn_rate",
+        color="churn_rate", color_continuous_scale=["#FFA726", "#F57C00", "#E65100"],
+        template=PLOTLY_TEMPLATE,
+        labels={"year": "Tahun Terbit", "churn_rate": "Churn Rate (%)"}
+    )
+    fig_churn.update_layout(height=400, margin=dict(l=20, r=20, t=20, b=20), showlegend=False)
+    st.plotly_chart(fig_churn, use_container_width=True)
+    
+    st.markdown(f"""
+    <div style="background:{C_BG}; padding:14px 20px; border-radius:10px; border-left:5px solid #FF9800; margin-bottom: 20px; margin-top: 5px;">
+        Sistem merangkum rekor <strong>Churn Rate absolut sebesar {_max_churn:.1f}%</strong> bertepatan di periode reformasi regulasi. Gejolak volatilitas pencabutan ini mewakili pukulan langsung dari <em>Variabel Hukum (X)</em> yang mengacaukan ekuilibrium dan mendongkrak skor sentimen krisis sebelum akhirnya diterjemahkan menjadi eksodus investasi.
+    </div>
+    """, unsafe_allow_html=True)
 
+    with st.expander(_("📋 Lihat Data Riwayat: Tabulasi Daftar Regulasi Reversal H4 (Dicabut/Diubah)"), expanded=False):
+        if not _df_rev.empty:
+            df_reversal = _df_rev[_df_rev['status'] != 'berlaku'].copy()
+            if not df_reversal.empty:
+                st.dataframe(df_reversal[['year', 'title', 'status', 'issuing_body']].sort_values("year", ascending=False), use_container_width=True, hide_index=True)
+            else:
+                st.dataframe(_df_rev[['year', 'title', 'status', 'issuing_body']].sort_values("year", ascending=False), use_container_width=True, hide_index=True)
+
+# ══════════════════════════════════════════════════════════
+# ═══════════ LAYER Y: DAMPAK EKONOMI ═════════════════════
+# ══════════════════════════════════════════════════════════
 st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
+st.markdown('<div style="background:#1B5E20;color:#C8E6C9;padding:8px 16px;border-radius:8px;font-size:1rem;font-weight:700;display:inline-block;">LAYER Y — DAMPAK EKONOMI (DEPENDEN)</div>', unsafe_allow_html=True)
+st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════
