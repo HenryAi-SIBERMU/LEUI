@@ -51,14 +51,14 @@ C_BG = "#1E1E1E"
 BASE = os.path.dirname(os.path.dirname(__file__))
 DATA = os.path.join(BASE, "data", "final")
 
-@st.cache_data
-def load_data():
+@st.cache_data(ttl=3600)
+def load_data_h2():
     df_ikk = pd.read_csv(os.path.join(DATA, "ikk_expect_vs_present.csv"), parse_dates=["date"])
     df_pmi = pd.read_csv(os.path.join(DATA, "pmi_manufaktur.csv"), parse_dates=["date"])
     df_wb = pd.read_csv(os.path.join(DATA, "kualitas_hukum_h2.csv"))
     return df_ikk, df_pmi, df_wb
 
-df_ikk, df_pmi, df_wb = load_data()
+df_ikk, df_pmi, df_wb = load_data_h2()
 
 
 # ══════════════════════════════════════════════════
