@@ -150,12 +150,13 @@ top5_share = prov_avg.tail(5)['rata_rata'].sum() / total_inv * 100 if total_inv 
 bot10_share = prov_avg.head(10)['rata_rata'].sum() / total_inv * 100 if total_inv > 0 else 0
 
 # ICOR
-icor_first = df_icor['icor_pma'].iloc[0] if len(df_icor) > 0 else 0
-icor_last = df_icor['icor_pma'].iloc[-1] if len(df_icor) > 0 else 0
-icor_d_first = df_icor['icor_pmdn'].iloc[0] if len(df_icor) > 0 else 0
-icor_d_last = df_icor['icor_pmdn'].iloc[-1] if len(df_icor) > 0 else 0
-icor_year_first = df_icor['date'].iloc[0].strftime('%Y') if len(df_icor) > 0 else '—'
-icor_year_last = df_icor['date'].iloc[-1].strftime('%Y') if len(df_icor) > 0 else '—'
+_df_icor_clean = df_icor.dropna(subset=['icor_pma', 'icor_pmdn'])
+icor_first = _df_icor_clean['icor_pma'].iloc[0] if len(_df_icor_clean) > 0 else 0
+icor_last = _df_icor_clean['icor_pma'].iloc[-1] if len(_df_icor_clean) > 0 else 0
+icor_d_first = _df_icor_clean['icor_pmdn'].iloc[0] if len(_df_icor_clean) > 0 else 0
+icor_d_last = _df_icor_clean['icor_pmdn'].iloc[-1] if len(_df_icor_clean) > 0 else 0
+icor_year_first = _df_icor_clean['date'].iloc[0].strftime('%Y') if len(_df_icor_clean) > 0 else '—'
+icor_year_last = _df_icor_clean['date'].iloc[-1].strftime('%Y') if len(_df_icor_clean) > 0 else '—'
 icor_pma_trend = ((icor_last - icor_first) / icor_first * 100) if icor_first > 0 else 0
 
 # ── Load Legal datasets ──
