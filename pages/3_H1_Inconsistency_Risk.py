@@ -375,6 +375,7 @@ if _df_reg_h1 is not None:
         labels={"year": "Tahun", "jumlah": "Jumlah Regulasi", "status": "Status Hukum"}
     )
     _fig_reg.update_layout(height=350, margin=dict(l=20, r=20, t=20, b=20), hovermode="x unified", legend=dict(title=""))
+    _fig_reg.update_xaxes(range=[2000, 2024])
     st.plotly_chart(_fig_reg, use_container_width=True)
     
     with st.expander(_("📋 Lihat Data: Regulasi H1 Yearly"), expanded=False):
@@ -402,6 +403,7 @@ if _df_churn is not None:
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
         margin=dict(l=20, r=20, t=40, b=20), hovermode="x unified"
     )
+    _fig_churn.update_xaxes(range=[2000, 2024])
     st.plotly_chart(_fig_churn, use_container_width=True)
     
     st.markdown(f"""
