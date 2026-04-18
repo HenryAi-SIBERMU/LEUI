@@ -160,14 +160,14 @@ with st.expander(_("ℹ️ Metodologi: Analisis Selective Enforcement (H2)"), ex
 
 
 # ── Intro Narrative ──
-intro = _("""Analisis ini membagi kausalitas menjadi 2 layer: **Layer X (Skor Transparansi & Korupsi World Bank)** dan **Layer Y (Dampak Ekonomi Riil)**.
-Data World Bank menunjukkan stagnansi/hancurnya transparansi aparat hukum. Stagnansi ini beriringan dengan rentetan kejatuhan kepercayaan konsumen dalam observasi **{ikk_start}–{ikk_end}** ({ikk_n} bulan data IKK), 
+intro = _("""Analisis ini membagi kausalitas menjadi 2 layer: **Layer X (Indeks Persepsi Korupsi TI)** dan **Layer Y (Dampak Ekonomi Riil)**.
+Data Transparency International (CPI) menunjukkan stagnansi/menurunnya skor persepsi korupsi aparat hukum. Stagnansi ini beriringan dengan rentetan kejatuhan kepercayaan konsumen dalam observasi **{ikk_start}–{ikk_end}** ({ikk_n} bulan data IKK), 
 dimana deteksi Z-Score menemukan **{n_anom} episode** IKK Ekspektasi jatuh secara abnormal. 
 Episode terparah terjadi pada **{worst_date}** dengan IKK turun **{worst_pct:.1f}%** dalam sebulan (Z={worst_z:.2f}).
 Di sisi manufaktur, PMI terkontraksi (<50) selama **{n_kon} dari {pmi_n} bulan** observasi.
 Kepanikan publik yang tergambar di volatilitas gap ekspektasi-present ini menguatkan argumen bahwa *selective enforcement* menciptakan **shock kepercayaan yang fatal.**""")
 
-intro_src = _("Data <code>kualitas_hukum_h2.csv</code> (World Bank WGI), <code>ikk_expect_vs_present.csv</code>, dan <code>pmi_manufaktur.csv</code>.")
+intro_src = _("Data <code>kualitas_hukum_h2.csv</code> (Transparency International), <code>ikk_expect_vs_present.csv</code>, dan <code>pmi_manufaktur.csv</code>.")
 
 st.markdown(
     intro.format(
@@ -224,26 +224,27 @@ st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════
-# 2.1 LAYER X: KUALITAS HUKUM (WORLD BANK)
+# 2.1 LAYER X: KUALITAS HUKUM (TRANSPARENCY INTERNATIONAL)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("2.1 Layer X: Transparansi & Korupsi Sektor Publik (World Bank WGI)"))
-st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: World Bank CPIA Indicator extraction</span>', unsafe_allow_html=True)
+st.subheader(_("2.1 Layer X: Indeks Persepsi Korupsi (Transparency International)"))
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Transparency International CPI Dataset Extraction</span>', unsafe_allow_html=True)
 
-wb_narr = _("""Data **World Bank (Indicator: IQ.CPA.TRAN.XQ)** mengukur "Transparency, accountability, and corruption in the public sector rating" (skala 1=rendah hingga 6=tinggi).
+wb_narr = _("""Data **Transparency International CPI** mengukur tingkat persepsi korupsi sektor publik (skala 0=sangat korup hingga 100=sangat bersih).
 Menurunnya atau stagnannya skor ini merepresentasikan melemahnya penegakan hukum yang konsisten, membuka ruang untuk *selective enforcement* atau politisasi hukum bisnis.
 Data layer X ini menjadi katalis krisis kepercayaan dan kepanikan ekonomi yang diukur di Layer Y (IKK/PMI).""")
 
-wb_src = _("Data <code>kualitas_hukum_h2.csv</code>. Sumber: World Bank Open Data API.")
+wb_src = _("Data <code>kualitas_hukum_h2.csv</code>. Sumber: Transparency International Open Data.")
 st.markdown(wb_narr + f"\n\n<small>📁 <b>Sumber:</b> {wb_src}</small>", unsafe_allow_html=True)
 
 fig_wb = px.line(df_wb, x="tahun", y="skor_transparansi_korupsi", markers=True)
 fig_wb.update_traces(line_color="#E53935", marker=dict(size=8, line=dict(color='white', width=2)))
 fig_wb.update_layout(
     template=PLOTLY_TEMPLATE, height=350,
-    yaxis_title="Skor (1=Low, 6=High)", xaxis_title="Tahun",
+    yaxis_title="Skor CPI (0=Korup, 100=Bersih)", xaxis_title="Tahun",
     margin=dict(l=20, r=20, t=40, b=20)
 )
+fig_wb.update_yaxes(range=[0, 100], gridcolor='#333333')
 st.plotly_chart(fig_wb, use_container_width=True)
 
 # ══════════════════════════════════════════════════
