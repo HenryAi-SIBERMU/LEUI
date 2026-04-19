@@ -509,41 +509,48 @@ if _df_sipp_monthly_pn is not None and not _df_sipp_monthly_pn.empty:
     with st.expander(_("📋 Lihat Data: Volume per PN per Bulan"), expanded=False):
         st.dataframe(_df_sipp_monthly_pn, use_container_width=True, hide_index=True)
 
-# ── CHART: Horizontal Bar — Volume Sengketa Korporasi per PN (Data Riil) ──
-if _df_sipp_pn is not None and not _df_sipp_pn.empty:
-    st.caption(_("📊 Konsentrasi Sengketa Korporasi per Pengadilan Negeri ({:,} perkara — Corporate Taxonomy Filter)".format(_total_sipp)))
-    _df_pn_sorted = _df_sipp_pn.sort_values("jumlah", ascending=True)
-    _fig_pn_bar = px.bar(
-        _df_pn_sorted, x="jumlah", y="pengadilan", orientation="h",
-        text=_df_pn_sorted["jumlah"].apply(lambda x: f"{x:,}"),
-        color="Avg_Lama_Proses",
-        color_continuous_scale=["#FFCC80", "#FF9800", "#E65100"],
-        template=PLOTLY_TEMPLATE,
-        labels={"pengadilan": "Pengadilan Negeri", "jumlah": "Jumlah Perkara Korporasi", "Avg_Lama_Proses": "Avg Durasi (Hari)"}
-    )
-    _fig_pn_bar.update_traces(textposition='outside', textfont_size=13)
-    _fig_pn_bar.update_layout(
-        height=350, margin=dict(l=20, r=80, t=30, b=20),
-        xaxis=dict(title="Jumlah Perkara Korporasi"),
-        yaxis=dict(title=""),
-        coloraxis_colorbar=dict(title="Durasi (Hari)")
-    )
-    st.plotly_chart(_fig_pn_bar, use_container_width=True)
+# ── CHART: Horizontal Bar — Sebaran Sengketa Korporasi 40 PN Nasional ──
+_all_pn_path = os.path.join(DATA, "sipp_all_pn_nasional.csv")
+_df_all_pn = None
+if os.path.exists(_all_pn_path):
+    _df_all_pn = pd.read_csv(_all_pn_path)
 
-    # Summary metrics
-    _pn_cols = st.columns(len(_df_sipp_pn))
-    for idx, row in _df_sipp_pn.iterrows():
-        with _pn_cols[idx]:
-            st.metric(row['pengadilan'], f"{int(row['jumlah']):,} perkara", f"Avg {row['Avg_Lama_Proses']:.0f} hari")
+if _df_all_pn is not None and not _df_all_pn.empty:
+    _n_pn = len(_df_all_pn)
+    _total_all = int(_df_all_pn['total_sengketa'].sum())
+    st.caption(_("📊 Sebaran Sengketa Korporasi di {} Pengadilan Negeri se-Indonesia ({:,} perkara terdeteksi)".format(_n_pn, _total_all)))
+    _df_all_sorted = _df_all_pn.sort_values("total_sengketa", ascending=True)
+    _fig_all_pn = px.bar(
+        _df_all_sorted, x="total_sengketa", y="PN_norm", orientation="h",
+        text=_df_all_sorted["total_sengketa"].apply(lambda x: f"{x:,}"),
+        color="sources",
+        color_discrete_map={
+            "Deep Scrape": "#E65100",
+            "Deep Scrape + OSINT Detection": "#FF9800",
+            "Enriched Scrape": "#FFA726",
+            "Enriched Scrape + OSINT Detection": "#FFCC80",
+            "OSINT Detection": "#FFE0B2"
+        },
+        template=PLOTLY_TEMPLATE,
+        labels={"PN_norm": "Pengadilan Negeri", "total_sengketa": "Jumlah Sengketa Korporasi", "sources": "Sumber Data"}
+    )
+    _fig_all_pn.update_traces(textposition='outside', textfont_size=10)
+    _fig_all_pn.update_layout(
+        height=max(500, _n_pn * 22), margin=dict(l=20, r=80, t=30, b=20),
+        xaxis=dict(title="Jumlah Sengketa Korporasi (log scale)", type="log"),
+        yaxis=dict(title="", tickfont=dict(size=11)),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font=dict(size=10))
+    )
+    st.plotly_chart(_fig_all_pn, use_container_width=True)
 
     st.markdown(f"""
     <div style="background:{C_BG}; padding:14px 20px; border-radius:10px; border-left:5px solid #FF9800; margin-bottom: 20px; margin-top: 10px;">
-        <b>Interpretasi:</b> Dari <strong>{_total_sipp:,} perkara korporasi</strong> yang berhasil disaring melalui <em>Corporate Taxonomy Filter</em> (dari 137.480 data mentah), beban sengketa terkonsentrasi secara tidak merata. <strong>PN Palembang</strong> menanggung <strong>60.6%</strong> dari seluruh beban perkara. Melalui <em>OSINT Intelligence Scraping</em>, sengketa korporasi juga terdeteksi tersebar di <strong>36 Pengadilan Negeri</strong> di seluruh Indonesia — mengkonfirmasi bahwa <strong>Procedural Uncertainty</strong> adalah <em>systemic risk</em> nasional, bukan fenomena lokal.
+        <b>Interpretasi:</b> Data dari <strong>{_n_pn} Pengadilan Negeri</strong> di seluruh Indonesia dikumpulkan dari 3 sumber: (1) <em>Deep Scrape</em> SIPP — {_total_sipp:,} perkara korporasi dari 3 PN utama, (2) <em>Enriched Scrape</em> — data tambahan dari 25 PN, (3) <em>OSINT Detection</em> — 36 PN teridentifikasi via Google DORK. Konsentrasi beban perkara yang <strong>sangat tidak merata</strong> (PN Palembang = 40.430 vs rata-rata PN lain < 100) mengkonfirmasi adanya <strong>disparitas infrastruktur peradilan</strong> yang menjadi <em>hidden cost</em> bagi investor.
     </div>
     """, unsafe_allow_html=True)
 
-    with st.expander(_("📋 Lihat Data: Distribusi per Pengadilan Negeri"), expanded=False):
-        st.dataframe(_df_sipp_pn, use_container_width=True, hide_index=True)
+    with st.expander(_("📋 Lihat Data: Sebaran 40 PN Nasional (Gabungan Semua Sumber)"), expanded=False):
+        st.dataframe(_df_all_pn, use_container_width=True, hide_index=True)
 
 
 # ══════════════════════════════════════════════════════════
