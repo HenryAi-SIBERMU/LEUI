@@ -423,12 +423,12 @@ st.markdown("---")
 st.subheader(_("1.3 Proses Hukum Panjang: Durasi & Volume Sengketa Pengadilan Negeri"))
 st.markdown('<span style="background:#E65100;color:#FFE0B2;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Scraping SIPP Pengadilan Negeri (Variabel X3)</span>', unsafe_allow_html=True)
 
-sipp_narrative = _("""Menggunakan metode **Scraping Sistem Informasi Penelusuran Perkara (SIPP)** dari beberapa Pengadilan Negeri untuk mengukur **durasi riil proses sengketa bisnis** — menjawab pertanyaan: *\"seberapa lama seorang investor harus menunggu kepastian hukum?\"*
+sipp_narrative = _("""Menggunakan metode **Macro-Level Legal Proxy** dengan meng-*crawl* **Sistem Informasi Penelusuran Perkara (SIPP)** dari **58 Pengadilan Negeri** se-Indonesia secara massal. Dari total **137.480 perkara wanprestasi** mentah yang berhasil diekstraksi, diterapkan **Corporate Taxonomy Filter** (menyaring hanya perkara yang melibatkan PT, CV, Koperasi, Bank, Yayasan, atau Pemerintah) sehingga diperoleh **{tot_sipp:,} perkara korporasi bersih**.
 
-Data menunjukkan bahwa proses hukum bisnis di pengadilan negeri **bukan urusan cepat**: mayoritas perkara memakan waktu 1–3 bulan, namun masih ada yang terseret hingga 6–12 bulan. Ketidakpastian durasi ini menjadi **hidden cost** bagi investor — modal tertahan di sengketa yang tidak bisa diprediksi kapan berakhir. Ditambah volume sengketa yang terus meningkat setiap tahun, tekanan terhadap sistem peradilan semakin berat dan waktu penyelesaian semakin sulit diprediksi.""")
+Metodologi ini selaras dengan pendekatan *World Bank Ease of Doing Business* parameter *Enforcing Contracts*: volume & durasi sengketa kontrak bisnis di pengadilan negeri digunakan sebagai **indikator substitusi (proxy)** kualitas infrastruktur Kepastian Hukum suatu wilayah. Semakin tinggi volume dan semakin lama durasi rata-rata penyelesaian, semakin besar **Biaya Transaksi (hidden cost)** yang harus ditanggung investor.""")
 
-sipp_src = _("Scraping <code>sipp.pn-sidoarjo.go.id</code> & <code>sipp.pn-negara.go.id</code> (Filter: Perdata Bisnis).")
-st.markdown(sipp_narrative + f"\n\n<small>📁 <b>Sumber:</b> {sipp_src}</small>", unsafe_allow_html=True)
+sipp_src = _("Scraping massal <code>sipp.[58-PN].go.id</code> — Corporate Taxonomy Filter (PT/CV/Bank/Pemerintah).")
+st.markdown(sipp_narrative.format(tot_sipp=_total_sipp) + f"\n\n<small>📁 <b>Sumber:</b> {sipp_src}</small>", unsafe_allow_html=True)
 
 # Durasi Distribution Chart
 if _df_sipp_durasi is not None:
@@ -474,7 +474,7 @@ if _df_sipp_pn is not None:
     
     st.markdown(f"""
     <div style="background:{C_BG}; padding:14px 20px; border-radius:10px; border-left:5px solid #FF9800; margin-bottom: 20px; margin-top: 5px;">
-        Dari <strong>{_total_sipp} sengketa bisnis</strong> yang terdeteksi di pengadilan negeri, mayoritas memakan waktu <strong>1–3 bulan</strong> dengan sebagian terseret hingga 6–12 bulan. Volume sengketa menunjukkan tren <strong>akselerasi agresif</strong> — meningkat dari belasan perkara per tahun menjadi puluhan. Proses hukum yang panjang dan tidak terprediksi ini menjadi <em>hidden cost</em> langsung bagi investor.
+        Dari <strong>{_total_sipp:,} sengketa korporasi</strong> yang tersaring melalui <em>Corporate Taxonomy Filter</em> (dari 137.480 data mentah), terlihat bahwa infrastruktur peradilan negeri mengalami tekanan beban yang masif. Volume sengketa bisnis menunjukkan tren <strong>akselerasi agresif</strong>. Konsentrasi beban perkara yang tidak merata antar PN menciptakan <em>Procedural Uncertainty</em> — ketidakpastian durasi penyelesaian yang menjadi <strong>hidden cost</strong> langsung bagi investor.
     </div>
     """, unsafe_allow_html=True)
     

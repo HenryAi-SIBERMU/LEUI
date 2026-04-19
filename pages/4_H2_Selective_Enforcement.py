@@ -56,8 +56,8 @@ def load_data_h2_sipp():
     df_ikk = pd.read_csv(os.path.join(DATA, "ikk_expect_vs_present.csv"), parse_dates=["date"])
     df_pmi = pd.read_csv(os.path.join(DATA, "pmi_manufaktur.csv"), parse_dates=["date"])
     
-    # Load and process SIPP Wanprestasi Massal for Layer X
-    sipp_path = os.path.join(BASE, "data", "processed", "sipp_nasional_wanprestasi_massal.csv")
+    # Load and process SIPP Wanprestasi Korporasi (Corporate Taxonomy Filter) for Layer X
+    sipp_path = os.path.join(DATA, "sipp_corporate_wanprestasi.csv")
     df_sipp_raw = pd.read_csv(sipp_path)
     df_sipp_raw["Tanggal Daftar"] = pd.to_datetime(df_sipp_raw["Tanggal Daftar"], format="%d %b %Y", errors="coerce")
     df_sipp_valid = df_sipp_raw.dropna(subset=["Tanggal Daftar"]).copy()
