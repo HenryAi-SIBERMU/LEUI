@@ -94,6 +94,25 @@ def process_corporate_sipp():
     agg_monthly.to_csv(out5, index=False, encoding='utf-8-sig')
     print("[SAVED] sipp_wanprestasi_monthly.csv ({} bulan)".format(len(agg_monthly)))
 
+    # ── OUTPUT 6: Monthly per PN (Grouped Bar Data) ──
+    agg_monthly_pn = df_with_date.groupby(['YearMonth', 'Pengadilan']).agg(
+        jumlah=('durasi_hari', 'count'),
+        avg_durasi=('durasi_hari', 'mean')
+    ).reset_index()
+    agg_monthly_pn = agg_monthly_pn.sort_values(['YearMonth', 'Pengadilan'])
+    out6 = os.path.join(final_dir, "sipp_monthly_per_pn.csv")
+    agg_monthly_pn.to_csv(out6, index=False, encoding='utf-8-sig')
+    print("[SAVED] sipp_monthly_per_pn.csv ({} rows)".format(len(agg_monthly_pn)))
+
+    # ── OUTPUT 7: Box Plot Stats per PN (Precomputed Percentiles) ──
+    box_stats = df_corp.groupby('Pengadilan')['durasi_hari'].describe(
+        percentiles=[0.05, 0.25, 0.5, 0.75, 0.95]
+    ).reset_index()
+    box_stats.columns = ['pengadilan', 'count', 'mean', 'std', 'min', 'p5', 'q1', 'median', 'q3', 'p95', 'max']
+    out7 = os.path.join(final_dir, "sipp_boxplot_stats.csv")
+    box_stats.to_csv(out7, index=False, encoding='utf-8-sig')
+    print("[SAVED] sipp_boxplot_stats.csv ({} PN)".format(len(box_stats)))
+
     print("=" * 60)
     print("SELESAI! Semua file agregat telah di-regenerasi dari {} perkara korporasi.".format(len(df_corp)))
     print("=" * 60)

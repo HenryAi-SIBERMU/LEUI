@@ -168,6 +168,8 @@ _sipp_durasi_path = os.path.join(DATA, "sipp_durasi_distribution.csv")
 _sipp_pn_path = os.path.join(DATA, "sipp_pn_distribution.csv")
 _sipp_yearly_path = os.path.join(DATA, "sipp_yearly.csv")
 _sipp_monthly_path = os.path.join(DATA, "sipp_wanprestasi_monthly.csv")
+_sipp_monthly_pn_path = os.path.join(DATA, "sipp_monthly_per_pn.csv")
+_sipp_boxplot_path = os.path.join(DATA, "sipp_boxplot_stats.csv")
 
 _total_ma = 0
 _df_ma_yr = None
@@ -217,6 +219,14 @@ if os.path.exists(_sipp_yearly_path):
 _df_sipp_monthly = None
 if os.path.exists(_sipp_monthly_path):
     _df_sipp_monthly = pd.read_csv(_sipp_monthly_path)
+
+_df_sipp_monthly_pn = None
+if os.path.exists(_sipp_monthly_pn_path):
+    _df_sipp_monthly_pn = pd.read_csv(_sipp_monthly_pn_path)
+
+_df_sipp_boxplot = None
+if os.path.exists(_sipp_boxplot_path):
+    _df_sipp_boxplot = pd.read_csv(_sipp_boxplot_path)
 
 
 # ══════════════════════════════════════════════════
@@ -465,50 +475,74 @@ if _df_sipp_durasi is not None and "durasi_hari" in _df_sipp_durasi.columns:
     with st.expander(_("📋 Lihat Data: Distribusi Durasi (Harian)"), expanded=False):
         st.dataframe(_df_sipp_durasi, use_container_width=True, hide_index=True)
 
-# Volume Sengketa PN per Bulan (Trend)
-if _df_sipp_monthly is not None and not _df_sipp_monthly.empty:
-    st.caption(_("📊 Tren Volume Sengketa Bisnis di Pengadilan Negeri (Bulanan)"))
-    _fig_sipp_mo = px.area(
-        _df_sipp_monthly, x="YearMonth", y="Jumlah_Kasus",
-        labels={"YearMonth": "Bulan", "Jumlah_Kasus": "Total Perkara Bisnis"},
-        template=PLOTLY_TEMPLATE
+# ── CHART: Grouped Bar — Volume Sengketa per PN per Bulan ──
+if _df_sipp_monthly_pn is not None and not _df_sipp_monthly_pn.empty:
+    st.caption(_("📊 Volume Sengketa Korporasi per Pengadilan Negeri — Tren Bulanan"))
+    _fig_grouped = px.bar(
+        _df_sipp_monthly_pn, x="YearMonth", y="jumlah", color="Pengadilan",
+        barmode="group",
+        text="jumlah",
+        color_discrete_sequence=["#FF7043", "#FFA726", "#FFCC80"],
+        template=PLOTLY_TEMPLATE,
+        labels={"YearMonth": "Bulan", "jumlah": "Jumlah Perkara", "Pengadilan": "Pengadilan Negeri"},
+        hover_data={"avg_durasi": ":.1f"}
     )
-    _fig_sipp_mo.update_traces(
-        line=dict(color="#FF7043", width=3, shape="spline"),
-        fillcolor="rgba(255, 112, 67, 0.2)",
-        mode="lines+markers",
-        marker=dict(size=8, color="#FF3D00")
+    _fig_grouped.update_traces(textposition='outside', textfont_size=10)
+    _fig_grouped.update_layout(
+        height=400, margin=dict(l=20, r=20, t=30, b=20),
+        xaxis=dict(type='category', title="Periode (Bulan-Tahun)", showgrid=False),
+        yaxis=dict(title="Jumlah Perkara Korporasi"),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
-    _fig_sipp_mo.update_layout(
-        height=320, margin=dict(l=20, r=20, t=30, b=20),
-        xaxis=dict(type='category', title="Bulan-Tahun", showgrid=False),
-        yaxis=dict(title="Jumlah Perkara Masuk", showgrid=True, gridcolor="rgba(255,255,255,0.1)")
-    )
-    st.plotly_chart(_fig_sipp_mo, use_container_width=True)
+    st.plotly_chart(_fig_grouped, use_container_width=True)
     
-    with st.expander(_("📋 Lihat Data: Tren Sengketa PN (Bulanan)"), expanded=False):
-        st.dataframe(_df_sipp_monthly, use_container_width=True, hide_index=True)
+    with st.expander(_("📋 Lihat Data: Volume per PN per Bulan"), expanded=False):
+        st.dataframe(_df_sipp_monthly_pn, use_container_width=True, hide_index=True)
 
-# Distribusi per PN
-if _df_sipp_pn is not None:
-    st.caption(_("📊 Konsentrasi Sengketa per Pengadilan Negeri (Market Share)"))
-    _fig_pn = px.pie(
-        _df_sipp_pn.head(10), names="pengadilan", values="jumlah", hole=0.45,
-        color_discrete_sequence=px.colors.sequential.Oranges_r,
-        template=PLOTLY_TEMPLATE
+# ── CHART: Box Plot — Distribusi Durasi per PN (Precomputed) ──
+import plotly.graph_objects as go
+if _df_sipp_boxplot is not None and not _df_sipp_boxplot.empty:
+    st.caption(_("📊 Distribusi Durasi Proses Hukum per Pengadilan Negeri (Box Plot)"))
+    _fig_box = go.Figure()
+    _colors = ["#FF7043", "#FFA726", "#FFCC80", "#FF5722", "#E65100"]
+    for i, row in _df_sipp_boxplot.iterrows():
+        _fig_box.add_trace(go.Box(
+            name=row['pengadilan'],
+            lowerfence=[row['p5']],
+            q1=[row['q1']],
+            median=[row['median']],
+            q3=[row['q3']],
+            upperfence=[row['p95']],
+            mean=[row['mean']],
+            boxmean=True,
+            marker_color=_colors[i % len(_colors)],
+            line=dict(width=2),
+            hoverinfo='all',
+            hovertext=f"n={int(row['count']):,} | μ={row['mean']:.1f}d | σ={row['std']:.1f}d"
+        ))
+    _fig_box.update_layout(
+        template=PLOTLY_TEMPLATE,
+        height=400, margin=dict(l=20, r=20, t=30, b=20),
+        yaxis=dict(title="Durasi Proses (Hari)"),
+        xaxis=dict(title="Pengadilan Negeri"),
+        showlegend=False
     )
-    _fig_pn.update_traces(textposition='inside', textinfo='percent+label', marker=dict(line=dict(color='#1E1E1E', width=2)))
-    _fig_pn.update_layout(height=400, margin=dict(l=20, r=20, t=30, b=20), showlegend=False)
-    st.plotly_chart(_fig_pn, use_container_width=True)
+    st.plotly_chart(_fig_box, use_container_width=True)
     
+    # Summary metrics row
+    _box_cols = st.columns(len(_df_sipp_boxplot))
+    for idx, row in _df_sipp_boxplot.iterrows():
+        with _box_cols[idx]:
+            st.metric(row['pengadilan'], f"{row['median']:.0f} hari (median)", f"n={int(row['count']):,}")
+
     st.markdown(f"""
-    <div style="background:{C_BG}; padding:14px 20px; border-radius:10px; border-left:5px solid #FF9800; margin-bottom: 20px; margin-top: 5px;">
-        Dari <strong>{_total_sipp:,} sengketa korporasi</strong> yang tersaring melalui <em>Corporate Taxonomy Filter</em> (dari 137.480 data mentah), terlihat bahwa infrastruktur peradilan negeri mengalami tekanan beban yang masif. Volume sengketa bisnis menunjukkan tren <strong>akselerasi agresif</strong>. Konsentrasi beban perkara yang tidak merata antar PN menciptakan <em>Procedural Uncertainty</em> — ketidakpastian durasi penyelesaian yang menjadi <strong>hidden cost</strong> langsung bagi investor.
+    <div style="background:{C_BG}; padding:14px 20px; border-radius:10px; border-left:5px solid #FF9800; margin-bottom: 20px; margin-top: 10px;">
+        <b>Interpretasi Box Plot:</b> Dari <strong>{_total_sipp:,} sengketa korporasi</strong> yang tersaring melalui <em>Corporate Taxonomy Filter</em>, terlihat disparitas durasi proses hukum yang signifikan antar PN. <em>Whisker</em> (P5–P95) menunjukkan rentang ketidakpastian temporal yang dihadapi pelaku usaha. Semakin lebar <em>interquartile range</em> (kotak), semakin tinggi <strong>Procedural Uncertainty</strong> — variabel biaya tersembunyi (<em>hidden cost</em>) langsung bagi keputusan investasi.
     </div>
     """, unsafe_allow_html=True)
     
-    with st.expander(_("📋 Lihat Data: Distribusi per Pengadilan Negeri"), expanded=False):
-        st.dataframe(_df_sipp_pn, use_container_width=True, hide_index=True)
+    with st.expander(_("📋 Lihat Data: Statistik Durasi per PN"), expanded=False):
+        st.dataframe(_df_sipp_boxplot, use_container_width=True, hide_index=True)
 
 
 # ══════════════════════════════════════════════════════════
