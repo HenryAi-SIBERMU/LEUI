@@ -167,6 +167,7 @@ _ma_stat_path = os.path.join(DATA, "laporan_ma_statistik.csv")
 _sipp_durasi_path = os.path.join(DATA, "sipp_durasi_distribution.csv")
 _sipp_pn_path = os.path.join(DATA, "sipp_pn_distribution.csv")
 _sipp_yearly_path = os.path.join(DATA, "sipp_yearly.csv")
+_sipp_monthly_path = os.path.join(DATA, "sipp_wanprestasi_monthly.csv")
 
 _total_ma = 0
 _df_ma_yr = None
@@ -212,6 +213,10 @@ _total_sipp = 0
 if os.path.exists(_sipp_yearly_path):
     _df_sipp_yearly = pd.read_csv(_sipp_yearly_path)
     _total_sipp = int(_df_sipp_yearly['total_perkara'].sum())
+
+_df_sipp_monthly = None
+if os.path.exists(_sipp_monthly_path):
+    _df_sipp_monthly = pd.read_csv(_sipp_monthly_path)
 
 
 # ══════════════════════════════════════════════════
@@ -460,26 +465,25 @@ if _df_sipp_durasi is not None and "durasi_hari" in _df_sipp_durasi.columns:
     with st.expander(_("📋 Lihat Data: Distribusi Durasi (Harian)"), expanded=False):
         st.dataframe(_df_sipp_durasi, use_container_width=True, hide_index=True)
 
-# Volume Sengketa PN per Tahun
-if _df_sipp_yearly is not None:
-    st.caption(_("📊 Tren Volume Sengketa Bisnis di Pengadilan Negeri per Tahun"))
-    _df_sipp_yr = _df_sipp_yearly.copy()
-    _df_sipp_yr["year"] = _df_sipp_yr["year"].astype(str) # Force categorical
-    
-    _fig_sipp_yr = px.bar(
-        _df_sipp_yr, x="year", y="total_perkara",
+# Volume Sengketa PN per Bulan (Trend)
+if _df_sipp_monthly is not None and not _df_sipp_monthly.empty:
+    st.caption(_("📊 Tren Volume Sengketa Bisnis di Pengadilan Negeri (Bulanan)"))
+    _fig_sipp_mo = px.area(
+        _df_sipp_monthly, x="YearMonth", y="Jumlah_Kasus",
         color_discrete_sequence=["#FF7043"],
         template=PLOTLY_TEMPLATE,
-        labels={"year": "Tahun", "total_perkara": "Total Perkara Bisnis"}
+        markers=True,
+        labels={"YearMonth": "Bulan", "Jumlah_Kasus": "Total Perkara Bisnis"}
     )
-    _fig_sipp_yr.update_layout(
-        height=320, margin=dict(l=20, r=20, t=20, b=20),
-        xaxis=dict(type='category', title="Tahun")
+    _fig_sipp_mo.update_layout(
+        height=320, margin=dict(l=20, r=20, t=30, b=20),
+        xaxis=dict(type='category', title="Bulan-Tahun"),
+        yaxis=dict(title="Jumlah Perkara Masuk")
     )
-    st.plotly_chart(_fig_sipp_yr, use_container_width=True)
+    st.plotly_chart(_fig_sipp_mo, use_container_width=True)
     
-    with st.expander(_("📋 Lihat Data: Sengketa PN Yearly"), expanded=False):
-        st.dataframe(_df_sipp_yearly, use_container_width=True, hide_index=True)
+    with st.expander(_("📋 Lihat Data: Tren Sengketa PN (Bulanan)"), expanded=False):
+        st.dataframe(_df_sipp_monthly, use_container_width=True, hide_index=True)
 
 # Distribusi per PN
 if _df_sipp_pn is not None:
