@@ -463,13 +463,19 @@ if _df_sipp_durasi is not None and "durasi_hari" in _df_sipp_durasi.columns:
 # Volume Sengketa PN per Tahun
 if _df_sipp_yearly is not None:
     st.caption(_("📊 Tren Volume Sengketa Bisnis di Pengadilan Negeri per Tahun"))
+    _df_sipp_yr = _df_sipp_yearly.copy()
+    _df_sipp_yr["year"] = _df_sipp_yr["year"].astype(str) # Force categorical
+    
     _fig_sipp_yr = px.bar(
-        _df_sipp_yearly, x="year", y="total_perkara",
+        _df_sipp_yr, x="year", y="total_perkara",
         color_discrete_sequence=["#FF7043"],
         template=PLOTLY_TEMPLATE,
         labels={"year": "Tahun", "total_perkara": "Total Perkara Bisnis"}
     )
-    _fig_sipp_yr.update_layout(height=320, margin=dict(l=20, r=20, t=20, b=20))
+    _fig_sipp_yr.update_layout(
+        height=320, margin=dict(l=20, r=20, t=20, b=20),
+        xaxis=dict(type='category', title="Tahun")
+    )
     st.plotly_chart(_fig_sipp_yr, use_container_width=True)
     
     with st.expander(_("📋 Lihat Data: Sengketa PN Yearly"), expanded=False):
