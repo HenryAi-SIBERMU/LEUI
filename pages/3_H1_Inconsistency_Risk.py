@@ -470,15 +470,19 @@ if _df_sipp_monthly is not None and not _df_sipp_monthly.empty:
     st.caption(_("📊 Tren Volume Sengketa Bisnis di Pengadilan Negeri (Bulanan)"))
     _fig_sipp_mo = px.area(
         _df_sipp_monthly, x="YearMonth", y="Jumlah_Kasus",
-        color_discrete_sequence=["#FF7043"],
-        template=PLOTLY_TEMPLATE,
-        markers=True,
-        labels={"YearMonth": "Bulan", "Jumlah_Kasus": "Total Perkara Bisnis"}
+        labels={"YearMonth": "Bulan", "Jumlah_Kasus": "Total Perkara Bisnis"},
+        template=PLOTLY_TEMPLATE
+    )
+    _fig_sipp_mo.update_traces(
+        line=dict(color="#FF7043", width=3, shape="spline"),
+        fillcolor="rgba(255, 112, 67, 0.2)",
+        mode="lines+markers",
+        marker=dict(size=8, color="#FF3D00")
     )
     _fig_sipp_mo.update_layout(
         height=320, margin=dict(l=20, r=20, t=30, b=20),
-        xaxis=dict(type='category', title="Bulan-Tahun"),
-        yaxis=dict(title="Jumlah Perkara Masuk")
+        xaxis=dict(type='category', title="Bulan-Tahun", showgrid=False),
+        yaxis=dict(title="Jumlah Perkara Masuk", showgrid=True, gridcolor="rgba(255,255,255,0.1)")
     )
     st.plotly_chart(_fig_sipp_mo, use_container_width=True)
     
@@ -487,14 +491,14 @@ if _df_sipp_monthly is not None and not _df_sipp_monthly.empty:
 
 # Distribusi per PN
 if _df_sipp_pn is not None:
-    st.caption(_("📊 Konsentrasi Sengketa per Pengadilan Negeri"))
-    _fig_pn = px.bar(
-        _df_sipp_pn.head(10), x="jumlah", y="pengadilan", orientation="h",
-        color_discrete_sequence=["#EF6C00"],
-        template=PLOTLY_TEMPLATE,
-        labels={"jumlah": "Jumlah Sengketa", "pengadilan": ""}
+    st.caption(_("📊 Konsentrasi Sengketa per Pengadilan Negeri (Market Share)"))
+    _fig_pn = px.pie(
+        _df_sipp_pn.head(10), names="pengadilan", values="jumlah", hole=0.45,
+        color_discrete_sequence=px.colors.sequential.Oranges_r,
+        template=PLOTLY_TEMPLATE
     )
-    _fig_pn.update_layout(height=350, margin=dict(l=20, r=20, t=20, b=20))
+    _fig_pn.update_traces(textposition='inside', textinfo='percent+label', marker=dict(line=dict(color='#1E1E1E', width=2)))
+    _fig_pn.update_layout(height=400, margin=dict(l=20, r=20, t=30, b=20), showlegend=False)
     st.plotly_chart(_fig_pn, use_container_width=True)
     
     st.markdown(f"""
