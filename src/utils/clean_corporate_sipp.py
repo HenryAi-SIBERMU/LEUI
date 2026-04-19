@@ -35,6 +35,10 @@ def process_corporate_sipp():
     pattern = '|'.join(keywords)
     print("Memfilter data korporasi...")
     df_corp = df[df['Para Pihak'].str.contains(pattern, case=False, na=False, regex=True)].copy()
+    
+    # FILTER OUT NOISE 'KATABAY'
+    df_corp = df_corp[~df_corp['Para Pihak'].str.contains(r'KATABAY', case=False, na=False)]
+    
     df_akhir = len(df_corp)
     pct = (df_akhir / df_awal) * 100 if df_awal > 0 else 0
     print("Total Data Korporasi: {:,} perkara ({:.1f}%)".format(df_akhir, pct))
@@ -60,26 +64,12 @@ def process_corporate_sipp():
     agg_pn.to_csv(out2, index=False, encoding='utf-8-sig')
     print("[SAVED] sipp_pn_distribution.csv ({} PN)".format(len(agg_pn)))
 
-    # ── OUTPUT 3: Distribusi Durasi (Bucket) ──
-    def bucket(d):
-        if d < 30:
-            return '< 1 Bulan'
-        elif d < 90:
-            return '1-3 Bulan'
-        elif d < 150:
-            return '3-5 Bulan'
-        else:
-            return '> 5 Bulan'
-    df_corp['durasi_bucket'] = df_corp['durasi_hari'].apply(bucket)
-    bucket_order = ['< 1 Bulan', '1-3 Bulan', '3-5 Bulan', '> 5 Bulan']
-    agg_durasi = df_corp.groupby('durasi_bucket').size().reset_index(name='jumlah')
-    agg_durasi['durasi_bucket'] = pd.Categorical(agg_durasi['durasi_bucket'], categories=bucket_order, ordered=True)
-    agg_durasi = agg_durasi.sort_values('durasi_bucket')
+    # ── OUTPUT 3: Distribusi Durasi (Continuous Daily) ──
+    agg_durasi = df_corp.groupby('durasi_hari').size().reset_index(name='jumlah')
+    agg_durasi = agg_durasi.sort_values('durasi_hari')
     out3 = os.path.join(final_dir, "sipp_durasi_distribution.csv")
     agg_durasi.to_csv(out3, index=False, encoding='utf-8-sig')
-    print("[SAVED] sipp_durasi_distribution.csv")
-    for _, row in agg_durasi.iterrows():
-        print("  {} : {:,}".format(row['durasi_bucket'], row['jumlah']))
+    print("[SAVED] sipp_durasi_distribution.csv (Granular Daily Data)")
 
     # ── OUTPUT 4: Yearly Aggregat ──
     df_corp['Tanggal Daftar'] = pd.to_datetime(df_corp['Tanggal Daftar'], format='%d %b %Y', errors='coerce')

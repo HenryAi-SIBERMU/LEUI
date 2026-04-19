@@ -431,18 +431,33 @@ sipp_src = _("Scraping massal <code>sipp.[58-PN].go.id</code> — Corporate Taxo
 st.markdown(sipp_narrative.format(tot_sipp=_total_sipp) + f"\n\n<small>📁 <b>Sumber:</b> {sipp_src}</small>", unsafe_allow_html=True)
 
 # Durasi Distribution Chart
-if _df_sipp_durasi is not None:
-    st.caption(_("📊 Distribusi Durasi Penyelesaian Sengketa Bisnis (PN)"))
+if _df_sipp_durasi is not None and "durasi_hari" in _df_sipp_durasi.columns:
+    st.caption(_("📊 Distribusi Durasi Penyelesaian Sengketa Bisnis di PN (Hari)"))
+    
+    # Calculate median for vertical line
+    # To find median from aggregated counts:
+    total_cases = _df_sipp_durasi["jumlah"].sum()
+    cum_sum = _df_sipp_durasi["jumlah"].cumsum()
+    median_hari = _df_sipp_durasi.loc[cum_sum >= total_cases/2, "durasi_hari"].min() if total_cases > 0 else 0
+    
     _fig_dur = px.bar(
-        _df_sipp_durasi, x="durasi_bucket", y="jumlah",
+        _df_sipp_durasi, x="durasi_hari", y="jumlah",
         color_discrete_sequence=["#FF9800"],
         template=PLOTLY_TEMPLATE,
-        labels={"durasi_bucket": "Durasi Sengketa", "jumlah": "Jumlah Perkara"}
+        labels={"durasi_hari": "Lama Proses (Hari)", "jumlah": "Frekuensi Perkara"}
     )
-    _fig_dur.update_layout(height=320, margin=dict(l=20, r=20, t=20, b=20))
+    _fig_dur.update_layout(
+        height=350, margin=dict(l=20, r=20, t=30, b=20),
+        xaxis=dict(title="Durasi Proses Hukum (Hari)", range=[0, min(1000, _df_sipp_durasi["durasi_hari"].max())]),
+        yaxis=dict(title="Jumlah Perkara")
+    )
+    if median_hari > 0:
+        _fig_dur.add_vline(x=median_hari, line_dash="dash", line_color="#FF3D00", 
+                           annotation_text=f"Median: {median_hari} Hari", annotation_position="top right")
+                           
     st.plotly_chart(_fig_dur, use_container_width=True)
     
-    with st.expander(_("📋 Lihat Data: Distribusi Durasi Sengketa"), expanded=False):
+    with st.expander(_("📋 Lihat Data: Distribusi Durasi (Harian)"), expanded=False):
         st.dataframe(_df_sipp_durasi, use_container_width=True, hide_index=True)
 
 # Volume Sengketa PN per Tahun
