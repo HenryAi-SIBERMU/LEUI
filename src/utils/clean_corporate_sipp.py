@@ -113,6 +113,17 @@ def process_corporate_sipp():
     box_stats.to_csv(out7, index=False, encoding='utf-8-sig')
     print("[SAVED] sipp_boxplot_stats.csv ({} PN)".format(len(box_stats)))
 
+    # ── OUTPUT 8: OSINT National PN Distribution (37+ PN) ──
+    osint_file = os.path.join(base_dir, "data", "raw", "sipp_nasional_osint.csv")
+    if os.path.exists(osint_file):
+        df_osint = pd.read_csv(osint_file)
+        df_osint = df_osint[df_osint['pengadilan'] != 'Unknown']
+        agg_osint_pn = df_osint.groupby('pengadilan').size().reset_index(name='jumlah_temuan')
+        agg_osint_pn = agg_osint_pn.sort_values('jumlah_temuan', ascending=False)
+        out8 = os.path.join(final_dir, "sipp_osint_pn_nasional.csv")
+        agg_osint_pn.to_csv(out8, index=False, encoding='utf-8-sig')
+        print("[SAVED] sipp_osint_pn_nasional.csv ({} PN nasional)".format(len(agg_osint_pn)))
+
     print("=" * 60)
     print("SELESAI! Semua file agregat telah di-regenerasi dari {} perkara korporasi.".format(len(df_corp)))
     print("=" * 60)

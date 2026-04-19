@@ -499,50 +499,37 @@ if _df_sipp_monthly_pn is not None and not _df_sipp_monthly_pn.empty:
     with st.expander(_("📋 Lihat Data: Volume per PN per Bulan"), expanded=False):
         st.dataframe(_df_sipp_monthly_pn, use_container_width=True, hide_index=True)
 
-# ── CHART: Box Plot — Distribusi Durasi per PN (Precomputed) ──
+# ── CHART: Treemap — Sebaran Sengketa Bisnis Nasional (36 PN) ──
 import plotly.graph_objects as go
-if _df_sipp_boxplot is not None and not _df_sipp_boxplot.empty:
-    st.caption(_("📊 Distribusi Durasi Proses Hukum per Pengadilan Negeri (Box Plot)"))
-    _fig_box = go.Figure()
-    _colors = ["#FF7043", "#FFA726", "#FFCC80", "#FF5722", "#E65100"]
-    for i, row in _df_sipp_boxplot.iterrows():
-        _fig_box.add_trace(go.Box(
-            name=row['pengadilan'],
-            lowerfence=[row['p5']],
-            q1=[row['q1']],
-            median=[row['median']],
-            q3=[row['q3']],
-            upperfence=[row['p95']],
-            mean=[row['mean']],
-            boxmean=True,
-            marker_color=_colors[i % len(_colors)],
-            line=dict(width=2),
-            hoverinfo='all',
-            hovertext=f"n={int(row['count']):,} | μ={row['mean']:.1f}d | σ={row['std']:.1f}d"
-        ))
-    _fig_box.update_layout(
+_sipp_osint_pn_path = os.path.join(DATA, "sipp_osint_pn_nasional.csv")
+_df_osint_pn = None
+if os.path.exists(_sipp_osint_pn_path):
+    _df_osint_pn = pd.read_csv(_sipp_osint_pn_path)
+
+if _df_osint_pn is not None and not _df_osint_pn.empty:
+    st.caption(_("📊 Sebaran Sengketa Bisnis Korporasi di {} Pengadilan Negeri Seluruh Indonesia (OSINT)".format(len(_df_osint_pn))))
+    _fig_tree = px.treemap(
+        _df_osint_pn, path=["pengadilan"], values="jumlah_temuan",
+        color="jumlah_temuan",
+        color_continuous_scale=["#FFCC80", "#FF9800", "#E65100"],
         template=PLOTLY_TEMPLATE,
-        height=400, margin=dict(l=20, r=20, t=30, b=20),
-        yaxis=dict(title="Durasi Proses (Hari)"),
-        xaxis=dict(title="Pengadilan Negeri"),
-        showlegend=False
+        labels={"pengadilan": "Pengadilan Negeri", "jumlah_temuan": "Jumlah Temuan OSINT"}
     )
-    st.plotly_chart(_fig_box, use_container_width=True)
-    
-    # Summary metrics row
-    _box_cols = st.columns(len(_df_sipp_boxplot))
-    for idx, row in _df_sipp_boxplot.iterrows():
-        with _box_cols[idx]:
-            st.metric(row['pengadilan'], f"{row['median']:.0f} hari (median)", f"n={int(row['count']):,}")
+    _fig_tree.update_layout(
+        height=500, margin=dict(l=10, r=10, t=30, b=10),
+        coloraxis_colorbar=dict(title="Temuan")
+    )
+    _fig_tree.update_traces(textinfo="label+value", textfont_size=12)
+    st.plotly_chart(_fig_tree, use_container_width=True)
 
     st.markdown(f"""
     <div style="background:{C_BG}; padding:14px 20px; border-radius:10px; border-left:5px solid #FF9800; margin-bottom: 20px; margin-top: 10px;">
-        <b>Interpretasi Box Plot:</b> Dari <strong>{_total_sipp:,} sengketa korporasi</strong> yang tersaring melalui <em>Corporate Taxonomy Filter</em>, terlihat disparitas durasi proses hukum yang signifikan antar PN. <em>Whisker</em> (P5–P95) menunjukkan rentang ketidakpastian temporal yang dihadapi pelaku usaha. Semakin lebar <em>interquartile range</em> (kotak), semakin tinggi <strong>Procedural Uncertainty</strong> — variabel biaya tersembunyi (<em>hidden cost</em>) langsung bagi keputusan investasi.
+        <b>Interpretasi:</b> Dari <strong>{len(_df_osint_pn)} Pengadilan Negeri</strong> di seluruh Indonesia yang terdeteksi melalui <em>OSINT Intelligence Scraping</em>, terlihat bahwa sengketa bisnis korporasi (wanprestasi, PMH) tersebar secara <strong>masif dan merata</strong> di seluruh wilayah hukum — dari Sabang hingga Merauke. Dari <strong>{_total_sipp:,} perkara</strong> yang berhasil di-<em>deep scrape</em> di 3 PN sampel (Palembang, Depok, Jakarta Utara), dapat diestimasi bahwa beban sengketa bisnis nasional jauh lebih besar. Hal ini mengkonfirmasi bahwa <strong>Procedural Uncertainty</strong> bukan fenomena lokal, melainkan <em>systemic risk</em> yang berdampak pada iklim investasi secara nasional.
     </div>
     """, unsafe_allow_html=True)
-    
-    with st.expander(_("📋 Lihat Data: Statistik Durasi per PN"), expanded=False):
-        st.dataframe(_df_sipp_boxplot, use_container_width=True, hide_index=True)
+
+    with st.expander(_("📋 Lihat Data: Sebaran PN Nasional (OSINT)"), expanded=False):
+        st.dataframe(_df_osint_pn, use_container_width=True, hide_index=True)
 
 
 # ══════════════════════════════════════════════════════════
