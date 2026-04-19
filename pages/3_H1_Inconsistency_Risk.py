@@ -509,37 +509,41 @@ if _df_sipp_monthly_pn is not None and not _df_sipp_monthly_pn.empty:
     with st.expander(_("📋 Lihat Data: Volume per PN per Bulan"), expanded=False):
         st.dataframe(_df_sipp_monthly_pn, use_container_width=True, hide_index=True)
 
-# ── CHART: Treemap — Sebaran Sengketa Bisnis Nasional (36 PN) ──
-import plotly.graph_objects as go
-_sipp_osint_pn_path = os.path.join(DATA, "sipp_osint_pn_nasional.csv")
-_df_osint_pn = None
-if os.path.exists(_sipp_osint_pn_path):
-    _df_osint_pn = pd.read_csv(_sipp_osint_pn_path)
-
-if _df_osint_pn is not None and not _df_osint_pn.empty:
-    st.caption(_("📊 Peta Sebaran Sengketa Korporasi di {} Pengadilan Negeri se-Indonesia".format(len(_df_osint_pn))))
-    _fig_tree = px.treemap(
-        _df_osint_pn, path=["pengadilan"], values="jumlah_temuan",
-        color="jumlah_temuan",
+# ── CHART: Horizontal Bar — Volume Sengketa Korporasi per PN (Data Riil) ──
+if _df_sipp_pn is not None and not _df_sipp_pn.empty:
+    st.caption(_("📊 Konsentrasi Sengketa Korporasi per Pengadilan Negeri ({:,} perkara — Corporate Taxonomy Filter)".format(_total_sipp)))
+    _df_pn_sorted = _df_sipp_pn.sort_values("jumlah", ascending=True)
+    _fig_pn_bar = px.bar(
+        _df_pn_sorted, x="jumlah", y="pengadilan", orientation="h",
+        text=_df_pn_sorted["jumlah"].apply(lambda x: f"{x:,}"),
+        color="Avg_Lama_Proses",
         color_continuous_scale=["#FFCC80", "#FF9800", "#E65100"],
         template=PLOTLY_TEMPLATE,
-        labels={"pengadilan": "Pengadilan Negeri", "jumlah_temuan": "Sengketa Korporasi"}
+        labels={"pengadilan": "Pengadilan Negeri", "jumlah": "Jumlah Perkara Korporasi", "Avg_Lama_Proses": "Avg Durasi (Hari)"}
     )
-    _fig_tree.update_layout(
-        height=500, margin=dict(l=10, r=10, t=30, b=10),
-        coloraxis_colorbar=dict(title="Sengketa")
+    _fig_pn_bar.update_traces(textposition='outside', textfont_size=13)
+    _fig_pn_bar.update_layout(
+        height=350, margin=dict(l=20, r=80, t=30, b=20),
+        xaxis=dict(title="Jumlah Perkara Korporasi"),
+        yaxis=dict(title=""),
+        coloraxis_colorbar=dict(title="Durasi (Hari)")
     )
-    _fig_tree.update_traces(textinfo="label+value", textfont_size=12)
-    st.plotly_chart(_fig_tree, use_container_width=True)
+    st.plotly_chart(_fig_pn_bar, use_container_width=True)
+
+    # Summary metrics
+    _pn_cols = st.columns(len(_df_sipp_pn))
+    for idx, row in _df_sipp_pn.iterrows():
+        with _pn_cols[idx]:
+            st.metric(row['pengadilan'], f"{int(row['jumlah']):,} perkara", f"Avg {row['Avg_Lama_Proses']:.0f} hari")
 
     st.markdown(f"""
     <div style="background:{C_BG}; padding:14px 20px; border-radius:10px; border-left:5px solid #FF9800; margin-bottom: 20px; margin-top: 10px;">
-        <b>Interpretasi:</b> Dari <strong>{len(_df_osint_pn)} Pengadilan Negeri</strong> di seluruh Indonesia yang terdeteksi melalui <em>OSINT Intelligence Scraping</em>, terlihat bahwa sengketa bisnis korporasi (wanprestasi, PMH) tersebar secara <strong>masif dan merata</strong> di seluruh wilayah hukum — dari Sabang hingga Merauke. Dari <strong>{_total_sipp:,} perkara</strong> yang berhasil di-<em>deep scrape</em> di 3 PN sampel (Palembang, Depok, Jakarta Utara), dapat diestimasi bahwa beban sengketa bisnis nasional jauh lebih besar. Hal ini mengkonfirmasi bahwa <strong>Procedural Uncertainty</strong> bukan fenomena lokal, melainkan <em>systemic risk</em> yang berdampak pada iklim investasi secara nasional.
+        <b>Interpretasi:</b> Dari <strong>{_total_sipp:,} perkara korporasi</strong> yang berhasil disaring melalui <em>Corporate Taxonomy Filter</em> (dari 137.480 data mentah), beban sengketa terkonsentrasi secara tidak merata. <strong>PN Palembang</strong> menanggung <strong>60.6%</strong> dari seluruh beban perkara. Melalui <em>OSINT Intelligence Scraping</em>, sengketa korporasi juga terdeteksi tersebar di <strong>36 Pengadilan Negeri</strong> di seluruh Indonesia — mengkonfirmasi bahwa <strong>Procedural Uncertainty</strong> adalah <em>systemic risk</em> nasional, bukan fenomena lokal.
     </div>
     """, unsafe_allow_html=True)
 
-    with st.expander(_("📋 Lihat Data: Sebaran PN Nasional (OSINT)"), expanded=False):
-        st.dataframe(_df_osint_pn, use_container_width=True, hide_index=True)
+    with st.expander(_("📋 Lihat Data: Distribusi per Pengadilan Negeri"), expanded=False):
+        st.dataframe(_df_sipp_pn, use_container_width=True, hide_index=True)
 
 
 # ══════════════════════════════════════════════════════════
