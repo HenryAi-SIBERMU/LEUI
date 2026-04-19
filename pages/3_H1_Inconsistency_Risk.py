@@ -306,9 +306,9 @@ with col3:
 with col4:
     st.markdown(f"""
     <div class="metric-card">
-        <div class="metric-label">Sengketa PN (SIPP)</div>
-        <div class="metric-value" style="color:#FF9800">{_total_sipp}</div>
-        <div class="metric-delta" style="color:#FF9800">Sengketa bisnis tingkat pertama</div>
+        <div class="metric-label">Sengketa Korporasi (SIPP)</div>
+        <div class="metric-value" style="color:#FF9800">{_total_sipp:,}</div>
+        <div class="metric-delta" style="color:#FF9800">dari 137.480 (Corporate Filter)</div>
     </div>""", unsafe_allow_html=True)
 with col5:
     g_color = '#EF5350' if latest_gini_a > 0.4 else '#4CAF50'
@@ -438,12 +438,22 @@ st.markdown("---")
 st.subheader(_("1.3 Proses Hukum Panjang: Durasi & Volume Sengketa Pengadilan Negeri"))
 st.markdown('<span style="background:#E65100;color:#FFE0B2;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Scraping SIPP Pengadilan Negeri (Variabel X3)</span>', unsafe_allow_html=True)
 
-sipp_narrative = _("""Menggunakan metode **Macro-Level Legal Proxy** dengan meng-*crawl* **Sistem Informasi Penelusuran Perkara (SIPP)** dari **58 Pengadilan Negeri** se-Indonesia secara massal. Dari total **137.480 perkara wanprestasi** mentah yang berhasil diekstraksi, diterapkan **Corporate Taxonomy Filter** (menyaring hanya perkara yang melibatkan PT, CV, Koperasi, Bank, Yayasan, atau Pemerintah) sehingga diperoleh **{tot_sipp:,} perkara korporasi bersih**.
+sipp_narrative = _("""Menggunakan metode **Macro-Level Legal Proxy** dengan meng-*crawl* **Sistem Informasi Penelusuran Perkara (SIPP)** dari **36 Pengadilan Negeri** se-Indonesia secara massal (OSINT). Dari total **137.480 perkara wanprestasi** mentah yang berhasil diekstraksi dari 3 PN sampel utama, diterapkan **Corporate Taxonomy Filter** (menyaring hanya perkara yang melibatkan PT, CV, Koperasi, Bank, Yayasan, atau Pemerintah) sehingga diperoleh **{tot_sipp:,} perkara korporasi bersih** (~48.5%).
 
 Metodologi ini selaras dengan pendekatan *World Bank Ease of Doing Business* parameter *Enforcing Contracts*: volume & durasi sengketa kontrak bisnis di pengadilan negeri digunakan sebagai **indikator substitusi (proxy)** kualitas infrastruktur Kepastian Hukum suatu wilayah. Semakin tinggi volume dan semakin lama durasi rata-rata penyelesaian, semakin besar **Biaya Transaksi (hidden cost)** yang harus ditanggung investor.""")
 
-sipp_src = _("Scraping massal <code>sipp.[58-PN].go.id</code> — Corporate Taxonomy Filter (PT/CV/Bank/Pemerintah).")
+sipp_src = _("Scraping massal <code>sipp.[36-PN].go.id</code> — Corporate Taxonomy Filter (PT/CV/Bank/Pemerintah).")
 st.markdown(sipp_narrative.format(tot_sipp=_total_sipp) + f"\n\n<small>📁 <b>Sumber:</b> {sipp_src}</small>", unsafe_allow_html=True)
+
+# ── DATA TABLE: Sampel Data Korporasi yang Telah Difilter ──
+_corp_data_path = os.path.join(DATA, "sipp_corporate_wanprestasi.csv")
+if os.path.exists(_corp_data_path):
+    _df_corp_sample = pd.read_csv(_corp_data_path)
+    _display_cols = ['Nomor Perkara', 'Tanggal Daftar', 'Para Pihak', 'Status Perkara', 'Pengadilan', 'durasi_hari']
+    _available_cols = [c for c in _display_cols if c in _df_corp_sample.columns]
+    with st.expander(_("📋 Lihat Data: Hasil Corporate Taxonomy Filter ({:,} perkara korporasi dari 137.480 mentah)".format(len(_df_corp_sample))), expanded=False):
+        st.dataframe(_df_corp_sample[_available_cols].head(500), use_container_width=True, hide_index=True)
+        st.caption("Menampilkan 500 dari {:,} perkara. Filter: PT, CV, Koperasi, Bank, Yayasan, Pemerintah.".format(len(_df_corp_sample)))
 
 # Durasi Distribution Chart
 if _df_sipp_durasi is not None and "durasi_hari" in _df_sipp_durasi.columns:
@@ -507,17 +517,17 @@ if os.path.exists(_sipp_osint_pn_path):
     _df_osint_pn = pd.read_csv(_sipp_osint_pn_path)
 
 if _df_osint_pn is not None and not _df_osint_pn.empty:
-    st.caption(_("📊 Sebaran Sengketa Bisnis Korporasi di {} Pengadilan Negeri Seluruh Indonesia (OSINT)".format(len(_df_osint_pn))))
+    st.caption(_("📊 Peta Sebaran Sengketa Korporasi di {} Pengadilan Negeri se-Indonesia".format(len(_df_osint_pn))))
     _fig_tree = px.treemap(
         _df_osint_pn, path=["pengadilan"], values="jumlah_temuan",
         color="jumlah_temuan",
         color_continuous_scale=["#FFCC80", "#FF9800", "#E65100"],
         template=PLOTLY_TEMPLATE,
-        labels={"pengadilan": "Pengadilan Negeri", "jumlah_temuan": "Jumlah Temuan OSINT"}
+        labels={"pengadilan": "Pengadilan Negeri", "jumlah_temuan": "Sengketa Korporasi"}
     )
     _fig_tree.update_layout(
         height=500, margin=dict(l=10, r=10, t=30, b=10),
-        coloraxis_colorbar=dict(title="Temuan")
+        coloraxis_colorbar=dict(title="Sengketa")
     )
     _fig_tree.update_traces(textinfo="label+value", textfont_size=12)
     st.plotly_chart(_fig_tree, use_container_width=True)
