@@ -161,8 +161,8 @@ trend_word = "meningkat" if trend_change > 0 else "menurun"
 # ══════════════════════════════════════════════════
 # HEADER & INTRO
 # ══════════════════════════════════════════════════
-st.title(_("H4: Regulatory Reversal Risk — Guncangan Regulasi"))
-subtitle = _("Analisis Capital Flight & Net Sell Obligasi sebagai Proxy Risiko Stranded Asset")
+st.title(_("H4: Aturan Berubah Mendadak, Modal Kabur"))
+subtitle = _("Pencabutan izin dan perombakan regulasi secara tiba-tiba memicu gelombang pelarian modal asing.")
 st.markdown(f'<p style="font-size: 1.1rem; color: #66BB6A; font-weight: 500; margin-top: -15px;">{subtitle}</p>', unsafe_allow_html=True)
 
 # ── Setup Variables (Hukum) ──
@@ -181,7 +181,7 @@ if os.path.exists(_churn_path) and os.path.exists(_rev_path):
     _max_churn = _df_churn['churn_rate'].max() if not _df_churn.empty else 0
 
 # ── Methodology ──
-with st.expander(_("Metodologi: Analisis Regulatory Reversal Risk (H4)"), expanded=False):
+with st.expander(_("🔍 Lihat Dapur Metodologi (Untuk Akademisi)"), expanded=False):
     st.markdown(_("""
     **Causal Chain Law & Economics:**
     `Perubahan Aturan Hukum → Ketidakpastian → Persepsi Risiko → Biaya Ekonomi → Keputusan Investasi`
@@ -250,12 +250,12 @@ st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
 # ═══════════ LAYER X: VARIABEL HUKUM ═════════════════════
 # ══════════════════════════════════════════════════════════
 st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
-st.markdown('<div style="background:#5C2B6A;color:#E1BEE7;padding:8px 16px;border-radius:8px;font-size:1rem;font-weight:700;display:inline-block;">LAYER X — VARIABEL HUKUM (INDEPENDEN)</div>', unsafe_allow_html=True)
+st.markdown('<div style="background:#5C2B6A;color:#E1BEE7;padding:8px 16px;border-radius:8px;font-size:1rem;font-weight:700;display:inline-block;">FAKTA PENYEBAB: ATURAN YANG SERING BERUBAH</div>', unsafe_allow_html=True)
 st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
 
 # ── 4.1 Variabel Hukum (X) ──
 st.markdown("---")
-st.subheader(_("4.1 Inkonsistensi Regulasi: Regulatory Churn Rate (Pencabutan & Revisi)"))
+st.subheader(_("4.1 Fakta: Seberapa Sering Aturan Bisnis Dicabut / Diganti?"))
 st.markdown('<span style="background:#5C2B6A;color:#E1BEE7;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Regulatory Churn Test & Lifecycle Analysis (Variabel X)</span>', unsafe_allow_html=True)
 
 churn_narrative = _("""Menggunakan instrumen **Regulatory Churn Test**, kami mengukur tingkat ketidakpastian produk hukum (undang-undang, peraturan pemerintah, peraturan daerah, dll) yang secara langsung mendikte stabilitas iklim usaha dan investasi. 
@@ -298,7 +298,7 @@ if not _df_churn.empty:
 # ═══════════ LAYER Y: DAMPAK EKONOMI ═════════════════════
 # ══════════════════════════════════════════════════════════
 st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
-st.markdown('<div style="background:#1B5E20;color:#C8E6C9;padding:8px 16px;border-radius:8px;font-size:1rem;font-weight:700;display:inline-block;">LAYER Y — DAMPAK EKONOMI (DEPENDEN)</div>', unsafe_allow_html=True)
+st.markdown('<div style="background:#1B5E20;color:#C8E6C9;padding:8px 16px;border-radius:8px;font-size:1rem;font-weight:700;display:inline-block;">DAMPAK NYATA: MODAL ASING KABUR</div>', unsafe_allow_html=True)
 st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
 
 
@@ -306,7 +306,7 @@ st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
 # 4.2 TIME SERIES + ANOMALI (DAMPAK Y)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader("4.2 Dampak Ekonomi (Y): Time Series Net Sell & Deteksi Anomali Volatilitas")
+st.subheader("4.2 Dampak: Gelombang Pelarian Modal — Kapan Investor Panik?")
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Anomaly Detection (Variabel Y)</span>', unsafe_allow_html=True)
 
 ts_narr = """Grafik batang di bawah menampilkan fluktuasi ekstrem net sell per periode. Dari rata-rata historis **{mean:.2f} IDR Tn**, algoritma mendeteksi **{n_anom} minggu anomali** (batang merah, Z > 2) dan **{n_high} minggu elevated** (oranye, Z > 1) di mana kepanikan institusional memicu pelarian modal masif. Spike merah ini tidak tersebar acak melainkan **terkonsentrasi (clustering)** pada periode krisis kepercayaan hukum. Rekor kepanikan terpanjang mencapai **{streak} minggu berturut-turut** di atas rata-rata — mengonfirmasi bahwa *regulatory shock* memicu efek domino bagi penarikan likuiditas pasar."""
@@ -349,7 +349,7 @@ st.plotly_chart(fig_ts, use_container_width=True)
 # 4.3 ISOLATION FOREST — DETEKSI ANOMALI (DAMPAK Y)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader("4.3 Dampak Ekonomi (Y): Isolation Forest — Zonasi Capital Flight")
+st.subheader("4.3 Dampak: Zona Merah Pelarian Modal (Deteksi Algoritma)")
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Machine Learning Isolation Forest (Variabel Y)</span>', unsafe_allow_html=True)
 
 iso_narr = """Algoritma **Isolation Forest** (Liu et al., 2008) mengisolasi data outlier melalui partisi acak rekursif. Prinsipnya: data anomali lebih mudah dipisahkan karena jumlahnya sedikit dan nilainya ekstrem. Dari {n} observasi, model mendeteksi **{n_anom} episode anomali** yang jatuh di dalam *zona merah* (decision boundary). Area merah pada grafik merepresentasikan wilayah di mana algoritma mengklasifikasikan observasi sebagai pelarian modal di luar pola normal — titik-titik di zona ini bukan fluktuasi wajar melainkan *capital flight episodes* yang dipicu guncangan regulasi."""
@@ -423,7 +423,7 @@ st.plotly_chart(fig_iso, use_container_width=True)
 # 4.4 AGREGASI KUARTAL (DAMPAK Y)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader("4.4 Dampak Ekonomi (Y): Agregasi Kuartal — Tren Makro Ekstrem")
+st.subheader("4.4 Dampak: Tren Per Kuartal — Kerusakan Skala Besar")
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Quarterly Aggregation (Variabel Y)</span>', unsafe_allow_html=True)
 
 q_narr = """Agregasi kuartalan menyaring *noise* mingguan untuk mengungkap daya rusak makroekonomi dari pencabutan kebijakan hukum. Kuartal terburuk berpusat pada **{worst_q}** yang menyapu bersih likuiditas hingga **{worst_val:.2f} IDR Tn / Triliun**. Jika lonjakan *outflow* tinggi pada satu kuartal namun segera mereda, itu terhitung reaksi syok sesaat. Namun, tinggi batang yang terus persisten di rasio atas mengindikasikan *regulatory reversal* bukan sekadar insiden tunggal, melainkan telah membeku menjadi iklim usaha yang struktural-destruktif bagi sentimen investasi."""
@@ -481,7 +481,7 @@ if len(q_agg) > 0:
 # 4.5 TABEL EPISODE ANOMALI
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader("4.5 Dampak Ekonomi (Y): Log Episode Kepanikan (Z > 2)")
+st.subheader("4.5 Catatan Peristiwa: Kapan Uang Kabur Paling Masif?")
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Episode Detection (Variabel Y)</span>', unsafe_allow_html=True)
 
 tbl_narr = """Deteksi anomali statistik mencatat titik nadir pelarian modal pada **{max_date}** dengan nilai fantastis **{max_val:.2f} IDR Tn** (Z-Score **{max_z:.2f}**). Tabel di bawah memetakan secara kronologis seluruh episode anomali (Z > 2) dan elevated (Z > 1) yang berfungsi sebagai **jejak forensik aliran modal**. Analis penegakan hukum dapat langsung melakukan *overlay* kalender kejadian—menguji korelasi persisnya jatuhnya triliunan rupiah dengan diumumkannya pencabutan izin tambang, perombakan mendadak pejabat kunci, atau intervensi retroaktif dalam kontrak esensial."""

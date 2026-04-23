@@ -137,12 +137,12 @@ pmi_date_end = df_pmi["date"].max().strftime("%B %Y")
 # ══════════════════════════════════════════════════
 # HEADER
 # ══════════════════════════════════════════════════
-st.title(_("H2: Selective Enforcement — Penegakan Hukum Selektif"))
-subtitle = _("Deteksi Anomali Kepercayaan Ekonomi sebagai Proxy Enforcement yang Tergantung Momentum")
+st.title(_("H2: Hukum Tajam ke Bawah, Tumpul ke Atas"))
+subtitle = _("Penegakan hukum yang tebang pilih menciptakan kepanikan pasar secara sporadis dan tidak terduga.")
 st.markdown(f'<p style="font-size: 1.1rem; color: #66BB6A; font-weight: 500; margin-top: -15px;">{subtitle}</p>', unsafe_allow_html=True)
 
 # ── Methodology ──
-with st.expander(_("ℹ️ Metodologi: Analisis Selective Enforcement (H2)"), expanded=False):
+with st.expander(_("🔍 Lihat Dapur Metodologi (Untuk Akademisi)"), expanded=False):
     st.markdown(_("""
     **Premis:** Penegakan hukum yang selektif dan transaksional menciptakan risiko non-teknis.
     Jika enforcement hanya muncul di momentum tertentu (misalnya saat konflik politik),
@@ -201,7 +201,7 @@ with col1:
     anom_color = C_ANOMALY if n_exp_anomaly > 5 else C_WARN
     st.markdown(f"""
     <div class="metric-card">
-        <div class="metric-label">Episode Anomali IKK</div>
+        <div class="metric-label">Alarm Kepanikan Konsumen</div>
         <div class="metric-value" style="color:{anom_color}">{n_exp_anomaly}</div>
         <div class="metric-delta" style="color:#AAA">Z-Score < -2</div>
     </div>""", unsafe_allow_html=True)
@@ -209,7 +209,7 @@ with col2:
     gap_color = C_ANOMALY if abs(ikk_latest_gap) > ikk_avg_gap * 1.5 else C_WARN
     st.markdown(f"""
     <div class="metric-card">
-        <div class="metric-label">IKK Gap (Terakhir)</div>
+        <div class="metric-label">Jurang Harapan vs Realita</div>
         <div class="metric-value" style="color:{gap_color}">{ikk_latest_gap:.1f}</div>
         <div class="metric-delta" style="color:#AAA">Rata-rata: {ikk_avg_gap:.1f}</div>
     </div>""", unsafe_allow_html=True)
@@ -238,7 +238,7 @@ st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
 # 2.1 LAYER X: LONJAKAN SENGKETA BISNIS WAKTU NYATA (SIPP MA RI)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("2.1 Layer X: Volatilitas Proses Hukum Bisnis / Wanprestasi"))
+st.subheader(_("2.1 Fakta Penyebab: Lonjakan Sengketa Bisnis yang Memicu Kepanikan"))
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Proxy Selective Enforcement: Data Gugatan SIPP Mahkamah Agung</span>', unsafe_allow_html=True)
 
 wb_narr = _("""Data **Sistem Informasi Penelusuran Perkara (SIPP)** merepresentasikan sengketa ekonomi di pengadilan tingkat pertama.
@@ -261,7 +261,7 @@ st.plotly_chart(fig_sipp, use_container_width=True)
 # 2.2 IKK TIME SERIES + ANOMALY
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("2.2 Layer Y: IKK Ekspektasi vs Present — Deteksi Anomali"))
+st.subheader(_("2.2 Dampak: Kepercayaan Konsumen Anjlok Mendadak"))
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Anomaly Detection</span>', unsafe_allow_html=True)
 
 ikk_narr = _("""Menggunakan metode **Z-Score Anomaly Detection** pada perubahan bulanan IKK Ekspektasi.
@@ -311,7 +311,7 @@ st.plotly_chart(fig_ikk, use_container_width=True)
 # 2.3 IKK GAP ANALYSIS
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("2.3 IKK Gap Analysis — Ukuran Kepanikan"))
+st.subheader(_("2.3 Dampak: Jurang antara Harapan dan Kenyataan"))
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Gap Analysis + Z-Score</span>', unsafe_allow_html=True)
 
 gap_narr = _("""Menggunakan metode **Gap Analysis** (selisih Ekspektasi − Present) dan Z-Score pada perubahan gap.
@@ -365,7 +365,7 @@ st.plotly_chart(fig_gap, use_container_width=True)
 # 2.4 PMI KONTRAKSI
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("2.4 PMI Manufaktur — Zona Kontraksi"))
+st.subheader(_("2.4 Dampak: Sektor Manufaktur Menyusut"))
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: PMI Kontraksi Detection</span>', unsafe_allow_html=True)
 
 pmi_narr = _("""Menggunakan metode **PMI Kontraksi Detection** (threshold PMI < 50 = kontraksi sektor manufaktur).
@@ -407,7 +407,7 @@ st.plotly_chart(fig_pmi, use_container_width=True)
 # 2.5 TABEL EPISODE ANOMALI
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("2.5 Daftar Episode Anomali (Data-Driven)"))
+st.subheader(_("2.5 Catatan Peristiwa: Kapan Kepercayaan Runtuh?"))
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Episode Detection</span>', unsafe_allow_html=True)
 
 tbl_narr = _("""Menggunakan metode **Z-Score Episode Detection** untuk mengidentifikasi semua episode anomali secara algoritmik. Tabel di bawah menyajikan **semua episode** dimana IKK Ekspektasi mengalami

@@ -147,8 +147,8 @@ n_inverted = df["gap_inverted"].sum()
 # ══════════════════════════════════════════════════
 # HEADER & INTRO
 # ══════════════════════════════════════════════════
-st.title(_("H5: Criminalization Risk — Kriminalisasi Keputusan Bisnis"))
-subtitle = _("Analisis IKK Expectation Collapse sebagai Proxy Risiko Personal Liability Investor")
+st.title(_("H5: Ancaman Penjara Direksi (Kriminalisasi Kebijakan)"))
+subtitle = _("Kepercayaan pasar dan investor seringkali langsung runtuh saat pemegang diskresi dikriminalisasi.")
 st.markdown(f'<p style="font-size: 1.1rem; color: #66BB6A; font-weight: 500; margin-top: -15px;">{subtitle}</p>', unsafe_allow_html=True)
 
 # ── Setup Variables (Hukum) ──
@@ -169,7 +169,7 @@ if os.path.exists(_mk_yr_path) and os.path.exists(_mk_breakdown_path):
     _top_uu_cnt = _df_mk_uu.iloc[0]['jumlah'] if not _df_mk_uu.empty else 0
 
 # ── Methodology ──
-with st.expander(_("Metodologi: Analisis Criminalization Risk (H5)"), expanded=False):
+with st.expander(_("🔍 Lihat Dapur Metodologi (Untuk Akademisi)"), expanded=False):
     st.markdown(_("""
     **Causal Chain Law & Economics:**
     `Kriminalisasi Bisnis (X) → Ketidakpastian Operasional → Persepsi Risiko Investasi (Personal Liability) → Biaya Kepercayaan Rusak → Keputusan Penarikan Diri (Y)`
@@ -213,7 +213,7 @@ with c1:
 with c2:
     st.markdown(f"""
     <div class="metric-card">
-        <div class="metric-label">Episode Expectation Crash</div>
+        <div class="metric-label">Alarm Kepanikan (Crash Sentimen)</div>
         <div class="metric-value" style="color:{C_ANOMALY}">{n_exp_crashes}</div>
         <div class="metric-delta" style="color:{C_WARN}">Variabel Ekonomi (Y)</div>
     </div>""", unsafe_allow_html=True)
@@ -228,7 +228,7 @@ with c4:
     crash_color = C_ANOMALY if worst_crash_val < -10 else C_WARN
     st.markdown(f"""
     <div class="metric-card">
-        <div class="metric-label">Crash Sentimen Terdalam</div>
+        <div class="metric-label">Krisis Terdalam (Garis Waktu)</div>
         <div class="metric-value" style="color:{crash_color}">{worst_crash_val:.1f} Poin</div>
         <div class="metric-delta" style="color:{C_WARN}">{worst_crash_date}</div>
     </div>""", unsafe_allow_html=True)
@@ -237,7 +237,7 @@ st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
 
 # ── 5.1 Variabel Hukum (X) ──
 st.markdown("---")
-st.subheader("5.1 Variabel Hukum (X): Volume Pembatalan Undang-Undang MK")
+st.subheader("5.1 Fakta Penyebab: Gugatan Beruntun terhadap Undang-Undang Vital di MK")
 st.markdown('<span style="background:#5C2B6A;color:#E1BEE7;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Distribusi OSINT Direktori Mahkamah Konstitusi RI</span>', unsafe_allow_html=True)
 
 # ── Compute legal stats for narrative ──
@@ -304,7 +304,7 @@ st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
 # 5.2 IKK EXPECTATION vs PRESENT + GAP (DAMPAK Y)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader("5.2 Dampak Ekonomi (Y): Gap Ekspektasi — Jurang Kepercayaan Konsumen")
+st.subheader("5.2 Dampak: Runtuhnya Keyakinan / Jurang Kepercayaan Pasar")
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Gap Analysis (Variabel Y)</span>', unsafe_allow_html=True)
 
 ts_narr = """Menggunakan metode **Gap Analysis** — dua garis menunjukkan IKK Ekspektasi (biru) dan IKK Kondisi Saat Ini (hijau).
@@ -350,7 +350,7 @@ st.plotly_chart(fig_ts, use_container_width=True)
 # 5.3 EXPECTATION CRASH DETECTION (DAMPAK Y)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader("5.3 Dampak Ekonomi (Y): Deteksi Algoritmik — Crash Kepercayaan Mendadak")
+st.subheader("5.3 Dampak: Alarm Kepanikan Mendadak (Visualisasi Garis Waktu)")
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Crash Detection (Variabel Y)</span>', unsafe_allow_html=True)
 
 crash_narr = """Menggunakan metode **Z-Score Crash Detection** pada perubahan bulanan IKK Ekspektasi.
@@ -398,7 +398,7 @@ st.plotly_chart(fig_crash, use_container_width=True)
 # 5.4 ROLLING GAP VOLATILITY (DAMPAK Y)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader("5.4 Dampak Ekonomi (Y): Volatilitas Gap Demotivasi Pasar")
+st.subheader("5.4 Dampak: Gejolak Ketidakpastian Mematikan Investasi")
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Rolling Standard Deviation (Variabel Y)</span>', unsafe_allow_html=True)
 
 vol_narr = """Menggunakan metode **Rolling Standard Deviation** — grafik memperlihatkan volatilitas gap (standar deviasi rolling {win}-bulan).
@@ -433,7 +433,7 @@ st.plotly_chart(fig_vol, use_container_width=True)
 # 5.5 TABEL EPISODE KRISIS (DAMPAK Y)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader("5.5 Dampak Ekonomi (Y): Log Sinkronisasi Krisis Kepercayaan")
+st.subheader("5.5 Catatan Peristiwa: Kapan Kepercayaan Runtuh?")
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Episode Mapping (Variabel Y)</span>', unsafe_allow_html=True)
 
 tbl_narr = """Menggunakan metode **Z-Score Episode Detection** — tabel menampilkan episode-episode terburuk yang terdeteksi secara algoritmik.

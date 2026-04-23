@@ -161,8 +161,8 @@ else:
 # ══════════════════════════════════════════════════
 # HEADER & INTRO
 # ══════════════════════════════════════════════════
-st.title(_("H3: Procedural Uncertainty — Ketidakpastian Prosedural"))
-subtitle = _("Analisis Delay Cost & Inefisiensi Investasi melalui ICOR sebagai Proxy Beban Prosedural")
+st.title(_("H3: Proses Hukum Berlarut, Investasi Tertahan"))
+subtitle = _("Sidang tahunan dan birokrasi berlapis-lapis membuat biaya investasi di Indonesia melonjak tidak terkendali.")
 st.markdown(f'<p style="font-size: 1.1rem; color: #66BB6A; font-weight: 500; margin-top: -15px;">{subtitle}</p>', unsafe_allow_html=True)
 
 # ── Setup Variables (Hukum) ──
@@ -176,7 +176,7 @@ if os.path.exists(_sipp_pn_path):
     _avg_durasi = _avg_dur_vals.mean() if len(_avg_dur_vals) > 0 else 0
 
 # ── Methodology ──
-with st.expander(_("Metodologi: Analisis Procedural Uncertainty (H3)"), expanded=False):
+with st.expander(_("🔍 Lihat Dapur Metodologi (Untuk Akademisi)"), expanded=False):
     st.markdown(_("""
     **Causal Chain Law & Economics:**
     `Penegakan Hukum → Ketidakpastian → Persepsi Risiko → Biaya Ekonomi → Keputusan Investasi`
@@ -252,7 +252,7 @@ st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
 
 # ── 3.1 Variabel Hukum (X) ──
 st.markdown("---")
-st.subheader("3.1 Variabel Hukum (X): Beban Cacat Prosedural & Waktu Sengketa SIPP")
+st.subheader("3.1 Fakta Penyebab: Proses Hukum yang Menyita Waktu dan Biaya")
 st.markdown('<span style="background:#5C2B6A;color:#E1BEE7;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Distribusi Sengketa (SIPP)</span>', unsafe_allow_html=True)
 
 sipp_narr = _("""Grafik di bawah mensimulasikan "pintu masuk" variabel ketidakpastian. Waktu yang berlarut-larut (ratusan hari absen kepastian) dalam penyelesaian sengketa perdata bisnis di Pengadilan Negeri merepresentasikan ketidakefisienan operasional dan penegakan hukum yang panjang & mahal. Bagi investor yang tersandung sengketa perseroan, **waktu adalah biaya riil** (suku bunga pinjaman tertahan, proyek mangkrak). Kehancuran kepastian prosedur pada tahapan pertama ini bertindak sebagai variabel independen (X) saklek yang memicu lahirnya *Delay Cost* struktural secara nasional.""")
@@ -288,7 +288,7 @@ st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
 # 3.2 TREN ICOR (DAMPAK Y)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("3.2 Dampak Ekonomi (Y): Tren ICOR Nasional — Biaya Investasi Makin Mahal"))
+st.subheader(_("3.2 Dampak: Biaya Siluman Investasi Terus Membengkak (ICOR)"))
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: ICOR Time Series (Variabel Y1)</span>', unsafe_allow_html=True)
 
 icor_narr = _("""Menggunakan metode **ICOR Time Series** — ICOR mengukur seberapa mahal biaya untuk
@@ -333,7 +333,7 @@ st.plotly_chart(fig_icor, use_container_width=True)
 # 3.3 ICOR vs VOLUME INVESTASI (DAMPAK Y)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("3.3 Dampak Ekonomi (Y): Hubungan ICOR dan Volume Investasi"))
+st.subheader(_("3.3 Dampak: Makin Mahal Biaya, Makin Sedikit Modal Masuk"))
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Spearman Rank Correlation (Variabel Y2)</span>', unsafe_allow_html=True)
 
 scatter_narr = _("""Menggunakan metode **Spearman Rank Correlation** untuk mengukur kekuatan hubungan antara
@@ -380,7 +380,7 @@ if len(df_merged) > 0:
 # 3.4 LAG ANALYSIS (DAMPAK Y)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("3.4 Dampak Ekonomi (Y): Lag Analysis — Efek Keterlambatan Modal"))
+st.subheader(_("3.4 Dampak: Efek Bom Waktu — Kerugian Terasa Bertahun-tahun Kemudian"))
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Spearman Lag Correlation (Variabel Y3)</span>', unsafe_allow_html=True)
 
 lag_narr = _("""Menggunakan metode **Spearman Lag Correlation** — menerapkan Spearman Correlation yang sama
@@ -433,7 +433,7 @@ if len(df_lag_results) > 0:
 # 3.5 RATE OF CHANGE (DAMPAK Y)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("3.5 Dampak Ekonomi (Y): Rate of Change — Ledakan Biaya Sporadis"))
+st.subheader(_("3.5 Dampak: Lonjakan Biaya Investasi yang Tiba-tiba"))
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Rate of Change (Variabel Y4)</span>', unsafe_allow_html=True)
 
 roc_narr = _("""Menggunakan metode **Rate of Change** — menghitung persentase perubahan ICOR dari tahun ke tahun.

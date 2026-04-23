@@ -232,12 +232,12 @@ if os.path.exists(_sipp_boxplot_path):
 # ══════════════════════════════════════════════════
 # HEADER
 # ══════════════════════════════════════════════════
-st.title(_("H1: Inconsistency Risk — Ketidakkonsistenan Hukum Antar Wilayah"))
-subtitle = _("Analisis Distribusi & Ketimpangan Investasi sebagai Efek Inkonsistensi Lingkungan Usaha")
+st.title(_("H1: Zona Merah Investasi (Inkonsistensi Area)"))
+subtitle = _("Uang hanya berputar di segelintir provinsi karena penegakan hukum yang rentan dan berbeda-beda.")
 st.markdown(f'<p style="font-size: 1.1rem; color: #66BB6A; font-weight: 500; margin-top: -15px;">{subtitle}</p>', unsafe_allow_html=True)
 
 # ── Methodology ──
-with st.expander(_("Kerangka Teori & Metodologi: Inconsistency Risk (H1)"), expanded=False):
+with st.expander(_("🔍 Lihat Dapur Metodologi (Untuk Akademisi)"), expanded=False):
     st.markdown(_("""
     **Alur Kausalitas (Law & Economics):**
     `Penegakan Hukum → Ketidakpastian → Persepsi Risiko → Biaya Ekonomi → Keputusan Investasi`
@@ -312,12 +312,12 @@ with col4:
     </div>""", unsafe_allow_html=True)
 with col5:
     g_color = '#EF5350' if latest_gini_a > 0.4 else '#4CAF50'
-    g_status = 'Sangat Timpang' if latest_gini_a > 0.6 else 'Timpang' if latest_gini_a > 0.4 else 'Moderat'
+    g_status = 'Sangat Timpang' if latest_gini_a > 0.6 else 'Timpang' if latest_gini_a > 0.4 else 'Aman / Moderat'
     st.markdown(f"""
     <div class="metric-card">
-        <div class="metric-label">Gini PMA (Terakhir)</div>
-        <div class="metric-value" style="color:{g_color}">{latest_gini_a:.3f}</div>
-        <div class="metric-delta" style="color:{g_color}">{g_status}</div>
+        <div class="metric-label">Status Ketimpangan Daerah</div>
+        <div class="metric-value" style="color:{g_color}; font-size:1.5rem;">{g_status.upper()}</div>
+        <div class="metric-delta" style="color:#AAA">Indeks Gini: {latest_gini_a:.3f}</div>
     </div>""", unsafe_allow_html=True)
 
 
@@ -325,14 +325,14 @@ with col5:
 # ═══════════ LAYER X: VARIABEL HUKUM ═════════════════════
 # ══════════════════════════════════════════════════════════
 st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
-st.markdown('<div style="background:#5C2B6A;color:#E1BEE7;padding:8px 16px;border-radius:8px;font-size:1rem;font-weight:700;display:inline-block;">LAYER X — VARIABEL HUKUM (INDEPENDEN)</div>', unsafe_allow_html=True)
+st.markdown('<div style="background:#5C2B6A;color:#E1BEE7;padding:8px 16px;border-radius:8px;font-size:1rem;font-weight:700;display:inline-block;">FAKTA PENYEBAB: KEKACAUAN HUKUM DI LAPANGAN</div>', unsafe_allow_html=True)
 st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════
 # 1.1 YUDISIAL (HUKUM) — ENRICHED
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("1.1 Inkonsistensi Yudisial: Volume Sengketa & Performa MA"))
+st.subheader(_("1.1 Sengketa Tak Berujung di Mahkamah Agung"))
 st.markdown('<span style="background:#5C2B6A;color:#E1BEE7;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Agregasi Putusan Direktori MA + Laporan Tahunan MA (Variabel X1)</span>', unsafe_allow_html=True)
 
 ma_narrative = _("""Menggunakan metode **Data Mining Putusan Mahkamah Agung** untuk mengekstrak dan mengagregasi volume sengketa perdata bisnis (wanprestasi, sengketa investasi, lisensi, dan perizinan). Data ini diperkaya dengan **Laporan Tahunan MA** yang mencatat *reversal rate* (persentase putusan yang dikabulkan/dibalik) sebesar **{rev_rate:.2f}%** dan *clearance rate* **{clear_rate:.2f}%**. 
@@ -371,7 +371,7 @@ if _df_ma_stat is not None:
 # 1.2 REGULASI (HUKUM) — ENRICHED with churn rate
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("1.2 Ketidakpastian Regulasi: Tumpang Tindih, Pencabutan & Churn Rate"))
+st.subheader(_("1.2 Aturan Bisnis Sering Dicabut / Diganti Mendadak"))
 st.markdown('<span style="background:#0D47A1;color:#BBDEFB;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Regulatory Churn Test + Lifecycle Analysis (Variabel X2)</span>', unsafe_allow_html=True)
 
 reg_narrative = _("""Menggunakan metode **Regulatory Churn Test** untuk mengukur tingkat ketidakpastian produk hukum yang esensial bagi iklim usaha. Kami melacak siklus hidup puluhan regulasi kunci (daerah maupun pusat) yang mengatur izin usaha, perpajakan lokal, dan tata ruang.
@@ -435,7 +435,7 @@ if _df_churn is not None:
 # 1.3 SIPP — Durasi & Volume Sengketa PN (NEW!)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("1.3 Proses Hukum Panjang: Durasi & Volume Sengketa Pengadilan Negeri"))
+st.subheader(_("1.3 Proses Hukum dan Sengketa Bisnis yang Lamban"))
 st.markdown('<span style="background:#E65100;color:#FFE0B2;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Scraping SIPP Pengadilan Negeri (Variabel X3)</span>', unsafe_allow_html=True)
 
 sipp_narrative = _("""Menggunakan metode **Macro-Level Legal Proxy** dengan meng-*crawl* **Sistem Informasi Penelusuran Perkara (SIPP)** dari **36 Pengadilan Negeri** se-Indonesia secara massal (OSINT). Dari total **137.480 perkara wanprestasi** mentah yang berhasil diekstraksi dari 3 PN sampel utama, diterapkan **Corporate Taxonomy Filter** (menyaring hanya perkara yang melibatkan PT, CV, Koperasi, Bank, Yayasan, atau Pemerintah) sehingga diperoleh **{tot_sipp:,} perkara korporasi bersih** (~48.5%).
@@ -557,14 +557,14 @@ if _df_all_pn is not None and not _df_all_pn.empty:
 # ═══════════ LAYER Y: DAMPAK EKONOMI ═════════════════════
 # ══════════════════════════════════════════════════════════
 st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
-st.markdown('<div style="background:#1B5E20;color:#C8E6C9;padding:8px 16px;border-radius:8px;font-size:1rem;font-weight:700;display:inline-block;">LAYER Y — DAMPAK EKONOMI (DEPENDEN)</div>', unsafe_allow_html=True)
+st.markdown('<div style="background:#1B5E20;color:#C8E6C9;padding:8px 16px;border-radius:8px;font-size:1rem;font-weight:700;display:inline-block;">DAMPAK NYATA PADA IKLIM INVESTASI</div>', unsafe_allow_html=True)
 st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════
 # 1.4 GINI COEFFICIENT
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("1.4 Dampak Ekonomi: Ketimpangan Distribusi (Gini Coefficient)"))
+st.subheader(_("1.4 Dampak: Pilih Kasih Distribusi Investasi Daerah"))
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Gini Coefficient (Variabel Y1)</span>', unsafe_allow_html=True)
 
 gini_trend_word = "memburuk" if gini_a_change > 0 else "membaik"
@@ -606,7 +606,7 @@ with st.expander(_("📋 Lihat Data: Gini Coefficient per Kuartal"), expanded=Fa
 # 1.5 STD DEVIATION
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("1.5 Dampak Ekonomi: Volatilitas Investasi (Std. Deviation)"))
+st.subheader(_("1.5 Dampak: Gejolak Ketidakpastian Modal Masuk (Standard Dev.)"))
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Standard Deviation (Variabel Y2)</span>', unsafe_allow_html=True)
 
 std_narrative = _("""Menggunakan metode **Standard Deviation** untuk mengukur volatilitas sebaran investasi.
@@ -641,7 +641,7 @@ with st.expander(_("📋 Lihat Data: Std. Deviation per Kuartal"), expanded=Fals
 # 1.6 DISTRIBUSI PROVINSI
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("1.6 Dampak Ekonomi: Peta Konsentrasi Investasi per Provinsi"))
+st.subheader(_("1.6 Dampak: Konsentrasi Uang Hanya di Beberapa Provinsi Pilihan"))
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Distribusi Top/Bottom Analysis (Variabel Y3)</span>', unsafe_allow_html=True)
 
 prov_narrative = _("""Menggunakan metode **Distribusi Top/Bottom Analysis** untuk mengidentifikasi konsentrasi investasi.
@@ -701,7 +701,7 @@ with st.expander(_("📋 Lihat Data: Rata-rata Investasi per Provinsi"), expande
 # 1.7 ICOR NASIONAL
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("1.7 Dampak Ekonomi: Tren ICOR Nasional (Biaya Ketidakpastian)"))
+st.subheader(_("1.7 Dampak: Biaya Siluman / Inefisiensi Hukum (ICOR)"))
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: ICOR Time Series (Variabel Y4)</span>', unsafe_allow_html=True)
 
 icor_trend_word = "naik" if icor_pma_trend > 0 else "turun"
