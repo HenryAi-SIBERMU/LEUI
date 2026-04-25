@@ -463,15 +463,14 @@ fig_pmi.add_trace(go.Bar(
     hovertemplate="<b>%{x|%B %Y}</b><br>PMI: %{y:.1f}<extra></extra>"
 ))
 fig_pmi.add_hline(y=50, line_dash="dash", line_color=C_WARN, annotation_text="Garis 50: Batas Bertahan Hidup / Pecat Karyawan")
-fig_pmi.add_trace(go.Scatter(
-    x=[pmi_min_date_ts], y=[pmi_min],
-    mode="markers+text",
-    marker=dict(symbol="triangle-up", size=16, color="#FF0000"),
-    text=[f"<b>Puncak Kontraksi!</b><br>(Gelombang PHK)"],
-    textposition="bottom center",
-    textfont=dict(color="#FF0000", size=14),
-    showlegend=False, hoverinfo="skip"
-))
+fig_pmi.add_annotation(
+    x=pmi_min_date_ts, y=pmi_min,
+    text="<b>Puncak Kontraksi!</b><br>(Gelombang PHK)",
+    showarrow=True, arrowhead=2, arrowwidth=2, arrowcolor="#FF5252",
+    ax=0, ay=-60,
+    font=dict(color="white", size=12), bgcolor="#B71C1C",
+    bordercolor="#FF5252", borderwidth=1
+)
 
 fig_pmi.update_layout(
     template=PLOTLY_TEMPLATE, height=400,
