@@ -298,7 +298,7 @@ ikk_narr = _("""Bayangkan masyarakat yang sedang optimis tiba-tiba dihantam kepa
 
 Kepanikan mengerikan ini **tidak terjadi pelan-pelan** (seperti orang yang irit karena kehabisan uang bulanan). Harta harapan mereka **langsung terjun bebas bergerombol dalam hitungan hari bagai efek domino**. Pola seram ini membuktikan dengan lantang: manuver tajam "tebang pilih" elit di atas ratusan kali lebih membuat resah rakyat daripada krisis global.""")
 
-ikk_src = _("Data <code>ikk_expect_vs_present.csv</code>. Pendeteksi Anomali Gejolak Publik (Sistem AI internal).")
+ikk_src = _("Data <code>ikk_expect_vs_present.csv</code>. Pendeteksi Anomali Gejolak Publik (Z-Score Statistical Method).")
 st.markdown(ikk_narr.format(start=ikk_date_start, end=ikk_date_end, n_anom=n_exp_anomaly) +
             f"\n\n<small>📁 <b>Sumber:</b> {ikk_src}</small>", unsafe_allow_html=True)
 st.caption(_("Visualisasi: Line chart Kepercayaan (biru) dan Realita (hijau). Panah = Titik sistem mendeteksi jatuhnya mental publik secara esktrem. Batas kewajaran dikurasi otomatis."))
@@ -369,7 +369,7 @@ with st.expander(_("Lihat Data: IKK Ekspektasi vs Present (Bulanan)"), expanded=
 # ══════════════════════════════════════════════════
 st.markdown("---")
 st.subheader(_("2.3 Dampak: Jurang antara Harapan dan Kenyataan"))
-st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode Deteksi AI: Jarak Antara Harapan & Kenyataan</span>', unsafe_allow_html=True)
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode Deteksi Statistik: Jarak Antara Harapan & Kenyataan</span>', unsafe_allow_html=True)
 
 gap_narr = _("""Grafik "gunung dan lembah" ini mengukur isi jiwa publik kita seutuhnya: **Apakah orang Indonesia sedang kelewat bermimpi tinggi, atau justru pesimis minta ampun?** 
 Rentang jarak kebiruan antara harapan esok vs kenyataan hidup hari ini menganga sangat lebar. Sepanjang sejarah, tercatat **{n_gap_anom} titik panah raksasa**, alarm menyala saat jutaan harapan masyarakat serentak dibangunkan dengan disiram air dingin (realita yang amat pahit).
