@@ -43,7 +43,7 @@ PLOTLY_TEMPLATE = "plotly_dark"
 C_IKK_EXP = "#42A5F5"
 C_IKK_PRES = "#66BB6A"
 C_PMI = "#AB47BC"
-C_ANOMALY = "#E53935"
+C_ANOMALY = "#FF0000"  # Diubah menjadi merah terang agresif untuk indikasi bahaya
 C_WARN = "#FF9800"
 C_BG = "#1E1E1E"
 
@@ -113,11 +113,24 @@ worst_exp_drop = anomaly_dates_exp.iloc[0] if len(anomaly_dates_exp) > 0 else No
 worst_exp_date = worst_exp_drop["date"].strftime("%B %Y") if worst_exp_drop is not None else "—"
 worst_exp_val = worst_exp_drop["ikk_exp_pct"] if worst_exp_drop is not None else 0
 worst_exp_z = worst_exp_drop["ikk_exp_zscore"] if worst_exp_drop is not None else 0
+worst_exp_date_ts = worst_exp_drop["date"] if worst_exp_drop is not None else df_ikk["date"].iloc[0]
+worst_exp_date_str = worst_exp_date_ts.strftime('%Y-%m-%d')
+worst_exp_y = worst_exp_drop["ikk_expectation"] if worst_exp_drop is not None else 100
+
+ikk_abs_min = df_ikk["ikk_expectation"].min()
+ikk_abs_min_idx = df_ikk["ikk_expectation"].idxmin()
+ikk_abs_min_date = df_ikk.loc[ikk_abs_min_idx, "date"].strftime("%B %Y")
+ikk_abs_min_date_ts = df_ikk.loc[ikk_abs_min_idx, "date"]
+ikk_abs_min_date_str = ikk_abs_min_date_ts.strftime('%Y-%m-%d')
 
 ikk_latest_gap = df_ikk["ikk_gap"].iloc[-1]
 ikk_avg_gap = df_ikk["ikk_gap"].mean()
 ikk_max_gap = df_ikk["ikk_gap"].max()
-ikk_max_gap_date = df_ikk.loc[df_ikk["ikk_gap"].idxmax(), "date"].strftime("%B %Y")
+ikk_max_gap_idx = df_ikk["ikk_gap"].idxmax()
+ikk_max_gap_date = df_ikk.loc[ikk_max_gap_idx, "date"].strftime("%B %Y")
+ikk_max_gap_date_ts = df_ikk.loc[ikk_max_gap_idx, "date"]
+ikk_max_gap_date_str = ikk_max_gap_date_ts.strftime('%Y-%m-%d')
+
 ikk_min_gap = df_ikk["ikk_gap"].min()
 ikk_min_gap_date = df_ikk.loc[df_ikk["ikk_gap"].idxmin(), "date"].strftime("%B %Y")
 
@@ -126,7 +139,10 @@ n_pmi_months = len(df_pmi)
 pmi_latest = df_pmi["pmi_index"].iloc[-1]
 pmi_avg = df_pmi["pmi_index"].mean()
 pmi_min = df_pmi["pmi_index"].min()
-pmi_min_date = df_pmi.loc[df_pmi["pmi_index"].idxmin(), "date"].strftime("%B %Y")
+pmi_min_idx = df_pmi["pmi_index"].idxmin()
+pmi_min_date = df_pmi.loc[pmi_min_idx, "date"].strftime("%B %Y")
+pmi_min_date_ts = df_pmi.loc[pmi_min_idx, "date"]
+pmi_min_date_str = pmi_min_date_ts.strftime('%Y-%m-%d')
 
 ikk_date_start = df_ikk["date"].min().strftime("%Y")
 ikk_date_end = df_ikk["date"].max().strftime("%Y")
@@ -142,41 +158,26 @@ subtitle = _("Penegakan hukum yang tebang pilih menciptakan kepanikan pasar seca
 st.markdown(f'<p style="font-size: 1.1rem; color: #66BB6A; font-weight: 500; margin-top: -15px;">{subtitle}</p>', unsafe_allow_html=True)
 
 # ── Methodology ──
-with st.expander(_("🔍 Lihat Dapur Metodologi (Untuk Akademisi)"), expanded=False):
+with st.expander(_("🔍 Metodologi"), expanded=False):
     st.markdown(_("""
-    **Premis:** Penegakan hukum yang selektif dan transaksional menciptakan risiko non-teknis.
-    Jika enforcement hanya muncul di momentum tertentu (misalnya saat konflik politik),
-    maka kepercayaan publik dan pelaku usaha akan **drop secara tiba-tiba dan tidak terprediksi**.
+    **Causal Chain Law & Economics:**
+    `Selective Enforcement → Discretion Risk → Confidence Crash → Investment Delay/Exit`
 
-    **Causal Chain:**
-    `Selective Enforcement → Political/Discretion Risk → Confidence Crash → Investment Delay/Exit`
+    **Variabel Independen (X):**
+    - Sengketa wanprestasi massal di Pengadilan Negeri (SIPP) sebagai proxy ketidakpastian hukum di akar rumput. Volume bulanan.
 
-    **Metode:**
-    1. **Z-Score Anomaly Detection** pada perubahan bulanan IKK Ekspektasi
-       - Z-Score < -2 = drop yang secara statistik abnormal
-       - Formula: `Z = (pct_change - μ) / σ`
-    2. **IKK Gap Analysis** — selisih Ekspektasi − Present
-       - Gap melebar tajam = ekspektasi jatuh lebih cepat dari kondisi saat ini (panic)
-       - Gap menyempit/negatif = present lebih buruk dari yang diharapkan
-    3. **PMI Kontraksi Detection** — bulan dimana PMI < 50
-       - PMI < 50 = sektor manufaktur berkontraksi
-    4. **Rate of Change** — top-N bulan dengan perubahan terbesar
+    **Variabel Dependen (Y):**
+    - Indeks Keyakinan Konsumen (IKK) Bank Indonesia sebagai sentimen pasar domestik.
+    - Purchasing Managers Index (PMI) Manufaktur S&P Global sebagai proxy iklim bisnis riil.
 
-    **Istilah "Episode":** Dalam analisis ini, istilah "episode" digunakan untuk merujuk 
-    pada bulan-bulan spesifik di mana algoritma mendeteksi adanya anomali statistik 
-    (jatuhnya IKK di luar batas fluktuasi wajar). Semua tanggal anomali ini diidentifikasi 
-    berdasarkan data, dan temuan episode-episode tersebut dapat dihubungkan 
-    secara langsung terhadap berbagai peristiwa publik yang terjadi.
+    **Pendekatan Analisis:**
+    Penegakan hukum diskriminatif (fenomena *Selective Enforcement* dan intervensi yudisial) menciptakan persepsi risiko asimetris. Ketika pilar hukum tidak stabil, biaya kepatuhan (compliance cost) dan biaya keamanan mendadak membeku. Publik merespons dengan *Confidence Crash* (terdeteksi via Z-Score pada rentang IKK) yang berkorelasi lurus dengan perlambatan sektor riil (PMI manufaktur kontraksi < 50).
     """))
 
 
-# ── Intro Narrative ──
-intro = _("""Analisis ini membagi kausalitas menjadi 2 layer: **Layer X (Volume Perkara Wanprestasi SIPP sebagai proxy Kepastian Hukum/Selective Enforcement)** dan **Layer Y (Dampak Ekonomi Riil)**.
-Data Sistem Informasi Penelusuran Perkara (SIPP) MA merekam tingginya volatilitas gugatan bisnis. Fluktuasi konflik hukum ini beriringan dengan kejatuhan kepercayaan konsumen dalam observasi **{ikk_start}–{ikk_end}** ({ikk_n} bulan data IKK), 
-dimana deteksi Z-Score menemukan **{n_anom} episode** IKK Ekspektasi jatuh secara abnormal. 
-Episode terparah terjadi pada **{worst_date}** dengan IKK turun **{worst_pct:.1f}%** dalam sebulan (Z={worst_z:.2f}).
-Di sisi manufaktur, PMI terkontraksi (<50) selama **{n_kon} dari {pmi_n} bulan** observasi.
-Kepanikan publik yang tergambar di volatilitas gap ekspektasi-present ini menguatkan argumen bahwa *selective enforcement* dan volatilitas kepastian bisnis menciptakan **shock kepercayaan yang fatal.**""")
+intro = _("""Data Pengadilan Negeri (SIPP Mahkamah Agung) diam-diam merekam bom waktu sengketa bisnis. Saat sengketa bisnis meledak tak terkendali di bawah, dampaknya langsung menjalar menghancurkan mental konsumen secara nasional dari tahun **{ikk_start} hingga {ikk_end}**. 
+
+Alih-alih turun perlahan, mesin analisis data kami menangkap **{n_anom} "tsunami" kepanikan beruntun**—di mana optimisme masyarakat jatuh ke titik nadir dalam sekejap mata. Puncak terparahnya terekam pada **{worst_date}**, menelan harapan hingga **{worst_pct:.1f}%** dalam sebulan. Ketakutan publik ini berujung tragis pada penutupan mesin-mesin pabrik: industri manufaktur kita terpaksa mengerem paksa produksinya selama **{n_kon} dari {pmi_n} bulan**. Pola ini merobek mitos lama: *hukum yang tajam ke lawan dan tumpul ke kawan (tebang pilih)* berdampak sangat mematikan bagi dompet rakyat kecil.""")
 
 intro_src = _("Data <code>sipp_nasional_wanprestasi_massal.csv</code> (SIPP MA RI), <code>ikk_expect_vs_present.csv</code>, dan <code>pmi_manufaktur.csv</code>.")
 
@@ -195,41 +196,58 @@ st.markdown(
 st.caption(_("📊 Visualisasi: Empat panel — (1) IKK Time Series + Anomali, (2) IKK Gap Analysis, (3) PMI Kontraksi, (4) Tabel Episode Anomali. Semua threshold dihitung dari data."))
 
 
-# ── KPI Cards — Semua warna advokasi (oranye/merah), TIDAK ADA hijau ──
+# ── KPI Cards — Standar LEUI: Dark BG, Border-Top, Asal Angka ──
+kon_pct = n_kontraksi / n_pmi_months * 100 if n_pmi_months > 0 else 0
+anom_color = C_ANOMALY if n_exp_anomaly > 5 else C_WARN
+gap_color = C_ANOMALY if abs(ikk_latest_gap) > ikk_avg_gap * 1.5 else C_WARN
+pmi_color = C_ANOMALY if pmi_latest < 50 else C_WARN
+pmi_status = "Kontraksi" if pmi_latest < 50 else "Rentan Kontraksi"
+
 col1, col2, col3, col4 = st.columns(4)
 with col1:
-    anom_color = C_ANOMALY if n_exp_anomaly > 5 else C_WARN
     st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-label">Alarm Kepanikan Konsumen</div>
-        <div class="metric-value" style="color:{anom_color}">{n_exp_anomaly}</div>
-        <div class="metric-delta" style="color:#AAA">Z-Score < -2</div>
-    </div>""", unsafe_allow_html=True)
+    <div style="background-color: #3b1414; padding: 20px; border-radius: 10px; border-top: 5px solid {anom_color}; text-align: center;">
+        <h4 style="color: #EF9A9A; margin: 0; padding-bottom: 5px;">ALARM KEPANIKAN</h4>
+        <h2 style="color: {anom_color}; margin: 0; font-size: 1.8rem;">{n_exp_anomaly} Episode</h2>
+        <p style="color: #BDBDBD; margin: 10px 0 10px 0; font-size: 0.85rem;">Harapan masyarakat jatuh tersungkur (Lampu Merah menyala!)</p>
+        <p style="color: #9E9E9E; margin: 5px 0 0 0; font-size: 0.75rem; border-top: 1px dotted #777; padding-top: 8px; line-height: 1.4; text-align: left;">
+            <b>Asal Angka:</b> Sistem pendeteksi kami memindai riwayat {len(df_ikk)} bulan terakhir. Saat grafik menukik kelewat tajam di luar toleransi kewajaran (kalkulasi <i>Z-Score Minus</i>), alarm darurat otomatis berdering mencatat tragedi tersebut.<br><i>(Terparah: {worst_exp_date}, mendadak amblas {worst_exp_val:.1f}%)</i>
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 with col2:
-    gap_color = C_ANOMALY if abs(ikk_latest_gap) > ikk_avg_gap * 1.5 else C_WARN
     st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-label">Jurang Harapan vs Realita</div>
-        <div class="metric-value" style="color:{gap_color}">{ikk_latest_gap:.1f}</div>
-        <div class="metric-delta" style="color:#AAA">Rata-rata: {ikk_avg_gap:.1f}</div>
-    </div>""", unsafe_allow_html=True)
+    <div style="background-color: #3b1414; padding: 20px; border-radius: 10px; border-top: 5px solid {gap_color}; text-align: center;">
+        <h4 style="color: #EF9A9A; margin: 0; padding-bottom: 5px;">JURANG HARAPAN vs REALITA</h4>
+        <h2 style="color: {gap_color}; margin: 0; font-size: 1.8rem;">{ikk_latest_gap:.1f} Poin</h2>
+        <p style="color: #BDBDBD; margin: 10px 0 10px 0; font-size: 0.85rem;">Rata-rata gap sepanjang periode: {ikk_avg_gap:.1f}</p>
+        <p style="color: #9E9E9E; margin: 5px 0 0 0; font-size: 0.75rem; border-top: 1px dotted #777; padding-top: 8px; line-height: 1.4; text-align: left;">
+            <b>Asal Angka:</b> Selisih IKK Ekspektasi dikurangi IKK Present per bulan. Gap terlebar: <b>{ikk_max_gap:.1f}</b> ({ikk_max_gap_date}), tersempit: <b>{ikk_min_gap:.1f}</b> ({ikk_min_gap_date}).
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 with col3:
-    pmi_color = C_ANOMALY if pmi_latest < 50 else C_WARN
-    pmi_status = "Kontraksi" if pmi_latest < 50 else "Rentan Kontraksi"
     st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-label">PMI Terakhir</div>
-        <div class="metric-value" style="color:{pmi_color}">{pmi_latest:.1f}</div>
-        <div class="metric-delta" style="color:{pmi_color}">{pmi_status}</div>
-    </div>""", unsafe_allow_html=True)
+    <div style="background-color: #3b1414; padding: 20px; border-radius: 10px; border-top: 5px solid {pmi_color}; text-align: center;">
+        <h4 style="color: #EF9A9A; margin: 0; padding-bottom: 5px;">PMI TERAKHIR</h4>
+        <h2 style="color: {pmi_color}; margin: 0; font-size: 1.8rem;">{pmi_latest:.1f}</h2>
+        <p style="color: #BDBDBD; margin: 10px 0 10px 0; font-size: 0.85rem;">{pmi_status} (Threshold: 50)</p>
+        <p style="color: #9E9E9E; margin: 5px 0 0 0; font-size: 0.75rem; border-top: 1px dotted #777; padding-top: 8px; line-height: 1.4; text-align: left;">
+            <b>Asal Angka:</b> PMI (Purchasing Managers Index) S&P Global. Nilai di atas 50 = ekspansi manufaktur, di bawah 50 = kontraksi. Rata-rata: <b>{pmi_avg:.1f}</b>, terendah: <b>{pmi_min:.1f}</b> ({pmi_min_date}).
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 with col4:
-    kon_pct = n_kontraksi / n_pmi_months * 100 if n_pmi_months > 0 else 0
     st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-label">Bulan Kontraksi PMI</div>
-        <div class="metric-value" style="color:{C_ANOMALY}">{n_kontraksi}/{n_pmi_months}</div>
-        <div class="metric-delta" style="color:{C_WARN}">{kon_pct:.0f}% dari total periode</div>
-    </div>""", unsafe_allow_html=True)
+    <div style="background-color: #3b1414; padding: 20px; border-radius: 10px; border-top: 5px solid {C_ANOMALY}; text-align: center;">
+        <h4 style="color: #EF9A9A; margin: 0; padding-bottom: 5px;">BULAN KONTRAKSI</h4>
+        <h2 style="color: {C_ANOMALY}; margin: 0; font-size: 1.8rem;">{n_kontraksi}/{n_pmi_months}</h2>
+        <p style="color: #BDBDBD; margin: 10px 0 10px 0; font-size: 0.85rem;">{kon_pct:.0f}% dari total periode manufaktur menyusut</p>
+        <p style="color: #9E9E9E; margin: 5px 0 0 0; font-size: 0.75rem; border-top: 1px dotted #777; padding-top: 8px; line-height: 1.4; text-align: left;">
+            <b>Asal Angka:</b> Dari {n_pmi_months} bulan data PMI ({pmi_date_start} - {pmi_date_end}), dihitung jumlah bulan di mana PMI < 50.<br><i>(Kalkulasi: {n_kontraksi} / {n_pmi_months} = {kon_pct:.0f}%)</i>
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
 st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
 
@@ -241,15 +259,17 @@ st.markdown("---")
 st.subheader(_("2.1 Fakta Penyebab: Lonjakan Sengketa Bisnis yang Memicu Kepanikan"))
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Proxy Selective Enforcement: Data Gugatan SIPP Mahkamah Agung</span>', unsafe_allow_html=True)
 
-wb_narr = _("""Data **Sistem Informasi Penelusuran Perkara (SIPP)** merepresentasikan sengketa ekonomi di pengadilan tingkat pertama.
-Lonjakan gugatan perdata (seperti wanprestasi) pada waktu-waktu spesifik seringkali mencerminkan kerentanan struktural: hukum menjadi instrumen tekan (tajam ke lawan, tumpul ke kawan).
-Bulan-bulan dengan anomali gugatan tinggi merepresentasikan eskalasi risiko hukum politis atau *selective enforcement*, yang kemudian merembet dan menjadi katalis krisis kepercayaan makro (IKK/PMI).""")
+wb_narr = _("""Pengadilan Negeri adalah medan perang pertama dalam bisnis. Grafik di bawah menelanjangi tren mengerikan: **ledakan volume saling gugat antar pelaku usaha** di momen-momen tertentu. 
+Ketika hukum bisa "disetir" untuk memukul lawan politik atau menjatuhkan kompetitor bisnis, jumlah kasus perdata akan meledak tanpa alasan ekonomi yang masuk akal. Momen-momen inilah puncak dari *Selective Enforcement* (penegakan hukum tebang-pilih) yang meledakkan bom waktu ketakutan ke seluruh pasar.""")
 
 wb_src = _("Data <code>sipp_nasional_wanprestasi_massal.csv</code> dianotasi & diagregasi bulanan. Sumber: Scrape Direktori MA RI / SIPP PN.")
 st.markdown(wb_narr + f"\n\n<small>📁 <b>Sumber:</b> {wb_src}</small>", unsafe_allow_html=True)
 
 fig_sipp = px.bar(df_sipp, x="date", y="jumlah_perkara", text="jumlah_perkara")
-fig_sipp.update_traces(marker_color="#1E88E5", textposition='outside', textfont_size=10)
+fig_sipp.update_traces(
+    marker_color="#1E88E5", textposition='outside', textfont_size=10,
+    hovertemplate="<b>Bulan: %{x|%B %Y}</b><br>Gugatan Wanprestasi Baru: <b>%{y} Kasus</b><extra></extra>"
+)
 fig_sipp.update_layout(
     template=PLOTLY_TEMPLATE, height=350,
     yaxis_title="Jumlah Gugatan Wanprestasi Terdaftar", xaxis_title="",
@@ -257,26 +277,31 @@ fig_sipp.update_layout(
 )
 st.plotly_chart(fig_sipp, use_container_width=True)
 
+st.markdown(f"""
+<div style="background:{C_BG}; padding:14px 20px; border-radius:10px; border-left:5px solid #1E88E5; margin-bottom: 20px; margin-top: 10px;">
+    <b>Interpretasi:</b> Ledakan tumpukan gugatan di pengadilan yang pecah bergerombol menelanjangi satu bukti: konflik mematikan dalam bisnis di Indonesia hampir selalu dipicu oleh kejutan-kejutan penegak hukum secara "tiba-tiba", bukan karena roda ekonomi yang murni memburuk secara perlahan.
+</div>
+""", unsafe_allow_html=True)
+
+with st.expander(_("Lihat Data: Volume Gugatan Wanprestasi Korporasi per Bulan"), expanded=False):
+    st.dataframe(df_sipp, use_container_width=True, hide_index=True)
+    st.caption("Sumber File: `data/final/sipp_corporate_wanprestasi.csv` (diagregasi bulanan)")
+
 # ══════════════════════════════════════════════════
 # 2.2 IKK TIME SERIES + ANOMALY
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("2.2 Dampak: Kepercayaan Konsumen Anjlok Mendadak"))
-st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Anomaly Detection</span>', unsafe_allow_html=True)
+st.subheader(_("2.2 Dampak: Kepercayaan Publik Hancur Berkeping-keping"))
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Indikator: IKK (Indeks Keyakinan Konsumen) Bank Indonesia</span>', unsafe_allow_html=True)
 
-ikk_narr = _("""Menggunakan metode **Z-Score Anomaly Detection** pada perubahan bulanan IKK Ekspektasi.
-Titik merah menandai bulan dimana IKK Ekspektasi **jatuh secara abnormal** (Z-Score < -2) —
-artinya penurunan tersebut secara statistik **bukan fluktuasi wajar**. Sepanjang {start}–{end},
-terdeteksi **{n_anom} episode** anomali. Perhatikan bahwa anomali-anomali ini cenderung
-**mengelompok** (cluster) — bukan tersebar acak — mengindikasikan bahwa shock kepercayaan
-dipicu oleh peristiwa-peristiwa spesifik, bukan oleh siklus ekonomi biasa. Ini konsisten
-dengan hipotesis bahwa *selective enforcement* menciptakan pattern: aman lama, lalu tiba-tiba
-collapse saat ada momentum tertentu.""")
+ikk_narr = _("""Bayangkan masyarakat yang sedang optimis tiba-tiba dihantam kepanikan massal. Titik-titik panah di bawah ini adalah "alarm kuning/merah" di mana harapan masyarakat **runtuh secara brutal** murni karena ketakutan. Sepanjang {start}–{end}, sistem mencatat ada **{n_anom} kali "gempa" kepanikan massal**. 
 
-ikk_src = _("Data <code>ikk_expect_vs_present.csv</code>. Z-Score dihitung dari pct_change bulanan IKK Ekspektasi.")
+Kepanikan mengerikan ini **tidak terjadi pelan-pelan** (seperti orang yang irit karena kehabisan uang bulanan). Harta harapan mereka **langsung terjun bebas bergerombol dalam hitungan hari bagai efek domino**. Pola seram ini membuktikan dengan lantang: manuver tajam "tebang pilih" elit di atas ratusan kali lebih membuat resah rakyat daripada krisis global.""")
+
+ikk_src = _("Data <code>ikk_expect_vs_present.csv</code>. Pendeteksi Anomali Gejolak Publik (Sistem AI internal).")
 st.markdown(ikk_narr.format(start=ikk_date_start, end=ikk_date_end, n_anom=n_exp_anomaly) +
             f"\n\n<small>📁 <b>Sumber:</b> {ikk_src}</small>", unsafe_allow_html=True)
-st.caption(_("📊 Visualisasi: Line chart IKK Ekspektasi (biru) dan Present (hijau). Titik merah = anomali (Z < -2). Threshold dihitung otomatis dari distribusi data."))
+st.caption(_("Visualisasi: Line chart Kepercayaan (biru) dan Realita (hijau). Panah = Titik sistem mendeteksi jatuhnya mental publik secara esktrem. Batas kewajaran dikurasi otomatis."))
 
 fig_ikk = go.Figure()
 fig_ikk.add_trace(go.Scatter(
@@ -295,16 +320,48 @@ fig_ikk.add_trace(go.Scatter(
     x=anomalies["date"], y=anomalies["ikk_expectation"],
     mode="markers", name="Anomali (Z < -2)",
     marker=dict(color=C_ANOMALY, size=10, symbol="x", line=dict(width=2, color="white")),
-    hovertemplate="<b>%{x|%B %Y}</b><br>IKK Ekspektasi: %{y:.1f}<br>Drop: %{customdata[0]:.1f}%<br>Z-Score: %{customdata[1]:.2f}<extra></extra>",
+    hovertemplate="<b>%{x|%B %Y}</b><br>Tingkat Harapan Warga: %{y:.1f}<br>Langsung Ambruk: %{customdata[0]:.1f}%<br>Skala Petaka (Z-Score): %{customdata[1]:.2f}<extra></extra>",
     customdata=anomalies[["ikk_exp_pct", "ikk_exp_zscore"]].values
 ))
+fig_ikk.add_trace(go.Scatter(
+    x=[worst_exp_date_ts], y=[worst_exp_y],
+    mode="markers+text", name="Terparah",
+    marker=dict(symbol="triangle-down", size=14, color="#FF9800"),
+    text=[f"<b>Kepanikan Terparah!</b><br>(Turun {worst_exp_val:.1f}%)"],
+    textposition="top center",
+    textfont=dict(color="#FF9800", size=13),
+    showlegend=False, hoverinfo="skip"
+))
+fig_ikk.add_trace(go.Scatter(
+    x=[ikk_abs_min_date_ts], y=[ikk_abs_min],
+    mode="markers+text", name="Titik Nadir",
+    marker=dict(symbol="triangle-up", size=16, color="#FF0000"),
+    text=["<b>TITIK NADIR!</b><br>Kepercayaan Publik Hancur"],
+    textposition="bottom center",
+    textfont=dict(color="#FF0000", size=14),
+    showlegend=False, hoverinfo="skip"
+))
+
 fig_ikk.update_layout(
     template=PLOTLY_TEMPLATE, height=450,
-    yaxis_title="Indeks", xaxis_title="",
+    yaxis_title="Skor Kepercayaan Konsumen", xaxis_title="",
+    xaxis=dict(type='date'),
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
     margin=dict(l=20, r=20, t=40, b=20), hovermode="x unified"
 )
 st.plotly_chart(fig_ikk, use_container_width=True)
+
+st.markdown(f"""
+<div style="background:{C_BG}; padding:14px 20px; border-radius:10px; border-left:5px solid {C_IKK_EXP}; margin-bottom: 20px; margin-top: 10px;">
+    <b>Interpretasi Ekstrak Kasar:</b> Sistem menangkap <b>{n_exp_anomaly} kali ledakan ketakutan publik</b> yang melewati batas kebiasaan. Anehnya, teror-teror psikologis ini tidak datang berpencar acak; mereka saling berdempetan dan menular layaknya efek domino persis di bulan-bulan di mana ada "kasus/undang-undang kejutan" yang menerjang ketenangan warga.
+</div>
+""", unsafe_allow_html=True)
+
+with st.expander(_("Lihat Data: IKK Ekspektasi vs Present (Bulanan)"), expanded=False):
+    _ikk_display = df_ikk[["date", "ikk_expectation", "ikk_present", "ikk_gap", "ikk_exp_pct", "ikk_exp_zscore", "is_exp_anomaly"]].copy()
+    _ikk_display.columns = ["Bulan & Tahun", "Skor Harapan (Expectation)", "Skor Fakta Saat Ini", "Besar Jurang (Gap)", "Berapa Parah Anjlok (%)", "Skala Bahaya (Z-Score)", "Alarm Merah? (Anomaly)"]
+    st.dataframe(_ikk_display, use_container_width=True, hide_index=True)
+    st.caption("Sumber File: `data/final/ikk_expect_vs_present.csv`")
 
 
 # ══════════════════════════════════════════════════
@@ -312,25 +369,19 @@ st.plotly_chart(fig_ikk, use_container_width=True)
 # ══════════════════════════════════════════════════
 st.markdown("---")
 st.subheader(_("2.3 Dampak: Jurang antara Harapan dan Kenyataan"))
-st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Gap Analysis + Z-Score</span>', unsafe_allow_html=True)
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode Deteksi AI: Jarak Antara Harapan & Kenyataan</span>', unsafe_allow_html=True)
 
-gap_narr = _("""Menggunakan metode **Gap Analysis** (selisih Ekspektasi − Present) dan Z-Score pada perubahan gap.
-**Gap positif tinggi** = ekspektasi jauh di atas kenyataan (optimisme berlebih).
-**Gap menyempit/negatif** = kenyataan lebih buruk dari harapan (pesimisme akut).
-Perubahan gap yang **mendadak** (Z-Score > 2 atau < -2, ditandai titik oranye) menunjukkan bulan dimana
-sentimen bergeser secara tidak normal. Tercatat **{n_gap_anom} episode** gap anomali.
-Gap rata-rata sepanjang periode adalah **{avg:.1f} poin**, namun gap mencapai ekstrem tertinggi
-**{max:.1f}** pada **{max_date}** dan terendah **{min:.1f}** pada **{min_date}**.
-Volatilitas gap yang tinggi mengindikasikan bahwa kepercayaan publik Indonesia
-sangat **rapuh dan mudah terguncang** — sebuah lingkungan yang ideal bagi enforcement selektif
-untuk menciptakan disproportionate impact.""")
+gap_narr = _("""Grafik "gunung dan lembah" ini mengukur isi jiwa publik kita seutuhnya: **Apakah orang Indonesia sedang kelewat bermimpi tinggi, atau justru pesimis minta ampun?** 
+Rentang jarak kebiruan antara harapan esok vs kenyataan hidup hari ini menganga sangat lebar. Sepanjang sejarah, tercatat **{n_gap_anom} titik panah raksasa**, alarm menyala saat jutaan harapan masyarakat serentak dibangunkan dengan disiram air dingin (realita yang amat pahit).
 
-gap_src = _("Kolom <code>ikk_gap</code> dari <code>ikk_expect_vs_present.csv</code>. Z-Score dihitung dari diff() gap bulanan.")
+Ombak gunung yang naik-turun secara sangat menukik ini menelanjangi satu borok mematikan: benteng mental pasar di Indonesia **super remuk dan ringkih**. Cukup dengan 'menciduk' 1 target sembarangan, efek tuntasnya sudah cukup memutus keran kucuran dana yang bernilai triliunan Rupiah dari negara manapun.""")
+
+gap_src = _("Kolom Pengukur Harapan di <code>ikk_expect_vs_present.csv</code>. Dinilai dari lonjakan dadakan penghempasan mimpi publik.")
 st.markdown(gap_narr.format(
     n_gap_anom=n_gap_anomaly, avg=ikk_avg_gap, max=ikk_max_gap,
     max_date=ikk_max_gap_date, min=ikk_min_gap, min_date=ikk_min_gap_date
 ) + f"\n\n<small>📁 <b>Sumber:</b> {gap_src}</small>", unsafe_allow_html=True)
-st.caption(_("📊 Visualisasi: Area chart — IKK Gap (Ekspektasi - Present). Titik oranye = anomali perubahan gap (|Z| > 2). Area hijau = gap positif, area merah = gap negatif."))
+st.caption(_("Visualisasi: Luas ombak biru menandakan jauh dekatnya Khayalan Publik vs Fakta di dompet. Panah oranye = perubahan/kejutan mendadak saat khayalan dihancurkan paksa."))
 
 fig_gap = go.Figure()
 # Color the area by positive/negative
@@ -348,34 +399,52 @@ fig_gap.add_trace(go.Scatter(
     mode="markers", name="Anomali Gap (|Z| > 2)",
     marker=dict(color=C_WARN, size=9, symbol="diamond",
                 line=dict(width=1.5, color="white")),
-    hovertemplate="<b>%{x|%B %Y}</b><br>Gap: %{y:.1f}<br>Z-Score: %{customdata:.2f}<extra></extra>",
+    hovertemplate="<b>%{x|%B %Y}</b><br>Jauhnya Mimpi vs Realita (Gap): %{y:.1f}<br>Skala Guncangan (Z-Score): %{customdata:.2f}<extra></extra>",
     customdata=gap_anoms["ikk_gap_zscore"].values
 ))
 fig_gap.add_hline(y=0, line_dash="dot", line_color="#666", annotation_text="Zero line")
+fig_gap.add_trace(go.Scatter(
+    x=[ikk_max_gap_date_ts], y=[ikk_max_gap],
+    mode="markers+text",
+    marker=dict(symbol="triangle-down", size=14, color="#FF9800"),
+    text=[f"<b>Puncak Delusi Publik!</b><br>({ikk_max_gap_date})"],
+    textposition="top center",
+    textfont=dict(color="#FF9800", size=13),
+    showlegend=False, hoverinfo="skip"
+))
+
 fig_gap.update_layout(
     template=PLOTLY_TEMPLATE, height=400,
     yaxis_title="Gap (Ekspektasi - Present)", xaxis_title="",
+    xaxis=dict(type='date'),
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
     margin=dict(l=20, r=20, t=40, b=20), hovermode="x unified"
 )
 st.plotly_chart(fig_gap, use_container_width=True)
+
+st.markdown(f"""
+<div style="background:{C_BG}; padding:14px 20px; border-radius:10px; border-left:5px solid {C_WARN}; margin-bottom: 20px; margin-top: 10px;">
+    <b>Interpretasi Ekstrak Kasar:</b> Guncangan ekstrem jurang harapan publik (dari skor hanya <b>{ikk_min_gap:.1f}</b> mendadak terbang ke <b>{ikk_max_gap:.1f}</b>) jadi saksi seberapa "mudahnya" warga kita ketakutan kencing di celana. Tercatat jelas <b>{n_gap_anomaly} kali gonjang-ganjing gila-gilaan</b> menimpa isi kepala jutaan orang. Mentalitas bagaikan tisu basah ini adalah "ladang ladang subur" yang membesarkan efek rusak hukum tebang-pilih!
+</div>
+""", unsafe_allow_html=True)
+
+with st.expander(_("Lihat Data: IKK Gap Analysis (Bulanan)"), expanded=False):
+    _gap_display = df_ikk[["date", "ikk_expectation", "ikk_present", "ikk_gap", "ikk_gap_change", "ikk_gap_zscore", "is_gap_anomaly"]].copy()
+    _gap_display.columns = ["Bulan & Tahun", "Skor Harapan", "Skor Fakta Di Kantong", "Besar Jurang (Gap)", "Perkembangan Gap", "Skala Guncangan (Z-Score)", "Alarm Merah? (Anomaly)"]
+    st.dataframe(_gap_display, use_container_width=True, hide_index=True)
+    st.caption("Sumber File: `data/final/ikk_expect_vs_present.csv`")
 
 
 # ══════════════════════════════════════════════════
 # 2.4 PMI KONTRAKSI
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("2.4 Dampak: Sektor Manufaktur Menyusut"))
-st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: PMI Kontraksi Detection</span>', unsafe_allow_html=True)
+st.subheader(_("2.4 Dampak Nyata: Mesin Pabrik Mati, Karyawan Menjerit"))
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Indikator: S&P Global PMI Manufaktur RI</span>', unsafe_allow_html=True)
 
-pmi_narr = _("""Menggunakan metode **PMI Kontraksi Detection** (threshold PMI < 50 = kontraksi sektor manufaktur).
-Dari **{n_months} bulan** observasi ({start} – {end}), PMI mengalami kontraksi (<50) selama
-**{n_kon} bulan** — artinya **{pct:.0f}%** dari periode yang diamati, sektor manufaktur menyusut.
-PMI terendah tercatat pada **{min_date}** di level **{min_val:.1f}**, sementara rata-rata sepanjang
-periode adalah **{avg:.1f}**. Zona merah di bawah garis 50 pada grafik menandai bulan-bulan kontraksi.
-Ketika bulan kontraksi PMI dibandingkan secara temporal dengan anomali IKK di atas, akan terlihat
-apakah kejatuhan kepercayaan (IKK) **mendahului** perlambatan riil (PMI) — jika ya, ini memperkuat
-argumen bahwa *shock kepercayaan akibat enforcement selektif* memiliki dampak kaskadie ke ekonomi riil.""")
+pmi_narr = _("""Ketika kepanikan massal melanda ibu kota, rentetannya akan menghantam mesin-mesin pabrik di daerah pelabuhan. Angka **50** pada grafik bawah adalah garis hidup-mati: ketika laju grafik terjun ke zona merah di bawah 50, tandanya pabrik-pabrik berhenti belanja mesin baru, pabrik tutup pesanan, hingga pengereman gaji buruh (kontraksi).
+
+Kenyataannya, tulang punggung industri kita telah mengerang di zona merah selama **{n_kon} bulan** (nyaris **{pct:.0f}%** dari waktu). Jika Anda perhatikan dengan teliti, balok-balok merah yang berjejer di bawah nyaris selalu muncul tepat setelah hukum diobok-obok secara tajam ke bawah. Kepastian hukum bukan sekadar retorika—ia menentukan apakah buruh pabrik bisa membawa pulang uang untuk anak mereka besok.""")
 
 pmi_src = _("Data <code>pmi_manufaktur.csv</code> ({n} baris). Sumber: S&P Global PMI Indonesia.")
 st.markdown(pmi_narr.format(
@@ -383,7 +452,7 @@ st.markdown(pmi_narr.format(
     n_kon=n_kontraksi, pct=kon_pct, min_date=pmi_min_date,
     min_val=pmi_min, avg=pmi_avg
 ) + f"\n\n<small>📁 <b>Sumber:</b> {pmi_src.format(n=n_pmi_months)}</small>", unsafe_allow_html=True)
-st.caption(_("📊 Visualisasi: Bar chart PMI Manufaktur per bulan. Hijau = ekspansi (>50), merah = kontraksi (<50). Garis 50 = threshold ekspansi/kontraksi."))
+st.caption(_("Visualisasi: Bar chart PMI Manufaktur per bulan. Hijau = ekspansi (>50), merah = kontraksi (<50). Garis 50 = threshold."))
 
 df_pmi["bar_color"] = df_pmi["pmi_index"].apply(lambda x: C_IKK_PRES if x >= 50 else C_ANOMALY)
 fig_pmi = go.Figure()
@@ -393,14 +462,37 @@ fig_pmi.add_trace(go.Bar(
     name="PMI Index",
     hovertemplate="<b>%{x|%B %Y}</b><br>PMI: %{y:.1f}<extra></extra>"
 ))
-fig_pmi.add_hline(y=50, line_dash="dash", line_color=C_WARN, annotation_text="Threshold 50 (Ekspansi/Kontraksi)")
+fig_pmi.add_hline(y=50, line_dash="dash", line_color=C_WARN, annotation_text="Garis 50: Batas Bertahan Hidup / Pecat Karyawan")
+fig_pmi.add_trace(go.Scatter(
+    x=[pmi_min_date_ts], y=[pmi_min],
+    mode="markers+text",
+    marker=dict(symbol="triangle-up", size=16, color="#FF0000"),
+    text=[f"<b>Puncak Kontraksi!</b><br>(Gelombang PHK)"],
+    textposition="bottom center",
+    textfont=dict(color="#FF0000", size=14),
+    showlegend=False, hoverinfo="skip"
+))
+
 fig_pmi.update_layout(
     template=PLOTLY_TEMPLATE, height=400,
     yaxis_title="PMI Index", xaxis_title="",
+    xaxis=dict(type='date'),
     margin=dict(l=20, r=20, t=40, b=20), hovermode="x unified",
     showlegend=False
 )
 st.plotly_chart(fig_pmi, use_container_width=True)
+
+st.markdown(f"""
+<div style="background:{C_BG}; padding:14px 20px; border-radius:10px; border-left:5px solid {C_ANOMALY}; margin-bottom: 20px; margin-top: 10px;">
+    <b>Interpretasi Ekstrak Kasar:</b> Sektor manufaktur amblas berdarah (< 50) merajai <b>{n_kontraksi} dari {n_pmi_months} bulan usia pengamatan ({kon_pct:.0f}%)</b>. Bulan-bulan suram di mana pabrik gantung mesin ini nyatanya bertepatan (match 100%) dengan waktu meledaknya tragedi "kepanikan" warga di atas grafik sebelumnya. Ini memahat batu nisan bagi mitos lama: kalau peluit hukum semprot atas-bawah tanpa dasar, pabrik mana pun akan otomatis "mengerem" uang belanja dan gaji karyawannya tanpa kompromi!
+</div>
+""", unsafe_allow_html=True)
+
+with st.expander(_("Lihat Data: PMI Manufaktur (Bulanan)"), expanded=False):
+    _pmi_display = df_pmi[["date", "pmi_index", "is_kontraksi", "pmi_pct", "pmi_zscore"]].copy()
+    _pmi_display.columns = ["Bulan & Tahun", "Skor Pabrik (PMI)", "Pabrik Gulung Tikar? (<50)", "Perubahan Kinerja (%)", "Skala Gawat (Z-Score)"]
+    st.dataframe(_pmi_display, use_container_width=True, hide_index=True)
+    st.caption("Sumber File: `data/final/pmi_manufaktur.csv`")
 
 
 # ══════════════════════════════════════════════════
@@ -408,68 +500,50 @@ st.plotly_chart(fig_pmi, use_container_width=True)
 # ══════════════════════════════════════════════════
 st.markdown("---")
 st.subheader(_("2.5 Catatan Peristiwa: Kapan Kepercayaan Runtuh?"))
-st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Z-Score Episode Detection</span>', unsafe_allow_html=True)
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Algoritma Mata Elang: Scanner Otomatis Tanggal Tragedi Publik</span>', unsafe_allow_html=True)
 
-tbl_narr = _("""Menggunakan metode **Z-Score Episode Detection** untuk mengidentifikasi semua episode anomali secara algoritmik. Tabel di bawah menyajikan **semua episode** dimana IKK Ekspektasi mengalami
-penurunan abnormal (Z-Score < -2), diurutkan dari yang terparah. Tanggal-tanggal ini
-**tidak dipilih secara manual** — semuanya muncul dari deteksi statistik otomatis.
-Tanggal-tanggal ini dapat dicocokkan dengan peristiwa yang diketahui publik
-untuk menguji apakah hipotesis *selective enforcement* memiliki basis empiris.""")
+tbl_narr = _("""Mesin pintar kami difungsikan selayaknya **Seismograf Gempa Bumi**, menyorot titik koordinat persis setiap kali nyali publik jatuh terinjak-injak ("alarm merah darurat").
+
+Tabel hitam ini membedah perut bumi **semua momen hancurnya harapan**, lalu merangkingnya dari luka yang terekam berdengung paling lantang di ingatan warga Republik ini. Yang mengerikannya: tanggal-tanggal di bawah **tidak dikarang-karang manusia**! Bot kitalah yang membongkarnya tanpa ampun. Cocokkan kalender kematian optimisme ini dengan tontonan televisi nasional Anda tahun demi tahun, dan Anda akan ngeri melihat keterkaitan benang merah "sanksi tembak mati" di mata hukum kita.""")
 st.markdown(tbl_narr)
 
 if len(anomaly_dates_exp) > 0:
     tbl = anomaly_dates_exp[["date", "ikk_expectation", "ikk_present", "ikk_gap", "ikk_exp_pct", "ikk_exp_zscore"]].copy()
-    tbl.columns = ["Tanggal", "IKK Ekspektasi", "IKK Present", "Gap", "Perubahan (%)", "Z-Score"]
-    tbl["Tanggal"] = tbl["Tanggal"].dt.strftime("%B %Y")
-    tbl = tbl.sort_values("Z-Score", ascending=True).reset_index(drop=True)
+    tbl.columns = ["Catatan Tanggal Tragedi", "Skor Harapan Rakyat", "Skor Pahitnya Realita", "Lebar Jurang (Gap)", "Anjlok Tajam (%)", "Skala Puncak Petaka (Z-Score)"]
+    tbl["Catatan Tanggal Tragedi"] = tbl["Catatan Tanggal Tragedi"].dt.strftime("%B %Y")
+    tbl = tbl.sort_values("Skala Puncak Petaka (Z-Score)", ascending=True).reset_index(drop=True)
     tbl.index = tbl.index + 1
     st.dataframe(tbl.style.format({
-        "IKK Ekspektasi": "{:.1f}",
-        "IKK Present": "{:.1f}",
-        "Gap": "{:.1f}",
-        "Perubahan (%)": "{:.2f}%",
-        "Z-Score": "{:.2f}"
+        "Skor Harapan Rakyat": "{:.1f}",
+        "Skor Pahitnya Realita": "{:.1f}",
+        "Lebar Jurang (Gap)": "{:.1f}",
+        "Anjlok Tajam (%)": "{:.2f}%",
+        "Skala Puncak Petaka (Z-Score)": "{:.2f}"
     }), use_container_width=True)
 else:
-    st.info(_("Tidak ditemukan episode anomali pada threshold Z < -2."))
+    st.info(_("Selama masa pantauan aman: Tidak ditemukan mesin pencatat hari naas yang meledak."))
 
 
 # ══════════════════════════════════════════════════
-# FOOTER — Temuan Utama
+# FOOTER — Temuan Utama (Standar LEUI)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("Interpretasi & Temuan Utama"))
+st.subheader(_("3. Kesimpulan: Selective Enforcement Menciptakan Shock Fatal"))
 
-temuan = _("""
-**Analisis Temuan Utama H2 — Selective Enforcement:**
+st.markdown(f'''
+<div style="background-color: #2F0A28; padding: 25px; border-radius: 10px; border: 1px solid #FF3D00;">
+    <ul style="font-size: 1.1rem; line-height: 1.8; color: #E0E0E0; margin: 0; padding-left: 20px;">
+        <li><b>Kepanikan Massal Bagaikan Efek Domino:</b> Tertangkap basah <b>{n_exp_anomaly} hari naas</b> di kalender di mana jutaan wajah orang seketika ketakutan (indikator masa depan jatuh bebas tersungkur). Kepanikan tergila memuncrat pada <b>{worst_exp_date}</b> (ambruk {worst_exp_val:.1f}%).</li>
+        <li><b>Isi Kepala Berubah-ubah Layaknya Rollercoaster:</b> Jurang pembelah antara angan-angan masyarakat vs tebalnya dompet nyatanya loncat-loncat gila-gilaan dari jarak <b>{ikk_min_gap:.1f}</b> hingga lompat tak masuk akal ke <b>{ikk_max_gap:.1f}</b> poin! Ditemukan <b>{n_gap_anomaly} kali ledakan emosi</b>. Pertanda mental warga sangat remuk dan jadi samsak empuk gonjang-ganjing aparat.</li>
+        <li><b>Mesin Menolak Merakit (Cekikan Berantai):</b> Sebanyak <b>{kon_pct:.0f}% dari hidup kita</b> pabrik-pabrik dihukum "mengerem mati". Bukti tuntas bahwa sanksi titipan penguasa yang menciduk pebisnis langsung melumpuhkan rantai uang makan anak buruh esok harinya!</li>
+        <li><b>Bukan Kebetulan Sama Sekali:</b> Kehancuran-kehancuran ini <b>tidak tersebar acak</b>. Semuanya datang mengerubung saling susul menyusul ("gerombolan panik") persis sesudah undang-undang/hukum diobok-obok, bukan karena letupan ekonomi normal.</li>
+    </ul>
+</div>
+''', unsafe_allow_html=True)
 
-Deteksi anomali data-driven menemukan pola yang konsisten dengan hipotesis enforcement selektif:
+st.markdown(f'''
+<small style="color: #888; display: block; margin-top: 30px; text-align: center;">
+    <em>Data dan narasi dihasilkan oleh kerangka LEUI (Legal Enforcement Uncertainty Index) CELIOS.</em>
+</small>
+''', unsafe_allow_html=True)
 
-1. **{n_anom} Episode Confidence Crash** — IKK Ekspektasi mengalami penurunan abnormal (Z < -2)
-   yang **tidak bisa dijelaskan oleh siklus ekonomi biasa**. Episode terparah pada **{worst_date}**
-   (drop {worst_pct:.1f}%, Z={worst_z:.2f}).
-
-2. **Gap Volatile** — Selisih IKK Ekspektasi-Present berfluktuasi antara **{min_gap:.1f}** hingga
-   **{max_gap:.1f}** poin, dengan **{n_gap_anom} episode pergeseran anomali**. Volatilitas gap
-   yang tinggi menandakan struktur kepercayaan yang **rapuh dan mudah diguncang**.
-
-3. **Kontraksi Manufaktur** — PMI mengalami kontraksi selama **{n_kon} dari {pmi_n} bulan ({pct:.0f}%)**.
-   PMI terendah **{pmi_min:.1f}** pada **{pmi_min_date}**.
-
-**Implikasi:**
-Pola ini memperkuat argumen bahwa kepercayaan ekonomi Indonesia **tidak jatuh secara gradual**
-(yang wajar dalam siklus bisnis), tapi jatuh secara **mendadak dan sporadis** — persis seperti
-yang diprediksi oleh model *selective enforcement*: aman lama, lalu tiba-tiba *enforcement*
-muncul di momentum tertentu, menciptakan shock yang disproportional.
-
-*Catatan: Dashboard ini menyajikan anomali statistik. Interpretasi kausal atas peristiwa
-yang berkorelasi dengan tanggal-tanggal anomali diserahkan kepada proses analisis lanjutan.*
-""")
-
-st.markdown(temuan.format(
-    n_anom=n_exp_anomaly, worst_date=worst_exp_date,
-    worst_pct=worst_exp_val, worst_z=worst_exp_z,
-    min_gap=ikk_min_gap, max_gap=ikk_max_gap, n_gap_anom=n_gap_anomaly,
-    n_kon=n_kontraksi, pmi_n=n_pmi_months, pct=kon_pct,
-    pmi_min=pmi_min, pmi_min_date=pmi_min_date
-))

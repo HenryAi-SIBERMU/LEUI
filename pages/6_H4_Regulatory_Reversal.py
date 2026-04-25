@@ -29,16 +29,7 @@ render_sidebar()
 # ── Styles ──
 st.markdown("""
 <style>
-.metric-card {
-    background: #1E1E1E;
-    border: 1px solid #333;
-    border-radius: 10px;
-    padding: 20px;
-    text-align: center;
-}
-.metric-value { font-size: 2rem; font-weight: 700; }
-.metric-label { font-size: 0.9rem; color: #AAA; margin-bottom: 5px; }
-.metric-delta { font-size: 0.8rem; font-weight: 600; }
+/* Base overrides */
 </style>
 """, unsafe_allow_html=True)
 
@@ -181,7 +172,7 @@ if os.path.exists(_churn_path) and os.path.exists(_rev_path):
     _max_churn = _df_churn['churn_rate'].max() if not _df_churn.empty else 0
 
 # ── Methodology ──
-with st.expander(_("🔍 Lihat Dapur Metodologi (Untuk Akademisi)"), expanded=False):
+with st.expander(_("🔍 Metodologi"), expanded=False):
     st.markdown(_("""
     **Causal Chain Law & Economics:**
     `Perubahan Aturan Hukum → Ketidakpastian → Persepsi Risiko → Biaya Ekonomi → Keputusan Investasi`
@@ -194,11 +185,11 @@ with st.expander(_("🔍 Lihat Dapur Metodologi (Untuk Akademisi)"), expanded=Fa
     """))
 
 # ── Intro Narrative ──
-intro = _("""Kerangka empiris **Regulatory Reversal Risk** menyoroti dampak destruktif dari perubahan kebijakan yang tiba-tiba terhadap stabilitas arus modal. Mengikuti rantai transmisi hukum: **Perubahan Aturan → Ketidakpastian → Persepsi Risiko → Biaya Ekonomi → Keputusan Investasi**, palka data historis mencatat **Regulatory Churn** berada di rekor puncaknya sebesar **{max_churn:.1f}%**. Aturan yang dicabut mendadak menciptakan iklim ketidakpastian absolut, mengangkat eskalasi **persepsi risiko** investor pada ancaman *stranded asset* (aset yang tidak bernilai/tersandera oleh diskresi sepihak pemerintah). 
+intro = _("""Teori **Aturan Berubah Mendadak (Regulatory Reversal Risk)** membongkar fakta seram bahwa investor sangat benci melihat aturan yang digusur atau diobrak-abrik dadakan. Dengan rantai efek domino: **Tsunami Aturan → Kepanikan Massal → Persepsi Risiko Melesat → Tembok Biaya Tinggi → Uang Kabur**. Data historis menangkap rekor pergantian bongkar-pasang peraturan kita pernah mencapai limit mengerikan **{max_churn:.1f}% (Regulatory Churn Rate)**.
 
-Ketidakpastian fundamental ini secara simetris mendongkrak **biaya ekonomi** tak terlihat dalam wujud tarikan *Risk Premium* ekstrem dari para manajer lindung nilai. Semua kerugian itu lantas dikonversi menjadi pergerakan sentimen **keputusan investasi** yang brutal berupa gelombang *Capital Flight*. Dalam {n_obs} periode kuartil observasi ({yr_start}–{yr_end}), panik masif mencetak **{n_anom} episode anomali ekstrem** dengan rekor *Net Sell* di titik tertinggi **{max_ns:.1f} Triliun Rupiah** (Z-Score {max_z:.2f}). Lenyapnya likuiditas skala makro membuktikan bahwa manuver hukum *"bongkar-pasang"* sama dengan tindakan melelang kepercayaan investasi ke titik terendah.""")
+Aturan yang sering dianulir penguasa/DPR menciptakan lubang gelap misteri bagi pebisnis. Investor yang trauma merasa di-prank sehingga ketakutan uangnya lenyap tertahan jadi aset rongsok (*Stranded asset*). Akhirnya modal mereka pun diterbangkan kabur keluar negeri merespons guncangan ini. Selama {n_obs} rekam jejak pengawasan ({yr_start}–{yr_end}), panik masif mencetak **{n_anom} titik "Kejang Jantungan" Ekstrem (Episode Anomali Z-Score > 2)**, dengan rekor Uang Minggat (*Net Sell*) sebesar **{max_ns:.1f} Triliun Rupiah** (Z-Score gila {max_z:.2f}). Lenyapnya ratusan triliun likuiditas ini menegaskan satu hukum alam: Mengakali kepastian hukum negara sendiri setara dengan melelang masa depan lapangan kerja.""")
 
-intro_src = _("Pasal.id API (Variabel Hukum/X) & Bond Net Sell Data CEIC/Bloomberg (Variabel Makroekonomi/Y).")
+intro_src = _("Pasal.id API (Variabel Hukum/X) & Catatan Net Sell Data CEIC/Bloomberg (Variabel Makroekonomi/Y).")
 
 st.markdown(
     intro.format(
@@ -216,32 +207,44 @@ st.markdown("### Eksekutif Summary (H4)")
 c1, c2, c3, c4 = st.columns(4)
 with c1:
     st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-label">Churn Rate Maksimum</div>
-        <div class="metric-value" style="color:#FF9800">{_max_churn:.1f}%</div>
-        <div class="metric-delta" style="color:#FF9800">Variabel Hukum (X)</div>
+    <div style="background:#3b1414; padding:20px; border-radius:10px; border-top:4px solid #FF9800; text-align:center; height:100%;">
+        <div style="font-size:0.9rem; color:#AAA;">Tingkat Tsunami Aturan (Churn Rate Maksimum)</div>
+        <div style="font-size:2rem; font-weight:bold; color:#FF9800;">{_max_churn:.1f}%</div>
+        <div style="font-size:0.8rem; font-weight:600; color:#FF9800; margin-bottom:10px;">Variabel Hukum (X)</div>
+        <p style="border-top:1px dotted #777; padding-top:10px; margin:0; font-size:0.75rem; color:#888; text-align:left;">
+            <b>Asal Angka:</b> Persentase aturan yg dicabut/dianulir terhadap total regulasi kumulatif pertahunnya.
+        </p>
     </div>""", unsafe_allow_html=True)
 with c2:
     st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-label">Net Sell Tertinggi</div>
-        <div class="metric-value" style="color:{C_ANOMALY}">{max_ns:.1f} Tn</div>
-        <div class="metric-delta" style="color:{C_WARN}">Variabel Ekonomi (Y)</div>
+    <div style="background:#3b1414; padding:20px; border-radius:10px; border-top:4px solid {C_ANOMALY}; text-align:center; height:100%;">
+        <div style="font-size:0.9rem; color:#AAA;">Rekor Modal Kabur (Net Sell Tertinggi)</div>
+        <div style="font-size:2rem; font-weight:bold; color:{C_ANOMALY};">{max_ns:.1f} Tn</div>
+        <div style="font-size:0.8rem; font-weight:600; color:{C_WARN}; margin-bottom:10px;">Variabel Ekonomi (Y)</div>
+        <p style="border-top:1px dotted #777; padding-top:10px; margin:0; font-size:0.75rem; color:#888; text-align:left;">
+            <b>Asal Angka:</b> Nilai penarikan modal obligasi (triliun rupiah) tebesar dalam satu periode.
+        </p>
     </div>""", unsafe_allow_html=True)
 with c3:
     st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-label">Episode Anomali Z>2</div>
-        <div class="metric-value" style="color:{C_ANOMALY}">{n_anomaly}</div>
-        <div class="metric-delta" style="color:#AAA">Kepanikan (Dampak Y)</div>
+    <div style="background:#3b1414; padding:20px; border-radius:10px; border-top:4px solid {C_ANOMALY}; text-align:center; height:100%;">
+        <div style="font-size:0.9rem; color:#AAA;">Titik Kejang Jantungan Ekstrem (Anomali)</div>
+        <div style="font-size:2rem; font-weight:bold; color:{C_ANOMALY};">{n_anomaly}</div>
+        <div style="font-size:0.8rem; font-weight:600; color:#AAA; margin-bottom:10px;">Kepanikan (Dampak Y)</div>
+        <p style="border-top:1px dotted #777; padding-top:10px; margin:0; font-size:0.75rem; color:#888; text-align:left;">
+            <b>Asal Angka:</b> Jumlah titik periode di mana skala kepanikan (Z-Score) menembus kewajaran > 2.0.
+        </p>
     </div>""", unsafe_allow_html=True)
 with c4:
     cv_color = C_ANOMALY if cv > 50 else C_WARN
     st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-label">Volatilitas Capital (CV)</div>
-        <div class="metric-value" style="color:{cv_color}">{cv:.1f}%</div>
-        <div class="metric-delta" style="color:{C_WARN}">Sangat Volatile</div>
+    <div style="background:#3b1414; padding:20px; border-radius:10px; border-top:4px solid {cv_color}; text-align:center; height:100%;">
+        <div style="font-size:0.9rem; color:#AAA;">Tingkat Goncangan Uang Beredar (Volatilitas)</div>
+        <div style="font-size:2rem; font-weight:bold; color:{cv_color};">{cv:.1f}%</div>
+        <div style="font-size:0.8rem; font-weight:600; color:{C_WARN}; margin-bottom:10px;">Ketidakpastian Absolut</div>
+        <p style="border-top:1px dotted #777; padding-top:10px; margin:0; font-size:0.75rem; color:#888; text-align:left;">
+            <b>Asal Angka:</b> Sebaran deviasi standar dibagi rata-rata arus modal (Coefficient of Variation).
+        </p>
     </div>""", unsafe_allow_html=True)
 
 st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
@@ -277,12 +280,22 @@ if not _df_churn.empty:
         template=PLOTLY_TEMPLATE,
         labels={"year": "Tahun Terbit", "churn_rate": "Churn Rate (%)"}
     )
+    # Anotasi Puncak Churn
+    if len(df_churn_plot) > 0:
+        worst_churn_idx = df_churn_plot['churn_rate'].idxmax()
+        worst_row = df_churn_plot.loc[worst_churn_idx]
+        fig_churn.add_annotation(
+            x=worst_row['year'], y=worst_row['churn_rate'],
+            text=f"Tsunami Aturan Puncak ({worst_row['churn_rate']:.1f}%)",
+            showarrow=True, arrowhead=2, arrowsize=1.5, arrowcolor="#E65100",
+            ax=0, ay=-30, font=dict(color="#E65100", size=11, weight="bold")
+        )
     fig_churn.update_layout(height=400, margin=dict(l=20, r=20, t=20, b=20), showlegend=False)
     st.plotly_chart(fig_churn, use_container_width=True)
     
     st.markdown(f"""
-    <div style="background:{C_BG}; padding:14px 20px; border-radius:10px; border-left:5px solid #FF9800; margin-bottom: 20px; margin-top: 5px;">
-        Sistem merangkum rekor <strong>Churn Rate absolut sebesar {_max_churn:.1f}%</strong> bertepatan di periode reformasi regulasi. Gejolak volatilitas pencabutan ini mewakili pukulan langsung dari <em>Variabel Hukum (X)</em> yang mengacaukan ekuilibrium dan mendongkrak skor sentimen krisis sebelum akhirnya diterjemahkan menjadi eksodus investasi.
+    <div style="background:#1E1E1E; padding:14px 20px; border-radius:10px; border-left:5px solid #FF9800; margin-bottom: 20px; margin-top: 5px;">
+        <b>Kesimpulan Kilat:</b> Sistem merangkum rekor <strong>Tsunami Aturan absolut sebesar {_max_churn:.1f}%</strong> bertepatan di periode diskresi regulasi mendadak. Gejolak volatilitas aturan yang dibongkar-pasang sepihak ini mewakili pukulan telak dari <em>Variabel Hukum (X)</em> yang mengacaukan kepastian usaha hingga memicu eksodus investasi besar-besaran.
     </div>
     """, unsafe_allow_html=True)
 
@@ -342,22 +355,39 @@ fig_ts.update_layout(
     yaxis_title="Net Sell (IDR Tn / Triliun)", xaxis_title="",
     margin=dict(l=20, r=20, t=40, b=20), hovermode="x unified", showlegend=False
 )
+
+if len(df) > 0:
+    worst_ts_idx = df["net_sell_idr_tn"].idxmax()
+    worst_ts = df.loc[worst_ts_idx]
+    fig_ts.add_annotation(
+        x=worst_ts['date'], y=worst_ts['net_sell_idr_tn'],
+        text=f"Rekor Terparah ({max_ns:.1f} Tn)",
+        showarrow=True, arrowhead=2, arrowsize=1.5, arrowcolor=C_ANOMALY,
+        ax=0, ay=-30, font=dict(color=C_ANOMALY, size=11, weight="bold")
+    )
+
 st.plotly_chart(fig_ts, use_container_width=True)
+
+st.markdown(f"""
+<div style="background:#1E1E1E; padding:14px 20px; border-radius:10px; border-left:5px solid {C_ANOMALY}; margin-bottom: 20px; margin-top: 5px;">
+    <b>Kesimpulan Kilat:</b> Algoritma berhasil memetakan <strong>{n_anomaly} titik "Nadi Kepanikan" (Skala Petaka Z-Score > 2)</strong>. Catatan rekor uang kabur terlama menembus batas <strong>{max_streak} minggu beruntun (non-stop)</strong> di mana investor tidak henti-hentinya mengangkat kaki karena iklim kepastian hukum sedang berantakan. Rekor terburuk menyentuh hilangnya <strong>{max_ns:.1f} Tn</strong> kekayaan negara.
+</div>
+""", unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════
 # 4.3 ISOLATION FOREST — DETEKSI ANOMALI (DAMPAK Y)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader("4.3 Dampak: Zona Merah Pelarian Modal (Deteksi Algoritma)")
-st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Machine Learning Isolation Forest (Variabel Y)</span>', unsafe_allow_html=True)
+st.subheader("4.3 Dampak: Zona Merah Pelarian Modal")
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Detektor Kepanikan (Machine Learning Isolation Forest / Variabel Y)</span>', unsafe_allow_html=True)
 
-iso_narr = """Algoritma **Isolation Forest** (Liu et al., 2008) mengisolasi data outlier melalui partisi acak rekursif. Prinsipnya: data anomali lebih mudah dipisahkan karena jumlahnya sedikit dan nilainya ekstrem. Dari {n} observasi, model mendeteksi **{n_anom} episode anomali** yang jatuh di dalam *zona merah* (decision boundary). Area merah pada grafik merepresentasikan wilayah di mana algoritma mengklasifikasikan observasi sebagai pelarian modal di luar pola normal — titik-titik di zona ini bukan fluktuasi wajar melainkan *capital flight episodes* yang dipicu guncangan regulasi."""
+iso_narr = """Model Detektor Kepanikan Massal berbasis kecerdasan buatan (**Isolation Forest**) bertugas mengepung outlier tanpa campur tangan teknis manual. Prinsipnya sederhana: aliran dana normal bersifat rutin dan padat, sedangkan anomali pelarian akibat ketakutan (seperti syok aturan baru) jumlah datanya terpisah jauh di pencilan yang esktrem (Zona Merah). Dari {n} pantauan minggu komersial ini, mesin mendeteksi **{n_anom} titik gila** di dalam _decision boundary_ merah, yang membuktikan goncangan drastis bukan terjadi karena murni siklus pasar bebas, melainkan _Capital Flight_ massal mengevakuasi investasi yang tertahan."""
 
-iso_src = f"Analisis Isolation Forest pada <code>capital_outflow.csv</code> ({n_obs} observasi, kontaminasi 15%)."
+iso_src = f"Analisis Detektor Kepanikan Isolation Forest pada <code>capital_outflow.csv</code> ({n_obs} observasi, kontaminasi 15%)."
 st.markdown(iso_narr.format(n=n_obs, n_anom=n_iso_anomaly) +
             f"\n\n<small>📁 <b>Sumber:</b> {iso_src}</small>", unsafe_allow_html=True)
-st.caption("📊 Visualisasi: Decision Boundary Scatter — zona merah = area anomali, zona biru = area normal. Diamond merah = episode anomali.")
+st.caption("📊 Visualisasi: Decision Boundary Scatter — zona merah = area kepanikan tak terkendali, zona biru = area aman normal.")
 
 # Decision Boundary Scatter Plot
 fig_iso = go.Figure()
@@ -366,7 +396,7 @@ fig_iso = go.Figure()
 fig_iso.add_hrect(
     y0=iso_threshold, y1=max_ns * 1.15,
     fillcolor="rgba(229,57,53,0.12)", line_width=0,
-    annotation_text="ZONA ANOMALI", annotation_position="top left",
+    annotation_text="ZONA KEPANIKAN (ANOMALI)", annotation_position="top left",
     annotation=dict(font=dict(color="#E53935", size=12, family="Arial Black"))
 )
 
@@ -379,7 +409,7 @@ fig_iso.add_hrect(
 # Threshold line
 fig_iso.add_hline(
     y=iso_threshold, line_dash="dash", line_color=C_WARN, line_width=2,
-    annotation_text=f"Decision Boundary: {iso_threshold:.1f} Tn",
+    annotation_text=f"Batas Kepanikan Massal: {iso_threshold:.1f} Tn",
     annotation=dict(font=dict(color=C_WARN, size=11))
 )
 
@@ -387,23 +417,33 @@ fig_iso.add_hline(
 df_normal = df[~df["is_iso_anomaly"]]
 fig_iso.add_trace(go.Scatter(
     x=df_normal["date"], y=df_normal["net_sell_idr_tn"],
-    mode="markers", name="Normal",
+    mode="markers", name="Aman",
     marker=dict(size=9, color=C_NET_SELL, opacity=0.8,
                 line=dict(width=1, color="#1565C0")),
-    hovertemplate="<b>%{x|%d %b %Y}</b><br>Net Sell: %{y:.2f} Tn<br>Status: Normal<extra></extra>"
+    hovertemplate="<b>%{x|%d %b %Y}</b><br>Net Sell: %{y:.2f} Tn<br>Status: Aman<extra></extra>"
 ))
 
 # Anomaly points
 df_anom = df[df["is_iso_anomaly"]]
 fig_iso.add_trace(go.Scatter(
     x=df_anom["date"], y=df_anom["net_sell_idr_tn"],
-    mode="markers+text", name="Anomali",
+    mode="markers+text", name="Kepanikan Abnormal!",
     marker=dict(size=16, color=C_ANOMALY, symbol="diamond",
                 line=dict(width=2, color="#fff")),
-    text=[f"{v:.1f}" for v in df_anom["net_sell_idr_tn"]],
+    text=["" for _ in df_anom["net_sell_idr_tn"]], # Hilangkan text duplikat agar panah bersih
     textposition="top center", textfont=dict(color=C_ANOMALY, size=10),
-    hovertemplate="<b>%{x|%d %b %Y}</b><br>Net Sell: %{y:.2f} Tn<br><b>ANOMALI</b><extra></extra>"
+    hovertemplate="<b>%{x|%d %b %Y}</b><br>Net Sell: %{y:.2f} Tn<br><b>Kepanikan Abnormal!</b><extra></extra>"
 ))
+
+if len(df_anom) > 0:
+    worst_iso_idx = df_anom["net_sell_idr_tn"].idxmax()
+    worst_iso = df_anom.loc[worst_iso_idx]
+    fig_iso.add_annotation(
+        x=worst_iso['date'], y=worst_iso['net_sell_idr_tn'],
+        text=f"Pencilan Terparah ({worst_iso['net_sell_idr_tn']:.1f} Tn)",
+        showarrow=True, arrowhead=2, arrowsize=1.5, arrowcolor=C_ANOMALY,
+        ax=0, ay=-30, font=dict(color=C_ANOMALY, size=11, weight="bold")
+    )
 
 # Mean reference line
 fig_iso.add_hline(y=mean_ns, line_dash="dot", line_color="#666", line_width=1,
@@ -418,13 +458,18 @@ fig_iso.update_layout(
 )
 st.plotly_chart(fig_iso, use_container_width=True)
 
+st.markdown(f"""
+<div style="background:#1E1E1E; padding:14px 20px; border-radius:10px; border-left:5px solid {C_WARN}; margin-bottom: 20px; margin-top: 5px;">
+    <b>Kesimpulan Kilat:</b> Menggunakan teknologi saringan algoritma <i>Isolation Forest ML</i>, teridentifikasi mutlak <strong>{n_iso_anomaly} titik merah menyala</strong>. Titik-titik *"Pencilan (Outlier)"* ini 100% melangkahi Batas Kepanikan ({iso_threshold:.1f} Tn) alias mustahil dikategorikan sebagai fluktuasi alamiah. Seluruhnya adalah sinergi "Uang Kabur Massal" (*Capital Flight*) merespons iklim hukum yang karut-marut.
+</div>
+""", unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════
 # 4.4 AGREGASI KUARTAL (DAMPAK Y)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader("4.4 Dampak: Tren Per Kuartal — Kerusakan Skala Besar")
-st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Quarterly Aggregation (Variabel Y)</span>', unsafe_allow_html=True)
+st.subheader("4.4 Dampak: Tren Kuartalan Skala Makro")
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Kumulatif Per Kuartal (Quarterly Aggregation / Variabel Y)</span>', unsafe_allow_html=True)
 
 q_narr = """Agregasi kuartalan menyaring *noise* mingguan untuk mengungkap daya rusak makroekonomi dari pencabutan kebijakan hukum. Kuartal terburuk berpusat pada **{worst_q}** yang menyapu bersih likuiditas hingga **{worst_val:.2f} IDR Tn / Triliun**. Jika lonjakan *outflow* tinggi pada satu kuartal namun segera mereda, itu terhitung reaksi syok sesaat. Namun, tinggi batang yang terus persisten di rasio atas mengindikasikan *regulatory reversal* bukan sekadar insiden tunggal, melainkan telah membeku menjadi iklim usaha yang struktural-destruktif bagi sentimen investasi."""
 
@@ -468,6 +513,17 @@ if len(q_agg) > 0:
                     annotation_text=f"Rata-rata Kuartal: {q_mean:.1f} Tn",
                     annotation=dict(font=dict(color="#888", size=10)))
 
+    # [NEW] Arrow Annotation Puncak Kuartal
+    if len(q_agg) > 0:
+        worst_q_idx2 = q_agg["total_sell"].idxmax()
+        worst_q_row2 = q_agg.loc[worst_q_idx2]
+        fig_q.add_annotation(
+            x=worst_q_row2['quarter_str'], y=worst_q_row2['total_sell'],
+            text=f"Kuartal Terhancur ({worst_q_row2['total_sell']:.1f} Tn)",
+            showarrow=True, arrowhead=2, arrowsize=1.5, arrowcolor=C_ANOMALY,
+            ax=0, ay=-30, font=dict(color=C_ANOMALY, size=11, weight="bold")
+        )
+
     fig_q.update_layout(
         template=PLOTLY_TEMPLATE, height=450,
         yaxis_title="Total Net Sell (IDR Tn / Triliun)", xaxis_title="",
@@ -475,6 +531,12 @@ if len(q_agg) > 0:
         margin=dict(l=20, r=20, t=40, b=20), barmode="group"
     )
     st.plotly_chart(fig_q, use_container_width=True)
+
+    st.markdown(f"""
+    <div style="background:#1E1E1E; padding:14px 20px; border-radius:10px; border-left:5px solid {C_ANOMALY}; margin-bottom: 20px; margin-top: 5px;">
+        <b>Kesimpulan Kilat:</b> Secara siklus makro, titik kuartal <strong>{worst_q}</strong> menyapu bersih pertahanan ekonomi kita dengan tewasnya kapital <strong>{worst_q_val:.1f} Triliun Rupiah</strong>. Batang ini membuktikan fenomena aturan plin-plan bukan sekadar gejolak seminggu-dua-minggu; namun mengkristal jadi ancaman mematikan berskala catur-wulan bertubi-tubi.
+    </div>
+    """, unsafe_allow_html=True)
 
 
 # ══════════════════════════════════════════════════
@@ -506,26 +568,18 @@ else:
 # FOOTER — Temuan Utama
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader("Interpretasi & Temuan Utama")
+st.subheader("3. Kesimpulan: Ancaman Aturan Berubah Mendadak (Regulatory Reversal)")
 
-temuan = """
-**Sintesis Temuan Utama (Law & Economics):**
-
-Sesuai dengan kerangka kerja Law & Economics, analisis empiris *Regulatory Reversal* ini membuktikan presisi struktur transmisi risiko yang berjalan mulus dan destruktif:
-`Perubahan Aturan Hukum → Ketidakpastian → Persepsi Risiko → Biaya Ekonomi → Keputusan Investasi`
-
-1. **Perubahan Aturan & Guncangan Ketidakpastian (Variabel X)** — Skala masif *Regulatory Churn Rate* (*turnover* regulasi) memproduksi instabilitas kebijakan tak terkendali. Lenyapnya preseden hukum konstan adalah defisit keadilan esensial yang membuat iklim korporasi dan modal asing berada pada posisi super rentan tanpa proteksi legal-statis.
- 
-2. **Persepsi Risiko & Lonjakan Biaya Ekonomi (Variabel Y)** — Sinyal guncangan itu langsung menjelma menjadi ancaman ketakutan *Stranded Asset*. Merespons persepsi risiko ini, volatilitas ekuivalen modal lari mencatatkan (CV bernilai tinggi **{cv:.1f}%**). Besaran inflasi pada struktur volatilitas ini adalah refleksi utuh **Biaya Ekonomi Premium**; mencetak sekurang-kurangnya **{n_anom} episode anomali kepanikan** di mana investor mengevakuasi likuiditas mereka menembus titik api **{max_val:.2f} IDR Triliun** pada 1 sumbu krisis.
-   
-3. **Realisasi Keputusan Tarik Investasi (Variabel Y)** — Tercekik oleh ongkos mitigasi dan ekspektasi laba yang tersandera di meja birokrasi, investor langsung melikuidasi portofolio mereka (*Capital Outflow*). Pada rekor ledakan terburuk di rezim **{worst_q}**, *net sell* menggulung nyaris **{worst_val:.2f} IDR Tn**. Lenyapnya modal ini merepresentasikan pukulan *"vote of no confidence"* institusional terhadap anomali diskresi struktural pemerintah.
-
-**Implikasi Final Rekomendasi:**
-Kebiasaan mencetak *"Regulatory Reversal"* alias modifikasi dan pembatalan sepihak tak lagi semata sebuah manuver administratif; melainkan tindakan reaktif yang **mensabotase likuiditas makroekonomi secara absolut**. Jika instrumen regulasi dipermainkan seperti rezim otoriter yang mudah diputarbalikkan, investor rasional akan menolak berinvestasi panjang; mengukuhkan posisi Indonesia di kelas papan bawah *investable-grade rating*.
-"""
-
-st.markdown(temuan.format(
-    cv=cv, max_val=max_ns,
-    n_anom=n_anomaly,
-    worst_q=worst_q, worst_val=worst_q_val
-))
+st.markdown(f"""
+<div style="background-color: #2F0A28; padding: 20px; border-radius: 10px; border-left: 5px solid #FF5252;">
+    <h4 style="color: #FF5252; margin-top: 0;">Sintesis Temuan (Law & Economics)</h4>
+    <p style="color: #F8BBD0; font-size: 0.95rem; margin-bottom: 15px;">
+        Keruntuhan logis transmisi investasi: <i>Tsunami Aturan → Uang Kabur Massal</i> benar-benar terbukti membawa kehancuran skala megaton terhadap kantong ekonomi Indonesia:
+    </p>
+    <ul style="color: #F8BBD0; font-size: 0.95rem; line-height: 1.6;">
+        <li><b>Tsunami Aturan (Variabel Hukum/X):</b> Rekor pencabutan regulasi <b>{_max_churn:.1f}%</b> pertahun menjadi biang kerok defisit <i>Predictability</i> (tidak ada yg tahu besok aturan apa yang ditebas), membuat semua perjanjian usaha rentan disobek sepihak.</li>
+        <li><b>Uang Kabur Massal (Variabel Ekonomi/Y):</b> Merespons iklim tak masuk akal ini, insting ketakutan investor terdeteksi meletupkan <b>{n_anomaly} Skala Petaka Kepanikan (Anomali Z-Score > 2)</b> yang menarik ratusan triliun devisa. Rekor tunggal mingguan menyentuh <b>{max_ns:.1f} Tn</b> hilang tak berbekas dalam sekejap mata.</li>
+        <li><b>Kerangka Kebangkrutan Siklus Penuh:</b> Di masa tergelap pemerintahan ({worst_q}), kapital lenyap hingga <b>{worst_q_val:.1f} Tn Rupiah</b>. Artinya, akrobat perundang-undangan (<i>Regulatory Reversal</i>) sebut saja dalam konteks perizinan lingkungan hidup atau perlindungan tenagakerja, memakan ongkos makroekonomi super mahal: melelang kepercayaan di ranah global dan memiskinkan dompet negara.</li>
+    </ul>
+</div>
+""", unsafe_allow_html=True)
