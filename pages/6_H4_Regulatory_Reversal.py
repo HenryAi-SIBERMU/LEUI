@@ -380,7 +380,7 @@ st.markdown(f"""
 # ══════════════════════════════════════════════════
 st.markdown("---")
 st.subheader("4.3 Dampak: Zona Merah Pelarian Modal")
-st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Detektor Kepanikan (Isolation Forest Anomaly Detection / Variabel Y)</span>', unsafe_allow_html=True)
+st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Detektor Kepanikan (Machine Learning Isolation Forest / Variabel Y)</span>', unsafe_allow_html=True)
 
 iso_narr = """Model Detektor Kepanikan Massal berbasis algoritma statistik (**Isolation Forest**) bertugas mengepung outlier tanpa campur tangan teknis manual. Prinsipnya sederhana: aliran dana normal bersifat rutin dan padat, sedangkan anomali pelarian akibat ketakutan (seperti syok aturan baru) jumlah datanya terpisah jauh di pencilan yang esktrem (Zona Merah). Dari {n} pantauan minggu komersial ini, mesin mendeteksi **{n_anom} titik gila** di dalam _decision boundary_ merah, yang membuktikan goncangan drastis bukan terjadi karena murni siklus pasar bebas, melainkan _Capital Flight_ massal mengevakuasi investasi yang tertahan."""
 
