@@ -306,7 +306,7 @@ st.subheader("3.2 Profil Kasus: Perkara Mangkrak vs Status Penyelesaian")
 st.markdown('<span style="background:#B71C1C;color:#FFCDD2;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Tabulasi Silang (Cross-Tabulation) & Chi-Square Test</span>', unsafe_allow_html=True)
 
 st.markdown(_("""
-Hipotesis utama narasi ini adalah bahwa sistem peradilan yang berlarut-larut (Procedural Uncertainty) justru **semakin tidak memberikan kepastian hukum**. Tabel crosstab dan uji Chi-Square di bawah menguji hipotesis ini secara statistik. Perkara dikelompokkan menjadi "Mangkrak (≥200 Hari)" dan "Normal (<200 Hari)", lalu disilangkan dengan status akhir sengketa ("Menggantung" vs "Selesai").
+Hipotesis utama narasi ini adalah bahwa sistem peradilan yang berlarut-larut (Procedural Uncertainty) justru **semakin tidak memberikan kepastian hukum**. Tabel crosstab dan uji Chi-Square di bawah menguji hipotesis ini secara statistik. Perkara dikelompokkan menjadi "Mangkrak (≥30 Hari)" dan "Normal (<30 Hari)", lalu disilangkan dengan status akhir sengketa ("Menggantung" vs "Selesai").
 
 <small>📁 <b>Sumber:</b> Data putusan SIPP (<code>sipp_corporate_wanprestasi.csv</code>). Variabel Independen: Durasi Perkara. Variabel Dependen: Status Akhir Perkara.</small>
 """), unsafe_allow_html=True)
@@ -321,7 +321,8 @@ if os.path.exists(_sipp_raw_path):
         
         # --- 1. Data Preparation (Binning) ---
         # Variabel X: Intensitas Mangkrak
-        df["X_Label"] = df['durasi_hari'].fillna(0).apply(lambda x: "Mangkrak (≥200 Hari)" if x >= 200 else "Normal (<200 Hari)")
+        # Dataset SIPP wanprestasi korporasi ini memiliki range 0-60 hari untuk tahap tertentu, kita ambil threshold median/kuartil atas yaitu 30 Hari.
+        df["X_Label"] = df['durasi_hari'].fillna(0).apply(lambda x: "Mangkrak (≥30 Hari)" if x >= 30 else "Normal (<30 Hari)")
         
         # Variabel Y: Status Perkara
         def map_status(val):
@@ -339,7 +340,7 @@ if os.path.exists(_sipp_raw_path):
         df_valid = df[df["Y_Temp"].isin(["Selesai (Putus)", "Menggantung"])].copy()
         df_valid["Y_Label"] = df_valid["Y_Temp"]
         
-        cats_x = ["Normal (<200 Hari)", "Mangkrak (≥200 Hari)"]
+        cats_x = ["Normal (<30 Hari)", "Mangkrak (≥30 Hari)"]
         cats_y = ["Selesai (Putus)", "Menggantung"]
         
         # Create Crosstab
@@ -453,7 +454,7 @@ if os.path.exists(_sipp_raw_path):
             if is_significant:
                 st.error("""
                 **Interpretasi Kritis:**
-                Hasil uji Chi-Square menunjukkan hubungan **sangat signifikan**. Odds Ratio di atas membuktikan bahwa kasus yang sudah terlanjur berumur lebih dari 200 hari (Mangkrak) memiliki kecenderungan mutlak untuk **terus menggantung tanpa putusan**. 
+                Hasil uji Chi-Square menunjukkan hubungan **sangat signifikan**. Odds Ratio di atas membuktikan bahwa kasus yang sudah terlanjur berumur lebih dari 30 hari (Mangkrak) memiliki kecenderungan mutlak untuk **terus menggantung tanpa putusan**. 
                 
                 Ini membuktikan bahwa sistem peradilan perdata *business* kita bertindak layaknya "lubang hitam": **Semakin lama kasus tertunda, semakin besar kemungkinannya untuk dibiarkan mati tanpa kepastian**. Bagi korporasi, modal mereka tersandera total dan membusuk di meja sidang, menghancurkan seluruh rasionalitas perhitungan *Return on Investment* (ROI).
                 """)
