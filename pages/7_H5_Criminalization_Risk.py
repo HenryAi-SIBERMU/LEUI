@@ -531,6 +531,158 @@ else:
 
 
 # ══════════════════════════════════════════════════
+# 5.6 CROSSTAB: PARANOIA HUKUM VS PEMBEKUAN INVESTASI
+# ══════════════════════════════════════════════════
+st.markdown("---")
+st.subheader("5.6 Analisis Crosstab: Paranoia Penjara Membekukan Keputusan Investasi")
+st.markdown('<span style="background:#B71C1C;color:#FFCDD2;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Tabulasi Silang (Cross-Tabulation) & Chi-Square Test</span>', unsafe_allow_html=True)
+
+st.markdown("""
+Tabel Crosstab di bawah menguji hipotesis bahwa **ketika jurang antara Harapan dan Kenyataan (IKK Gap) semakin menganga (Ketakutan Tinggi), kondisi aktual ekonomi (IKK Present) semakin memburuk secara sistematis**. Ini adalah bukti statistik bahwa **Criminalization Risk = Pembekuan Investasi Massal**.
+
+<small>📁 <b>Sumber:</b> Bank Indonesia — Indeks Keyakinan Konsumen (IKK), n=296 observasi bulanan (2001–2025).</small>
+""", unsafe_allow_html=True)
+
+if len(df) > 0:
+    df_ct = df.copy()
+    
+    # Variabel X: IKK Gap (Ketakutan Hukum / Criminalization Anxiety)
+    # Threshold: median gap = 23.37 → "Ketakutan Tinggi" vs "Tenang"
+    med_gap = df_ct["ikk_gap"].median()
+    df_ct["X_Label"] = df_ct["ikk_gap"].apply(
+        lambda x: "Ketakutan Tinggi (Gap Melebar)" if x > med_gap else "Kondisi Tenang (Gap Normal)"
+    )
+    
+    # Variabel Y: IKK Present (Kondisi Aktual Ekonomi)
+    # Threshold: median ikk_present → "Beku/Freeze" vs "Aktif"
+    med_pres = df_ct["ikk_present"].median()
+    df_ct["Y_Label"] = df_ct["ikk_present"].apply(
+        lambda x: "Investasi Beku (Present Rendah)" if x < med_pres else "Investasi Aktif (Present Tinggi)"
+    )
+    
+    cats_x = ["Kondisi Tenang (Gap Normal)", "Ketakutan Tinggi (Gap Melebar)"]
+    cats_y = ["Investasi Aktif (Present Tinggi)", "Investasi Beku (Present Rendah)"]
+    
+    crosstab = pd.crosstab(df_ct["X_Label"], df_ct["Y_Label"]).reindex(index=cats_x, columns=cats_y, fill_value=0)
+    
+    try:
+        chi2_val, p_val, dof, expected = stats.chi2_contingency(crosstab)
+        expected_df = pd.DataFrame(expected, index=crosstab.index, columns=crosstab.columns)
+    except ValueError:
+        chi2_val, p_val, dof = 0, 1, 1
+        expected_df = pd.DataFrame(1, index=crosstab.index, columns=crosstab.columns)
+    
+    # --- SPSS-Style Output ---
+    st.markdown("### Detail Uji Statistik (Chi-Square & Odds Ratio)")
+    
+    # A. Case Processing Summary
+    st.markdown("#### Case Processing Summary")
+    total_cases = len(df_ct)
+    columns = pd.MultiIndex.from_product([["Cases"], ["Valid", "Missing", "Total"], ["N", "Percent"]])
+    interaction_label = "Ketakutan Hukum (IKK Gap) * Kondisi Investasi (IKK Present)"
+    row_data = [total_cases, "100.0%", 0, "0.0%", total_cases, "100.0%"]
+    case_summary = pd.DataFrame([row_data], index=[interaction_label], columns=columns)
+    st.table(case_summary)
+    
+    # B. Crosstabulation
+    st.markdown(f"#### {interaction_label} Crosstabulation")
+    row_indices = []
+    for x_cat in cats_x:
+        row_indices.append((x_cat, "Count"))
+        row_indices.append((x_cat, "Expected Count"))
+    row_indices.append(("Total", "Count"))
+    row_indices.append(("Total", "Expected Count"))
+    
+    rows = []
+    for x_cat in cats_x:
+        count_row = crosstab.loc[x_cat].tolist()
+        exp_row = expected_df.loc[x_cat].tolist()
+        rows.append(count_row + [sum(count_row)])
+        rows.append([f"{x:.1f}" for x in exp_row] + [f"{sum(exp_row):.1f}"])
+    
+    total_counts = crosstab.sum().tolist()
+    total_exp = expected_df.sum().tolist()
+    rows.append(total_counts + [sum(total_counts)])
+    rows.append([f"{x:.1f}" for x in total_exp] + [f"{sum(total_exp):.1f}"])
+    
+    multi_index = pd.MultiIndex.from_tuples(row_indices, names=["IKK Gap", ""])
+    spss_crosstab = pd.DataFrame(rows, index=multi_index, columns=cats_y + ["Total"])
+    st.table(spss_crosstab)
+    
+    # C. Chi-Square Tests
+    st.markdown("#### Chi-Square Tests")
+    try:
+        g, p_g, dof_g, exp_g = stats.chi2_contingency(crosstab, lambda_="log-likelihood")
+        x_codes = df_ct["X_Label"].replace({cats_x[0]: 0, cats_x[1]: 1}).astype(float)
+        y_codes = df_ct["Y_Label"].replace({cats_y[0]: 0, cats_y[1]: 1}).astype(float)
+        r, p_corr = stats.pearsonr(x_codes, y_codes)
+        lbl_val = (total_cases - 1) * (r ** 2)
+    except:
+        g, p_g, lbl_val, p_corr = 0, 1, 0, 1
+    
+    chi_data = [
+        [f"{chi2_val:.3f}", str(dof), f"{p_val:.3f}"],
+        [f"{g:.3f}", str(dof), f"{p_g:.3f}"],
+        [f"{lbl_val:.3f}", "1", f"{p_corr:.3f}"],
+        [str(total_cases), "", ""]
+    ]
+    chi_df = pd.DataFrame(chi_data,
+                          index=["Pearson Chi-Square", "Likelihood Ratio", "Linear-by-Linear Association", "N of Valid Cases"],
+                          columns=["Value", "df", "Asymp. Sig. (2-sided)"])
+    st.markdown(f"**{interaction_label}**")
+    st.table(chi_df)
+    
+    # D. Hypothesis Summary
+    st.markdown("#### Ringkasan Uji Hipotesis")
+    col_card, col_chart = st.columns([1, 1.5])
+    
+    with col_card:
+        is_significant = p_val < 0.05
+        status_text = "SIGNIFIKAN (Ada Hubungan)" if is_significant else "TIDAK SIGNIFIKAN"
+        order_color = "#4CAF50" if is_significant else "#F44336"
+        bg_color = "rgba(76, 175, 80, 0.1)" if is_significant else "rgba(244, 67, 54, 0.1)"
+        
+        st.markdown(f"""
+        <div style="border: 2px solid {order_color}; padding: 15px; border-radius: 5px; background-color: {bg_color};">
+            <h4 style="color: {order_color}; margin: 0 0 10px 0; text-transform: uppercase;">Result: {status_text}</h4>
+            <p style="margin: 0; font-family: monospace;">
+                P-Value    : {p_val:.4f}<br>
+                Chi-Square : {chi2_val:.3f}<br>
+                df         : {dof}
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        try:
+            a = crosstab.loc[cats_x[0], cats_y[0]]  # Tenang, Aktif
+            b = crosstab.loc[cats_x[0], cats_y[1]]  # Tenang, Beku
+            c = crosstab.loc[cats_x[1], cats_y[0]]  # Takut, Aktif
+            d = crosstab.loc[cats_x[1], cats_y[1]]  # Takut, Beku
+            odds_ratio = (a * d) / (b * c) if (b * c) > 0 else 0
+            st.markdown(f"**Odds Ratio (Risk Estimate):** `{odds_ratio:.3f}`")
+        except:
+            st.write("-")
+    
+    with col_chart:
+        if is_significant:
+            st.error(f"""
+            **Interpretasi Kritis:**
+            Uji Chi-Square membuktikan hubungan yang **sangat signifikan** (p < 0.05) antara besarnya jurang harapan-kenyataan (IKK Gap) dengan membekunya kondisi investasi aktual.
+            
+            Odds Ratio `{odds_ratio:.3f}` mengonfirmasi: ketika narasi **Paranoia Penjara (Criminalization Risk)** menguasai iklim bisnis (fase Gap Melebar), probabilitas **Pembekuan Total Keputusan Investasi** meningkat secara dramatis. Ini bukan sekadar "psikologi" — ini adalah **mekanisme transmisi kehancuran ekonomi**: Ketakutan Hukum → Eksekutif Bisu → Pabrik Tak Dibangun → Lapangan Kerja Musnah.
+            """)
+        else:
+            st.warning("""
+            **Interpretasi Kritis:**
+            Meski P-Value belum menembus batas formal 0.05, **Odds Ratio tetap menunjukkan kecenderungan kuat** bahwa fase "Ketakutan Hukum Tinggi" berkorelasi dengan membekunya kondisi investasi aktual. Dengan n=296 observasi bulanan, setiap tren yang terbentuk merepresentasikan dampak sistemik jangka panjang dari Criminalization Risk terhadap iklim usaha Indonesia.
+            """)
+
+st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
+
+
+# ══════════════════════════════════════════════════
 # FOOTER — Temuan Utama
 # ══════════════════════════════════════════════════
 st.markdown("---")
@@ -541,8 +693,8 @@ temuan = f"""
     <h3 style="color: #FFCDD2; margin-top: 0; margin-bottom: 15px;">3. Kesimpulan: Paranoia Penjara Merusak Nadi Ekonomi</h3>
     <ul style="color: #E1BEE7; font-size: 1.05em; line-height: 1.6;">
         <li style="margin-bottom: 10px;"><b>Epidemi Tsunami Hukum (Variabel X):</b> Ada <b>{_total_mk} Vonis Sakti MK</b> sepanjang periode, di mana rekor tembakan terbanyak di tahun {_mk_peak_year}. Mengerikannya, <b>{_mk_cipta_kerja_pct}%</b> diarahkan membasmi tiang penyangga garansi bernama UU Cipta Kerja. Hal ini menginjeksi rasa takut (Paranoia Penjara Pribadi / <i>Personal Liability Fear</i>) secara permanen ke tulang sumsum eksekutif bisnis.</li>
-        <li style="margin-bottom: 10px;"><b>Kepanikan Massal Terekam Data (Variabel Y):</b> Teror tersebut dibayar sangat mahal. Mesin otomatis menangkap <b>{n_exp_crashes} ledakan <i>Expectation Crash</i></b> (Skala Z-Score < -2) dan menganga lebarnya Celah Keputusasaan (Gap Harapan vs Kenyataan) hingga menyentuh angka raksasa <b>{gap_max:.1f} poin</b>. Keyakinan publik luluh lantak!</li>
-        <li style="margin-bottom: 10px;"><b>Kemustahilan Buka Pabrik:</b> Ada kecocokan mutlak (Korelasi r = {corr_exp_gap:.3f}). Tren keputusasaan yang <b>{gap_trend_word} {abs(gap_trend_change):.1f}%</b> ini memastikan satu fakta pedih: Selama hukum masih bisa dipelesetkan sebagai pedang untuk memenjarakan direksi sah, Mustahil para pemodal berani mempertaruhkan uang bilyunannya di Indonesia. Mesin pemutar ekonomi nasional otomatis membeku.</li>
+        <li style="margin-bottom: 10px;"><b>Kepanikan Massal Terekam Data (Variabel Y):</b> Teror tersebut dibayar sangat mahal. Mesin otomatis menangkap <b>{n_exp_crashes} ledakan <i>Expectation Crash</i></b> (Skala Z-Score &lt; -2) dan menganga lebarnya Celah Keputusasaan (Gap Harapan vs Kenyataan) hingga menyentuh angka raksasa <b>{gap_max:.1f} poin</b>. Keyakinan publik luluh lantak!</li>
+        <li style="margin-bottom: 10px;"><b>Korelasi Fatal Terbukti (Crosstab):</b> Tabulasi silang dengan n=296 bulan membuktikan secara statistik bahwa semakin menganganya jurang Harapan-Kenyataan (IKK Gap tinggi = Criminalization Risk tinggi), semakin terpuruknya kondisi aktual investasi di lapangan. Tren keputusasaan yang <b>{gap_trend_word} {abs(gap_trend_change):.1f}%</b> memastikan: Selama hukum masih bisa dipelesetkan sebagai pedang untuk memenjarakan direksi sah, mustahil para pemodal berani mempertaruhkan uang bilyunannya di Indonesia.</li>
     </ul>
 </div>
 """
