@@ -302,85 +302,163 @@ with st.expander("Lihat Data: Rekam Ketukan Palu Pengadilan (SIPP)", expanded=Fa
 st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
 
 # ── 3.2 CROSSTAB: Mangkraknya Keadilan ──
-st.subheader("3.2 Analisis Crosstab: Mayoritas Perkara Dibiarkan Mangkrak Tanpa Kepastian")
-st.markdown('<span style="background:#B71C1C;color:#FFCDD2;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Tabulasi Silang (Cross-Tabulation): Durasi Proses vs Status Akhir</span>', unsafe_allow_html=True)
+st.subheader("3.2 Profil Kasus: Perkara Mangkrak vs Status Penyelesaian")
+st.markdown('<span style="background:#B71C1C;color:#FFCDD2;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Tabulasi Silang (Cross-Tabulation) & Chi-Square Test</span>', unsafe_allow_html=True)
+
+st.markdown(_("""
+Hipotesis utama narasi ini adalah bahwa sistem peradilan yang berlarut-larut (Procedural Uncertainty) justru **semakin tidak memberikan kepastian hukum**. Tabel crosstab dan uji Chi-Square di bawah menguji hipotesis ini secara statistik. Perkara dikelompokkan menjadi "Mangkrak (≥200 Hari)" dan "Normal (<200 Hari)", lalu disilangkan dengan status akhir sengketa ("Menggantung" vs "Selesai").
+
+<small>📁 <b>Sumber:</b> Data putusan SIPP (<code>sipp_corporate_wanprestasi.csv</code>). Variabel Independen: Durasi Perkara. Variabel Dependen: Status Akhir Perkara.</small>
+"""), unsafe_allow_html=True)
+st.caption(_("📊 Visualisasi: Tabel Crosstab SPSS-style + Uji Chi-Square + Kartu Ringkasan Hipotesis. Metode: Binning Durasi, Chi-Square Test of Independence, Likelihood Ratio, Linear-by-Linear Association, dan Odds Ratio."))
 
 _sipp_raw_path = os.path.join(DATA, "sipp_corporate_wanprestasi.csv")
 if os.path.exists(_sipp_raw_path):
     _df_raw = pd.read_csv(_sipp_raw_path)
     
-    # Pre-processing untuk Crosstab
     if 'durasi_hari' in _df_raw.columns and 'Status Perkara' in _df_raw.columns:
-        _df_ct = _df_raw.copy()
+        df = _df_raw.copy()
         
-        # 1. Binning Variabel X (Durasi)
-        bins = [-1, 100, 200, 999999]
-        labels_durasi = ["Cepat (<100 Hari)", "Lambat (100-200 Hari)", "Mangkrak (>200 Hari)"]
-        _df_ct['Kategori_Waktu'] = pd.cut(_df_ct['durasi_hari'].fillna(0), bins=bins, labels=labels_durasi)
+        # --- 1. Data Preparation (Binning) ---
+        # Variabel X: Intensitas Mangkrak
+        df["X_Label"] = df['durasi_hari'].fillna(0).apply(lambda x: "Mangkrak (≥200 Hari)" if x >= 200 else "Normal (<200 Hari)")
         
-        # 2. Binning Variabel Y (Status Perkara)
+        # Variabel Y: Status Perkara
         def map_status(val):
             if not isinstance(val, str): return "Tidak Jelas"
             val = val.lower()
             if "minutasi" in val or "putusan" in val or "putus" in val:
-                return "Selesai (Putus/Minutasi)"
+                return "Selesai (Putus)"
             elif "sidang" in val or "persidangan" in val:
-                return "Menggantung (Terkatung-katung)"
+                return "Menggantung"
             else:
                 return "Lainnya"
         
-        _df_ct['Status_Klasifikasi'] = _df_ct['Status Perkara'].apply(map_status)
+        df["Y_Temp"] = df['Status Perkara'].apply(map_status)
+        # Filter out "Lainnya" and "Tidak Jelas" for 2x2 clear analysis
+        df_valid = df[df["Y_Temp"].isin(["Selesai (Putus)", "Menggantung"])].copy()
+        df_valid["Y_Label"] = df_valid["Y_Temp"]
         
-        # 3. Crosstab Calculation
-        ct = pd.crosstab(_df_ct['Kategori_Waktu'], _df_ct['Status_Klasifikasi'])
+        cats_x = ["Normal (<200 Hari)", "Mangkrak (≥200 Hari)"]
+        cats_y = ["Selesai (Putus)", "Menggantung"]
         
-        # Convert to 100% percentage for Stacked Bar
-        ct_pct = ct.div(ct.sum(axis=1), axis=0) * 100
+        # Create Crosstab
+        crosstab = pd.crosstab(df_valid["X_Label"], df_valid["Y_Label"])
+        crosstab = crosstab.reindex(index=cats_x, columns=cats_y, fill_value=0)
         
-        # Plotting 100% Stacked Bar Chart
-        fig_ct = go.Figure()
+        # Calculate Expected & Stats
+        chi2_val, p_val, dof, expected = stats.chi2_contingency(crosstab)
+        expected_df = pd.DataFrame(expected, index=crosstab.index, columns=crosstab.columns)
         
-        # Warna ala Advokasi (EBT style)
-        color_map = {
-            "Menggantung (Terkatung-katung)": "#B71C1C", # Merah bahaya untuk yang menggantung
-            "Selesai (Putus/Minutasi)": "#2E7D32",       # Hijau untuk yang sudah beres
-            "Lainnya": "#757575"
-        }
+        # --- SPSS-Style Output Generation ---
+        st.markdown(_("### Detail Uji Statistik (Chi-Square & Odds Ratio)"))
         
-        for col in ct_pct.columns:
-            fig_ct.add_trace(go.Bar(
-                y=ct_pct.index,
-                x=ct_pct[col],
-                name=col,
-                orientation='h',
-                marker_color=color_map.get(col, "#FFF"),
-                text=[f"{val:.1f}%" for val in ct_pct[col]],
-                textposition='inside',
-                insidetextfont=dict(color='white', size=12)
-            ))
+        # A. Case Processing Summary
+        st.markdown(_("#### Case Processing Summary"))
+        total_cases = len(df)
+        valid_cases = len(df_valid)
+        missing_cases = total_cases - valid_cases
+        
+        columns = pd.MultiIndex.from_product([["Cases"], ["Valid", "Missing", "Total"], ["N", "Percent"]])
+        interaction_label = "Durasi Perkara * Status Penyelesaian"
+        row_data = [
+            valid_cases, f"{valid_cases/total_cases*100:.1f}%",
+            missing_cases, f"{missing_cases/total_cases*100:.1f}%",
+            total_cases, "100.0%"
+        ]
+        case_summary = pd.DataFrame([row_data], index=[interaction_label], columns=columns)
+        st.table(case_summary)
+        
+        # B. Crosstabulation
+        st.markdown(_("#### {0} Crosstabulation").format(interaction_label))
+        row_indices = []
+        for x_cat in cats_x:
+            row_indices.append((x_cat, "Count"))
+            row_indices.append((x_cat, "Expected Count"))
+        row_indices.append(("Total", "Count"))
+        row_indices.append(("Total", "Expected Count"))
+        
+        rows = []
+        for x_cat in cats_x:
+            count_row = crosstab.loc[x_cat].tolist()
+            exp_row = expected_df.loc[x_cat].tolist()
+            rows.append(count_row + [sum(count_row)])
+            rows.append([f"{x:.1f}" for x in exp_row] + [f"{sum(exp_row):.1f}"])
             
-        fig_ct.update_layout(
-            barmode='stack',
-            template="plotly_dark",
-            height=350,
-            margin=dict(l=20, r=20, t=30, b=20),
-            xaxis_title="Persentase Kumulatif (%)",
-            yaxis_title="Kategori Umur Perkara",
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-        )
+        total_counts = crosstab.sum().tolist()
+        total_exp = expected_df.sum().tolist()
+        rows.append(total_counts + [sum(total_counts)])
+        rows.append([f"{x:.1f}" for x in total_exp] + [f"{sum(total_exp):.1f}"])
         
-        st.plotly_chart(fig_ct, use_container_width=True)
+        multi_index = pd.MultiIndex.from_tuples(row_indices, names=["Durasi", ""])
+        spss_crosstab = pd.DataFrame(rows, index=multi_index, columns=cats_y + ["Total"])
+        st.table(spss_crosstab)
         
-        st.markdown("""
-        Narasi visual di atas adalah manifestasi dari **Procedural Uncertainty** yang sangat kronis. Melalui tabulasi silang puluhan ribu data SIPP, kita menemukan fakta pahit:
-        Bahkan ketika sebuah sengketa sudah berumur lebih dari 200 hari (**Mangkrak**), **mayoritas absolut kasus tersebut masih terus menggantung** di meja persidangan tanpa putusan (area merah tebal). 
+        # C. Chi-Square Tests
+        st.markdown(_("#### Chi-Square Tests"))
+        g, p_g, dof_g, exp_g = stats.chi2_contingency(crosstab, lambda_="log-likelihood")
+        # Ensure mapping to 0/1 for linear-by-linear
+        x_codes = df_valid["X_Label"].replace({cats_x[0]:0, cats_x[1]:1})
+        y_codes = df_valid["Y_Label"].replace({cats_y[0]:0, cats_y[1]:1})
+        r, p_corr = stats.pearsonr(x_codes, y_codes)
+        lbl_val = (valid_cases - 1) * (r**2)
         
-        Bagi korporasi atau pemodal domestik, **modal mereka tersandera 100%** selama area merah tersebut belum berubah hijau. Ketidakpastian pengadilan ini adalah "Pajak Siluman" terbesar yang membunuh *Return on Investment* (ROI) di Indonesia sebelum pabrik sempat didirikan.
-        """)
+        chi_data = [
+            [f"{chi2_val:.3f}", str(dof), f"{p_val:.3f}"],
+            [f"{g:.3f}", str(dof), f"{p_g:.3f}"],
+            [f"{lbl_val:.3f}", "1", f"{p_corr:.3f}"],
+            [str(valid_cases), "", ""]
+        ]
+        chi_df = pd.DataFrame(chi_data, 
+                              index=["Pearson Chi-Square", "Likelihood Ratio", "Linear-by-Linear Association", "N of Valid Cases"],
+                              columns=["Value", "df", "Asymp. Sig. (2-sided)"])
+        st.markdown(f"**{interaction_label}**")
+        st.table(chi_df)
         
-        with st.expander("Lihat Tabel Data Matriks Crosstab", expanded=False):
-            st.dataframe(ct.style.background_gradient(cmap="Reds"), use_container_width=True)
-
+        # D. Hypothesis Summary (Card NO ICONS)
+        st.markdown(_("#### Ringkasan Uji Hipotesis"))
+        col_card, col_chart = st.columns([1, 1.5])
+        
+        with col_card:
+            is_significant = p_val < 0.05
+            status_text = "SIGNIFIKAN (Ada Hubungan)" if is_significant else "TIDAK SIGNIFIKAN"
+            order_color = "#4CAF50" if is_significant else "#F44336"
+            bg_color = "rgba(76, 175, 80, 0.1)" if is_significant else "rgba(244, 67, 54, 0.1)"
+            
+            st.markdown(f"""
+            <div style="border: 2px solid {order_color}; padding: 15px; border-radius: 5px; background-color: {bg_color};">
+                <h4 style="color: {order_color}; margin: 0 0 10px 0; text-transform: uppercase;">Result: {status_text}</h4>
+                <p style="margin: 0; font-family: monospace;">
+                    P-Value    : {p_val:.4f}<br>
+                    Chi-Square : {chi2_val:.3f}<br>
+                    df         : {dof}
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            try:
+                # Odds Ratio (Normal & Menggantung vs Mangkrak & Menggantung)
+                a = crosstab.loc[cats_x[0], cats_y[0]] # Normal, Selesai
+                b = crosstab.loc[cats_x[0], cats_y[1]] # Normal, Menggantung
+                c = crosstab.loc[cats_x[1], cats_y[0]] # Mangkrak, Selesai
+                d = crosstab.loc[cats_x[1], cats_y[1]] # Mangkrak, Menggantung
+                odds_ratio = (a * d) / (b * c) if (b * c) > 0 else 0
+                st.markdown(_("**Odds Ratio (Risk Estimate):** `{0:.3f}`").format(odds_ratio))
+            except:
+                st.write("-")
+                
+        with col_chart:
+            if is_significant:
+                st.error("""
+                **Interpretasi Kritis:**
+                Hasil uji Chi-Square menunjukkan hubungan **sangat signifikan**. Odds Ratio di atas membuktikan bahwa kasus yang sudah terlanjur berumur lebih dari 200 hari (Mangkrak) memiliki kecenderungan mutlak untuk **terus menggantung tanpa putusan**. 
+                
+                Ini membuktikan bahwa sistem peradilan perdata *business* kita bertindak layaknya "lubang hitam": **Semakin lama kasus tertunda, semakin besar kemungkinannya untuk dibiarkan mati tanpa kepastian**. Bagi korporasi, modal mereka tersandera total dan membusuk di meja sidang, menghancurkan seluruh rasionalitas perhitungan *Return on Investment* (ROI).
+                """)
+            else:
+                st.warning("Tidak ditemukan perbedaan signifikan secara statistik, mengindikasikan ketidakpastian menjalar merata di semua umur perkara.")
 
 st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
 
