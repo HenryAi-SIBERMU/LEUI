@@ -600,10 +600,10 @@ if len(df) > 0:
         expected_df = pd.DataFrame(1, index=crosstab.index, columns=crosstab.columns)
     
     # --- SPSS-Style Output Generation ---
-    st.markdown(_("### Detail Uji Statistik (Chi-Square & Odds Ratio)"))
+    st.markdown("### Detail Uji Statistik (Chi-Square & Odds Ratio)")
     
     # A. Case Processing Summary
-    st.markdown(_("#### Case Processing Summary"))
+    st.markdown("#### Case Processing Summary")
     total_cases = len(df_ct)
     
     columns = pd.MultiIndex.from_product([["Cases"], ["Valid", "Missing", "Total"], ["N", "Percent"]])
@@ -617,7 +617,7 @@ if len(df) > 0:
     st.table(case_summary)
     
     # B. Crosstabulation
-    st.markdown(_("#### {0} Crosstabulation").format(interaction_label))
+    st.markdown(f"#### {interaction_label} Crosstabulation")
     row_indices = []
     for x_cat in cats_x:
         row_indices.append((x_cat, "Count"))
@@ -642,7 +642,7 @@ if len(df) > 0:
     st.table(spss_crosstab)
     
     # C. Chi-Square Tests
-    st.markdown(_("#### Chi-Square Tests"))
+    st.markdown("#### Chi-Square Tests")
     try:
         g, p_g, dof_g, exp_g = stats.chi2_contingency(crosstab, lambda_="log-likelihood")
         x_codes = df_ct["X_Label"].replace({cats_x[0]:0, cats_x[1]:1}).astype(float)
@@ -665,7 +665,7 @@ if len(df) > 0:
     st.table(chi_df)
     
     # D. Hypothesis Summary (Card)
-    st.markdown(_("#### Ringkasan Uji Hipotesis"))
+    st.markdown("#### Ringkasan Uji Hipotesis")
     col_card, col_chart = st.columns([1, 1.5])
     
     with col_card:
@@ -694,7 +694,7 @@ if len(df) > 0:
             c = crosstab.loc[cats_x[1], cats_y[0]] # Labil, Normal
             d = crosstab.loc[cats_x[1], cats_y[1]] # Labil, Panik
             odds_ratio = (a * d) / (b * c) if (b * c) > 0 else 0
-            st.markdown(_("**Odds Ratio (Risk Estimate):** `{0:.3f}`").format(odds_ratio))
+            st.markdown(f"**Odds Ratio (Risk Estimate):** `{odds_ratio:.3f}`")
         except:
             st.write("-")
             
