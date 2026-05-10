@@ -301,12 +301,95 @@ with st.expander("Lihat Data: Rekam Ketukan Palu Pengadilan (SIPP)", expanded=Fa
 
 st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
 
+# ── 3.2 CROSSTAB: Mangkraknya Keadilan ──
+st.subheader("3.2 Analisis Crosstab: Mayoritas Perkara Dibiarkan Mangkrak Tanpa Kepastian")
+st.markdown('<span style="background:#B71C1C;color:#FFCDD2;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Tabulasi Silang (Cross-Tabulation): Durasi Proses vs Status Akhir</span>', unsafe_allow_html=True)
+
+_sipp_raw_path = os.path.join(DATA, "sipp_corporate_wanprestasi.csv")
+if os.path.exists(_sipp_raw_path):
+    _df_raw = pd.read_csv(_sipp_raw_path)
+    
+    # Pre-processing untuk Crosstab
+    if 'durasi_hari' in _df_raw.columns and 'Status Perkara' in _df_raw.columns:
+        _df_ct = _df_raw.copy()
+        
+        # 1. Binning Variabel X (Durasi)
+        bins = [-1, 100, 200, 999999]
+        labels_durasi = ["Cepat (<100 Hari)", "Lambat (100-200 Hari)", "Mangkrak (>200 Hari)"]
+        _df_ct['Kategori_Waktu'] = pd.cut(_df_ct['durasi_hari'].fillna(0), bins=bins, labels=labels_durasi)
+        
+        # 2. Binning Variabel Y (Status Perkara)
+        def map_status(val):
+            if not isinstance(val, str): return "Tidak Jelas"
+            val = val.lower()
+            if "minutasi" in val or "putusan" in val or "putus" in val:
+                return "Selesai (Putus/Minutasi)"
+            elif "sidang" in val or "persidangan" in val:
+                return "Menggantung (Terkatung-katung)"
+            else:
+                return "Lainnya"
+        
+        _df_ct['Status_Klasifikasi'] = _df_ct['Status Perkara'].apply(map_status)
+        
+        # 3. Crosstab Calculation
+        ct = pd.crosstab(_df_ct['Kategori_Waktu'], _df_ct['Status_Klasifikasi'])
+        
+        # Convert to 100% percentage for Stacked Bar
+        ct_pct = ct.div(ct.sum(axis=1), axis=0) * 100
+        
+        # Plotting 100% Stacked Bar Chart
+        fig_ct = go.Figure()
+        
+        # Warna ala Advokasi (EBT style)
+        color_map = {
+            "Menggantung (Terkatung-katung)": "#B71C1C", # Merah bahaya untuk yang menggantung
+            "Selesai (Putus/Minutasi)": "#2E7D32",       # Hijau untuk yang sudah beres
+            "Lainnya": "#757575"
+        }
+        
+        for col in ct_pct.columns:
+            fig_ct.add_trace(go.Bar(
+                y=ct_pct.index,
+                x=ct_pct[col],
+                name=col,
+                orientation='h',
+                marker_color=color_map.get(col, "#FFF"),
+                text=[f"{val:.1f}%" for val in ct_pct[col]],
+                textposition='inside',
+                insidetextfont=dict(color='white', size=12)
+            ))
+            
+        fig_ct.update_layout(
+            barmode='stack',
+            template="plotly_dark",
+            height=350,
+            margin=dict(l=20, r=20, t=30, b=20),
+            xaxis_title="Persentase Kumulatif (%)",
+            yaxis_title="Kategori Umur Perkara",
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+        )
+        
+        st.plotly_chart(fig_ct, use_container_width=True)
+        
+        st.markdown("""
+        Narasi visual di atas adalah manifestasi dari **Procedural Uncertainty** yang sangat kronis. Melalui tabulasi silang puluhan ribu data SIPP, kita menemukan fakta pahit:
+        Bahkan ketika sebuah sengketa sudah berumur lebih dari 200 hari (**Mangkrak**), **mayoritas absolut kasus tersebut masih terus menggantung** di meja persidangan tanpa putusan (area merah tebal). 
+        
+        Bagi korporasi atau pemodal domestik, **modal mereka tersandera 100%** selama area merah tersebut belum berubah hijau. Ketidakpastian pengadilan ini adalah "Pajak Siluman" terbesar yang membunuh *Return on Investment* (ROI) di Indonesia sebelum pabrik sempat didirikan.
+        """)
+        
+        with st.expander("Lihat Tabel Data Matriks Crosstab", expanded=False):
+            st.dataframe(ct.style.background_gradient(cmap="Reds"), use_container_width=True)
+
+
+st.markdown("<div style='height: 30px;'></div>", unsafe_allow_html=True)
+
 
 # ══════════════════════════════════════════════════
-# 3.2 TREN ICOR (DAMPAK Y)
+# 3.3 TREN ICOR (DAMPAK Y)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("3.2 Dampak: Biaya Siluman Investasi Makin Mencekik (ICOR)"))
+st.subheader(_("3.3 Dampak: Biaya Siluman Investasi Makin Mencekik (ICOR)"))
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Rasio Pemborosan Modal Runtun Waktu (ICOR Time Series / Variabel Y1)</span>', unsafe_allow_html=True)
 
 icor_narr = _("""Angka ini mengukur betapa parahnya boros uang yang harus dibayarkan perusahaan cuma untuk bisa buka usaha. Menggunakan **Rasio Tingkat Pemborosan Uang (IKOR / Incremental Capital Output Ratio)** — semakin tinggi nilainya, semakin kencang indikasi bahwa uang jutaan triliunan terkuras habis dibakar buat nyukupin *biaya siluman/kepanikan di bawah meja* gara-gara nggak ada kepastian (delay, hukum bisa dibeli).
@@ -364,10 +447,10 @@ with st.expander("Lihat Data: Angka Keborosan Masuknya Modal Asing & Lokal (ICOR
 
 
 # ══════════════════════════════════════════════════
-# 3.3 ICOR vs VOLUME INVESTASI (DAMPAK Y)
+# 3.4 ICOR vs VOLUME INVESTASI (DAMPAK Y)
 # ══════════════════════════════════════════════════
 st.markdown("---")
-st.subheader(_("3.3 Dampak: Makin Mahal Biaya, Makin Sedikit Modal Masuk"))
+st.subheader(_("3.4 Dampak: Makin Mahal Biaya, Makin Sedikit Modal Masuk"))
 st.markdown('<span style="background:#333;color:#FF9800;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Metode: Tingkat Kecocokan Pola (Spearman Rank Correlation / Variabel Y2)</span>', unsafe_allow_html=True)
 
 scatter_narr = _("""Menggunakan instrumen **Kalkulator Kecocokan (Spearman Rank Correlation)** untuk mengukur betapa kuatnya ikatan batin antara mahalnya uang pungli/siluman (ICOR) terhadap volume masuknya investasi sesungguhnya.
