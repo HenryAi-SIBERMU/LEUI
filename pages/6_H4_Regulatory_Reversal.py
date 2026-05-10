@@ -571,11 +571,11 @@ st.markdown("---")
 st.subheader("4.6 Analisis Crosstab: Tsunami Aturan Memusnahkan Kepercayaan Investor")
 st.markdown('<span style="background:#B71C1C;color:#FFCDD2;padding:4px 10px;border-radius:5px;font-size:0.85rem;">Tabulasi Silang (Cross-Tabulation) & Chi-Square Test</span>', unsafe_allow_html=True)
 
-st.markdown(_("""
+st.markdown("""
 Hipotesis lanjutan ini membuktikan bahwa **setiap kali terjadi fase volatilitas aturan (Regulatory Reversal Risk yang tinggi), pasar langsung merespons dengan pelarian modal massal**. Tabel crosstab ala SPSS di bawah ini menguji korelasi antara "Fase Aturan Labil" (Variabel X) dengan "Kepanikan Pelarian Modal" (Variabel Y).
 
 <small>📁 <b>Sumber:</b> Proxy Volatilitas Regulasi Historis vs Arus Keluar Modal Mingguan (n=32 periode).</small>
-"""), unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 if len(df) > 0:
     df_ct = df.copy()
