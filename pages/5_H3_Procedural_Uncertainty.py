@@ -399,8 +399,8 @@ if os.path.exists(_sipp_raw_path):
         st.markdown(_("#### Chi-Square Tests"))
         g, p_g, dof_g, exp_g = stats.chi2_contingency(crosstab, lambda_="log-likelihood")
         # Ensure mapping to 0/1 for linear-by-linear
-        x_codes = df_valid["X_Label"].replace({cats_x[0]:0, cats_x[1]:1})
-        y_codes = df_valid["Y_Label"].replace({cats_y[0]:0, cats_y[1]:1})
+        x_codes = df_valid["X_Label"].replace({cats_x[0]:0, cats_x[1]:1}).astype(float)
+        y_codes = df_valid["Y_Label"].replace({cats_y[0]:0, cats_y[1]:1}).astype(float)
         r, p_corr = stats.pearsonr(x_codes, y_codes)
         lbl_val = (valid_cases - 1) * (r**2)
         
