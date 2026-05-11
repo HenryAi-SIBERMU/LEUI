@@ -404,13 +404,11 @@ if os.path.exists(_sipp_raw_path):
         r, p_corr = stats.pearsonr(x_codes, y_codes)
         lbl_val = (valid_cases - 1) * (r**2)
         
-        # Format p-value: if underflow (== 0.0 in float64), display scientific notation note
+        # Format p-value: SPSS convention — show '< 0.001' for very small values
         def fmt_p(p):
-            if p == 0.0:
-                return "< 2.2e-308 (underflow)"
-            elif p < 0.001:
-                return f"{p:.2e}"
-            return f"{p:.4f}"
+            if p < 0.001:
+                return "< 0.001"
+            return f"{p:.3f}"
 
         chi_data = [
             [f"{chi2_val:.3f}", str(dof), fmt_p(p_val)],
@@ -424,15 +422,7 @@ if os.path.exists(_sipp_raw_path):
         st.markdown(f"**{interaction_label}**")
         st.table(chi_df)
 
-        # Methodological note on underflow
-        if p_val == 0.0:
-            st.info(
-                f"**Catatan Metodologis:** P-Value ditampilkan sebagai `< 2.2e-308` bukan `0.000` karena "
-                f"nilai sesungguhnya (~10\u207b\u2079\u2070\u2070) melampaui batas presisi *float64* Python (minimum ~2.2e\u2212308). "
-                f"Ini bukan *error* — dengan **n = {valid_cases:,} kasus** dan Chi\u00b2 = {chi2_val:.1f}, "
-                f"hubungan ini memiliki signifikansi statistik yang **absolut dan tidak bisa dibantah**. "
-                f"Semua *expected frequencies* > 5 (min = {np.min(expected):.1f}), sehingga asumsi Chi\u00b2 terpenuhi penuh."
-            )
+
         
         # D. Hypothesis Summary (Card NO ICONS)
         st.markdown("#### Ringkasan Uji Hipotesis")
@@ -444,7 +434,7 @@ if os.path.exists(_sipp_raw_path):
             order_color = "#4CAF50" if is_significant else "#F44336"
             bg_color = "rgba(76, 175, 80, 0.1)" if is_significant else "rgba(244, 67, 54, 0.1)"
             
-            p_display = "< 2.2e-308" if p_val == 0.0 else (f"{p_val:.2e}" if p_val < 0.001 else f"{p_val:.4f}")
+            p_display = "< 0.001" if p_val < 0.001 else f"{p_val:.3f}"
             st.markdown(f"""
             <div style="border: 2px solid {order_color}; padding: 15px; border-radius: 5px; background-color: {bg_color};">
                 <h4 style="color: {order_color}; margin: 0 0 10px 0; text-transform: uppercase;">Result: {status_text}</h4>
