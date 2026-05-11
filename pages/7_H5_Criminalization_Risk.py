@@ -620,10 +620,13 @@ if len(df) > 0:
     except:
         g, p_g, lbl_val, p_corr = 0, 1, 0, 1
     
+    def fmt_p(p):
+        return "< 0.001" if p < 0.001 else f"{p:.3f}"
+
     chi_data = [
-        [f"{chi2_val:.3f}", str(dof), f"{p_val:.3f}"],
-        [f"{g:.3f}", str(dof), f"{p_g:.3f}"],
-        [f"{lbl_val:.3f}", "1", f"{p_corr:.3f}"],
+        [f"{chi2_val:.3f}", str(dof), fmt_p(p_val)],
+        [f"{g:.3f}", str(dof), fmt_p(p_g)],
+        [f"{lbl_val:.3f}", "1", fmt_p(p_corr)],
         [str(total_cases), "", ""]
     ]
     chi_df = pd.DataFrame(chi_data,
@@ -642,13 +645,15 @@ if len(df) > 0:
         order_color = "#4CAF50" if is_significant else "#F44336"
         bg_color = "rgba(76, 175, 80, 0.1)" if is_significant else "rgba(244, 67, 54, 0.1)"
         
+        p_display = "< 0.001" if p_val < 0.001 else f"{p_val:.3f}"
         st.markdown(f"""
         <div style="border: 2px solid {order_color}; padding: 15px; border-radius: 5px; background-color: {bg_color};">
             <h4 style="color: {order_color}; margin: 0 0 10px 0; text-transform: uppercase;">Result: {status_text}</h4>
             <p style="margin: 0; font-family: monospace;">
-                P-Value    : {p_val:.4f}<br>
+                P-Value    : {p_display}<br>
                 Chi-Square : {chi2_val:.3f}<br>
-                df         : {dof}
+                df         : {dof}<br>
+                N          : {total_cases:,}
             </p>
         </div>
         """, unsafe_allow_html=True)
