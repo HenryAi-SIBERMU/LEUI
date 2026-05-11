@@ -61,6 +61,9 @@ def render_sidebar():
         st.page_link("pages/6_H4_Regulatory_Reversal.py", label="H4: Regulatory Reversal", icon=None)
         st.page_link("pages/7_H5_Criminalization_Risk.py", label="H5: Criminalization Risk", icon=None)
 
+        st.markdown("### Infografis")
+        st.page_link("pages/12_Infografis_LEUI.py", label="Poster A4 — LEUI", icon=None)
+
         st.markdown("### Resources")
         st.page_link("pages/1_Eksplorasi_Data.py", label="Eksplorasi Data", icon=None)
         st.page_link("pages/2_Dokumentasi_Riset.py", label="Dokumentasi Riset", icon=None)
