@@ -79,12 +79,76 @@ def compute_all_stats():
     chi2_h5, p_h5, or_h5 = chi2_or_binary(ct5)
     n_h5 = len(df_ikk)
 
+    # ── Descriptive metrics for V3 storytelling ──────────────────
+    df_h1s = df_h1.sort_values("tahun")
+    cpi_latest  = int(df_h1s.iloc[-1]["skor_transparansi_korupsi"])
+    icor_latest = float(df_h1s.iloc[-1]["icor_pmdn"])
+    icor_peak   = float(df_h1["icor_pmdn"].max())
+
+    df_h2s = df_h2.sort_values("tahun")
+    pmdn_first = float(df_h2s.iloc[0]["total_pmdn"])
+    pmdn_last  = float(df_h2s.iloc[-1]["total_pmdn"])
+    yr_first   = int(df_h2s.iloc[0]["tahun"])
+    yr_last    = int(df_h2s.iloc[-1]["tahun"])
+
+    n_mangkrak  = int(df_sipp["Y3"].eq("B").sum())
+    pct_mangkrak = n_mangkrak / n_h3 * 100
+    median_dur_mangkrak = float(df_sipp[df_sipp["Y3"] == "B"]["durasi_hari"].median())
+
+    df_rc_recent = df_rc[df_rc["year"] >= 2010]
+    n_churn_yr  = int((df_rc_recent["churn_rate"] > 0).sum())
+    max_churn   = float(df_rc_recent["churn_rate"].max())
+
+    ikk_med_pres = float(df_ikk["ikk_present"].median())
+    ikk_pesimis  = int((df_ikk["ikk_present"] < 100).sum())
+    ikk_pct_pes  = ikk_pesimis / n_h5 * 100
+
     return {
-        "H1": {"n": len(df_h1), "stat": f"r = {r1:.3f}", "p": p1,  "effect": abs(r1),  "uji": "Spearman",   "jalur": "Korupsi Tinggi → ICOR Bengkak",      "x": "Skor CPI (Korupsi)",          "y": "ICOR PMDN"},
-        "H2": {"n": len(df_h2), "stat": f"r = {r2:.3f}", "p": p2,  "effect": abs(r2),  "uji": "Spearman",   "jalur": "CPI Rendah → PMDN Stagnasi",         "x": "Skor CPI (Penegakan)",        "y": "Total PMDN (Rp Bn)"},
-        "H3": {"n": n_h3,       "stat": f"χ² = {chi2_h3:.0f}", "p": p_h3, "effect": or_h3, "uji": "Chi-Square", "jalur": "Sidang Mangkrak → Perkara Gantung",  "x": "Durasi ≥ 30 Hari",            "y": "Status Menggantung"},
-        "H4": {"n": len(df_h4), "stat": f"r = {r4:.3f}", "p": p4,  "effect": abs(r4),  "uji": "Spearman",   "jalur": "Regulasi Labil → ICOR Boros",        "x": "Regulatory Churn Rate",       "y": "ICOR PMDN"},
-        "H5": {"n": n_h5,       "stat": f"χ² = {chi2_h5:.1f}", "p": p_h5, "effect": or_h5, "uji": "Chi-Square", "jalur": "Kriminalisasi → Investasi Beku",     "x": "IKK Gap (Ketakutan Hukum)",   "y": "IKK Present (Investasi)"},
+        "H1": {
+            "n": len(df_h1), "stat": f"r = {r1:.3f}", "p": p1, "effect": abs(r1),
+            "uji": "Spearman", "jalur": "Korupsi Tinggi → ICOR Bengkak",
+            "x": "Skor CPI (Korupsi)", "y": "ICOR PMDN",
+            "metrics": [
+                {"label": "Skor CPI Indonesia 2023", "value": f"{cpi_latest}/100"},
+                {"label": "ICOR PMDN tertinggi (pandemi)", "value": f"{icor_peak:.2f}x"},
+            ]
+        },
+        "H2": {
+            "n": len(df_h2), "stat": f"r = {r2:.3f}", "p": p2, "effect": abs(r2),
+            "uji": "Spearman", "jalur": "CPI Rendah → PMDN Stagnasi",
+            "x": "Skor CPI (Penegakan)", "y": "Total PMDN (Rp Bn)",
+            "metrics": [
+                {"label": f"PMDN {yr_first}", "value": f"Rp{pmdn_first/1000:.0f}T"},
+                {"label": f"PMDN {yr_last}", "value": f"Rp{pmdn_last/1000:.0f}T"},
+            ]
+        },
+        "H3": {
+            "n": n_h3, "stat": f"χ² = {chi2_h3:.0f}", "p": p_h3, "effect": or_h3,
+            "uji": "Chi-Square", "jalur": "Sidang Mangkrak → Perkara Gantung",
+            "x": "Durasi ≥ 30 Hari", "y": "Status Menggantung",
+            "metrics": [
+                {"label": "Kasus status menggantung", "value": f"{n_mangkrak:,} kasus"},
+                {"label": "Proporsi dari total", "value": f"{pct_mangkrak:.1f}%"},
+            ]
+        },
+        "H4": {
+            "n": len(df_h4), "stat": f"r = {r4:.3f}", "p": p4, "effect": abs(r4),
+            "uji": "Spearman", "jalur": "Regulasi Labil → ICOR Boros",
+            "x": "Regulatory Churn Rate", "y": "ICOR PMDN",
+            "metrics": [
+                {"label": "Tahun ada churn regulasi (sejak 2010)", "value": f"{n_churn_yr} tahun"},
+                {"label": "Churn rate tertinggi", "value": f"{max_churn:.1f}%"},
+            ]
+        },
+        "H5": {
+            "n": n_h5, "stat": f"χ² = {chi2_h5:.1f}", "p": p_h5, "effect": or_h5,
+            "uji": "Chi-Square", "jalur": "Kriminalisasi → Investasi Beku",
+            "x": "IKK Gap (Ketakutan Hukum)", "y": "IKK Present (Investasi)",
+            "metrics": [
+                {"label": "IKK Present median (threshold 100)", "value": f"{ikk_med_pres:.1f}"},
+                {"label": "Bulan investor pesimis (IKK < 100)", "value": f"{ikk_pesimis}/{n_h5} bln ({ikk_pct_pes:.0f}%)"},
+            ]
+        },
     }
 
 def fmt_p(p):
@@ -482,56 +546,73 @@ def build_poster_v3_html(s):
     gen_date = datetime.date.today().strftime("%d %B %Y")
     n_h3 = s["H3"]["n"]; or_h5 = s["H5"]["effect"]; n_h5 = s["H5"]["n"]
 
-    # Kartu temuan — headline awam + penjelasan + stat kecil
+    # Kartu temuan — Material Symbols icon + headline awam + metrics + stat kecil
     CARDS = [
         {
             "hid": "01", "color": "#E65100", "bg": "#FFF8F3",
-            "icon": "⚖️",
+            "icon": "balance",
             "headline": "Semakin korup, semakin mahal biaya investasi",
             "body": "Negara dengan skor korupsi buruk cenderung punya ICOR tinggi — artinya butuh modal lebih besar untuk menghasilkan pertumbuhan yang sama. Korupsi bukan hanya moral issue, tapi beban ekonomi nyata.",
-            "stat": f"Data: {s['H1']['n']} tahun observasi · r = {s['H1']['effect']:.2f}",
-            "verdict": "Tren Awal", "vcolor": "#E65100"
+            "stat": f"Data: {s['H1']['n']} tahun observasi · Spearman r = {s['H1']['effect']:.2f}",
+            "verdict": "Tren Awal", "vcolor": "#E65100",
+            "metrics": s["H1"]["metrics"]
         },
         {
             "hid": "02", "color": "#1565C0", "bg": "#F3F7FF",
-            "icon": "📉",
+            "icon": "trending_down",
             "headline": "Hukum yang tidak adil membuat investor enggan masuk",
-            "body": "Ketika penegakan hukum lemah dan pilih kasih, kepercayaan investor runtuh. Data investasi domestik menunjukkan stagnasi di tahun-tahun dengan skor transparansi rendah.",
-            "stat": f"Data: {s['H2']['n']} tahun observasi · r = {s['H2']['effect']:.2f}",
-            "verdict": "Perlu Riset Lanjut", "vcolor": "#1565C0"
+            "body": "Ketika penegakan hukum lemah dan pilih kasih, kepercayaan investor runtuh. Data investasi domestik menunjukkan pola yang konsisten antara skor transparansi dan minat investasi domestik.",
+            "stat": f"Data: {s['H2']['n']} tahun observasi · Spearman r = {s['H2']['effect']:.2f}",
+            "verdict": "Perlu Riset Lanjut", "vcolor": "#1565C0",
+            "metrics": s["H2"]["metrics"]
         },
         {
             "hid": "03", "color": "#B71C1C", "bg": "#FFF5F5",
-            "icon": "⏳",
+            "icon": "hourglass_empty",
             "headline": f"{n_h3:,} kasus bisnis tergantung di pengadilan",
-            "body": "Lebih dari separuh perkara wanprestasi korporat masuk fase \"persidangan\" selama bertahun-tahun tanpa putusan. Pengusaha tidak bisa merencanakan bisnis jika kepastian hukum tidak ada.",
-            "stat": f"Bukti: {n_h3:,} kasus SIPP · p < 0.001 · OR = {s['H3']['effect']:.2f}",
-            "verdict": "✓ Terbukti", "vcolor": "#2E7D32"
+            "body": "Mayoritas perkara wanprestasi korporat masuk status menggantung tanpa putusan final. Pengusaha tidak bisa merencanakan bisnis, mencairkan aset, atau melanjutkan operasi jika status hukumnya tidak pasti.",
+            "stat": f"Bukti: {n_h3:,} kasus SIPP MA · p < 0.001 (Chi-Square)",
+            "verdict": "Terbukti Signifikan", "vcolor": "#2E7D32",
+            "metrics": s["H3"]["metrics"]
         },
         {
             "hid": "04", "color": "#6A1B9A", "bg": "#FAF5FF",
-            "icon": "🔀",
-            "headline": "Aturan yang berubah-ubah = investor pilih wait & see",
-            "body": "Setiap kali regulasi berubah mendadak, pengusaha memilih menunggu daripada berinvestasi. Ketidakstabilan aturan menciptakan efisiensi investasi yang buruk dan ICOR yang bengkak.",
-            "stat": f"Data: {s['H4']['n']} tahun observasi · r = {s['H4']['effect']:.2f}",
-            "verdict": "Perlu Riset Lanjut", "vcolor": "#6A1B9A"
+            "icon": "sync_problem",
+            "headline": "Aturan yang berubah-ubah = investor pilih wait &amp; see",
+            "body": "Setiap kali regulasi berubah mendadak, pengusaha memilih menunggu daripada berinvestasi. Ketidakstabilan aturan menciptakan ICOR tinggi — butuh lebih banyak modal untuk pertumbuhan yang sama.",
+            "stat": f"Data: {s['H4']['n']} tahun observasi · Spearman r = {s['H4']['effect']:.2f}",
+            "verdict": "Perlu Riset Lanjut", "vcolor": "#6A1B9A",
+            "metrics": s["H4"]["metrics"]
         },
         {
             "hid": "05", "color": "#880E4F", "bg": "#FFF5FA",
-            "icon": "🚨",
+            "icon": "policy",
             "headline": f"Takut dikriminalisasi bikin investor {or_h5:.1f}x lebih memilih diam",
-            "body": "Ketika pengusaha takut keputusan bisnisnya bisa berujung di penjara, mereka membekukan investasi. Data survei Bank Indonesia selama 296 bulan membuktikan: ketakutan hukum secara langsung menekan aktivitas ekonomi.",
-            "stat": f"Bukti: {n_h5} observasi bulanan · p < 0.001 · OR = {or_h5:.2f}",
-            "verdict": "✓ Terbukti", "vcolor": "#2E7D32"
+            "body": "Ketika pengusaha takut keputusan bisnisnya bisa berujung di penjara, mereka membekukan investasi. Data Indeks Keyakinan Konsumen Bank Indonesia selama {n_h5} bulan membuktikan ketakutan hukum menekan aktivitas ekonomi secara langsung.",
+            "stat": f"Bukti: {n_h5} bulan data IKK BI · p < 0.001 · OR = {or_h5:.2f}",
+            "verdict": "Terbukti Signifikan", "vcolor": "#2E7D32",
+            "metrics": s["H5"]["metrics"]
         },
     ]
 
+    def metrics_html(metrics, color):
+        boxes = "".join(
+            f'<div style="flex:1;background:#fff;border:1px solid {color}33;border-radius:4px;padding:2mm 3mm;text-align:center;">'
+            f'<div style="font-size:9pt;font-weight:900;color:{color};font-family:monospace;">{m["value"]}</div>'
+            f'<div style="font-size:5pt;color:#888;margin-top:0.5mm;line-height:1.3;">{m["label"]}</div>'
+            f'</div>'
+            for m in metrics
+        )
+        return f'<div style="display:flex;gap:2mm;margin-bottom:2mm;">{boxes}</div>'
+
     def card_html(c):
+        icon_el = f'<span class="material-symbols-outlined" style="font-size:20pt;color:{c["color"]};line-height:1;">{c["icon"]}</span>'
+        met = metrics_html(c["metrics"], c["color"])
         return f"""
         <div style="background:{c['bg']};border-left:4px solid {c['color']};border-radius:0 6px 6px 0;
-                    padding:4mm 5mm;margin-bottom:4mm;page-break-inside:avoid;">
+                    padding:4mm 5mm;margin-bottom:3.5mm;page-break-inside:avoid;">
           <div style="display:flex;align-items:flex-start;gap:3mm;">
-            <div style="font-size:18pt;line-height:1;margin-top:1mm;">{c['icon']}</div>
+            <div style="margin-top:1mm;">{icon_el}</div>
             <div style="flex:1;">
               <div style="display:flex;align-items:center;gap:3mm;margin-bottom:1.5mm;">
                 <div style="font-size:6pt;font-weight:800;text-transform:uppercase;letter-spacing:1px;
@@ -543,10 +624,11 @@ def build_poster_v3_html(s):
               <div style="font-size:9pt;font-weight:800;color:#111;line-height:1.3;margin-bottom:2mm;">
                 {c['headline']}
               </div>
-              <div style="font-size:7pt;color:#444;line-height:1.55;margin-bottom:2mm;">
+              {met}
+              <div style="font-size:7pt;color:#444;line-height:1.5;margin-bottom:1.5mm;">
                 {c['body']}
               </div>
-              <div style="font-size:5.5pt;color:#aaa;font-style:italic;">{c['stat']}</div>
+              <div style="font-size:5.5pt;color:#bbb;font-style:italic;">{c['stat']}</div>
             </div>
           </div>
         </div>"""
@@ -558,6 +640,8 @@ def build_poster_v3_html(s):
 <head>
 <meta charset="utf-8"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet"/>
+<style>.material-symbols-outlined {{ font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }}</style>
 <style>
 @page {{ size: A4 portrait; margin: 0; }}
 * {{ margin:0; padding:0; box-sizing:border-box; }}
