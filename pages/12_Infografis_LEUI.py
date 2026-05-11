@@ -8,7 +8,7 @@ import streamlit.components.v1 as components
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from src.components.sidebar import render_sidebar
 
-st.set_page_config(page_title="Infografis LEUI — A4 Poster", page_icon="⚖️", layout="wide")
+st.set_page_config(page_title="Infografis LEUI — A4 Poster", page_icon="ref/Celios China-Indonesia Energy Transition.png", layout="wide")
 render_sidebar()
 
 BASE = os.path.dirname(os.path.dirname(__file__))
