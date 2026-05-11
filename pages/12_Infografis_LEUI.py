@@ -474,6 +474,172 @@ th.left {{ text-align:left; }}
 
 
 # ═══════════════════════════════════════════════════════════
+# BUILD V3 — PUBLIK / STORYTELLING
+# ═══════════════════════════════════════════════════════════
+def build_poster_v3_html(s):
+    total_n  = sum(v["n"] for v in s.values())
+    terbukti = sum(1 for v in s.values() if v["p"] < 0.05)
+    gen_date = datetime.date.today().strftime("%d %B %Y")
+    n_h3 = s["H3"]["n"]; or_h5 = s["H5"]["effect"]; n_h5 = s["H5"]["n"]
+
+    # Kartu temuan — headline awam + penjelasan + stat kecil
+    CARDS = [
+        {
+            "hid": "01", "color": "#E65100", "bg": "#FFF8F3",
+            "icon": "⚖️",
+            "headline": "Semakin korup, semakin mahal biaya investasi",
+            "body": "Negara dengan skor korupsi buruk cenderung punya ICOR tinggi — artinya butuh modal lebih besar untuk menghasilkan pertumbuhan yang sama. Korupsi bukan hanya moral issue, tapi beban ekonomi nyata.",
+            "stat": f"Data: {s['H1']['n']} tahun observasi · r = {s['H1']['effect']:.2f}",
+            "verdict": "Tren Awal", "vcolor": "#E65100"
+        },
+        {
+            "hid": "02", "color": "#1565C0", "bg": "#F3F7FF",
+            "icon": "📉",
+            "headline": "Hukum yang tidak adil membuat investor enggan masuk",
+            "body": "Ketika penegakan hukum lemah dan pilih kasih, kepercayaan investor runtuh. Data investasi domestik menunjukkan stagnasi di tahun-tahun dengan skor transparansi rendah.",
+            "stat": f"Data: {s['H2']['n']} tahun observasi · r = {s['H2']['effect']:.2f}",
+            "verdict": "Perlu Riset Lanjut", "vcolor": "#1565C0"
+        },
+        {
+            "hid": "03", "color": "#B71C1C", "bg": "#FFF5F5",
+            "icon": "⏳",
+            "headline": f"{n_h3:,} kasus bisnis tergantung di pengadilan",
+            "body": "Lebih dari separuh perkara wanprestasi korporat masuk fase \"persidangan\" selama bertahun-tahun tanpa putusan. Pengusaha tidak bisa merencanakan bisnis jika kepastian hukum tidak ada.",
+            "stat": f"Bukti: {n_h3:,} kasus SIPP · p < 0.001 · OR = {s['H3']['effect']:.2f}",
+            "verdict": "✓ Terbukti", "vcolor": "#2E7D32"
+        },
+        {
+            "hid": "04", "color": "#6A1B9A", "bg": "#FAF5FF",
+            "icon": "🔀",
+            "headline": "Aturan yang berubah-ubah = investor pilih wait & see",
+            "body": "Setiap kali regulasi berubah mendadak, pengusaha memilih menunggu daripada berinvestasi. Ketidakstabilan aturan menciptakan efisiensi investasi yang buruk dan ICOR yang bengkak.",
+            "stat": f"Data: {s['H4']['n']} tahun observasi · r = {s['H4']['effect']:.2f}",
+            "verdict": "Perlu Riset Lanjut", "vcolor": "#6A1B9A"
+        },
+        {
+            "hid": "05", "color": "#880E4F", "bg": "#FFF5FA",
+            "icon": "🚨",
+            "headline": f"Takut dikriminalisasi bikin investor {or_h5:.1f}x lebih memilih diam",
+            "body": "Ketika pengusaha takut keputusan bisnisnya bisa berujung di penjara, mereka membekukan investasi. Data survei Bank Indonesia selama 296 bulan membuktikan: ketakutan hukum secara langsung menekan aktivitas ekonomi.",
+            "stat": f"Bukti: {n_h5} observasi bulanan · p < 0.001 · OR = {or_h5:.2f}",
+            "verdict": "✓ Terbukti", "vcolor": "#2E7D32"
+        },
+    ]
+
+    def card_html(c):
+        return f"""
+        <div style="background:{c['bg']};border-left:4px solid {c['color']};border-radius:0 6px 6px 0;
+                    padding:4mm 5mm;margin-bottom:4mm;page-break-inside:avoid;">
+          <div style="display:flex;align-items:flex-start;gap:3mm;">
+            <div style="font-size:18pt;line-height:1;margin-top:1mm;">{c['icon']}</div>
+            <div style="flex:1;">
+              <div style="display:flex;align-items:center;gap:3mm;margin-bottom:1.5mm;">
+                <div style="font-size:6pt;font-weight:800;text-transform:uppercase;letter-spacing:1px;
+                            color:{c['color']};background:{c['color']}22;padding:0.5mm 2mm;border-radius:2px;">
+                  TEMUAN {c['hid']}
+                </div>
+                <div style="font-size:6pt;font-weight:700;color:{c['vcolor']};">{c['verdict']}</div>
+              </div>
+              <div style="font-size:9pt;font-weight:800;color:#111;line-height:1.3;margin-bottom:2mm;">
+                {c['headline']}
+              </div>
+              <div style="font-size:7pt;color:#444;line-height:1.55;margin-bottom:2mm;">
+                {c['body']}
+              </div>
+              <div style="font-size:5.5pt;color:#aaa;font-style:italic;">{c['stat']}</div>
+            </div>
+          </div>
+        </div>"""
+
+    all_cards = "".join(card_html(c) for c in CARDS)
+
+    return f"""<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+@page {{ size: A4 portrait; margin: 0; }}
+* {{ margin:0; padding:0; box-sizing:border-box; }}
+body {{
+  width:210mm; min-height:297mm;
+  font-family:'Inter',sans-serif;
+  background:#fff; color:#111;
+  font-size:8pt; line-height:1.4;
+  padding:10mm 10mm 8mm 10mm;
+}}
+</style>
+</head>
+<body>
+
+<!-- HEADER BLOCK -->
+<div style="background:#111;color:#fff;padding:6mm 7mm;border-radius:6px;margin-bottom:5mm;">
+  <div style="font-size:6.5pt;text-transform:uppercase;letter-spacing:2px;color:#aaa;margin-bottom:1.5mm;">
+    CELIOS — Center of Economic and Law Studies
+  </div>
+  <div style="font-size:15pt;font-weight:900;line-height:1.15;margin-bottom:2mm;">
+    Kenapa Investor Takut<br>Berbisnis di Indonesia?
+  </div>
+  <div style="font-size:8pt;color:#ccc;font-weight:400;line-height:1.5;">
+    Riset LEUI menganalisis bagaimana ketidakpastian penegakan hukum secara langsung
+    menghambat investasi dan pertumbuhan ekonomi Indonesia.
+  </div>
+</div>
+
+<!-- 3 ANGKA KUNCI -->
+<div style="display:flex;gap:3mm;margin-bottom:5mm;">
+  <div style="flex:1;text-align:center;padding:3mm;background:#F5F5F5;border-radius:5px;">
+    <div style="font-size:18pt;font-weight:900;color:#111;font-family:'Courier New',monospace;">{total_n:,}</div>
+    <div style="font-size:6.5pt;color:#666;margin-top:0.5mm;">kasus &amp; data dianalisis</div>
+  </div>
+  <div style="flex:1;text-align:center;padding:3mm;background:#F5F5F5;border-radius:5px;">
+    <div style="font-size:18pt;font-weight:900;color:#B71C1C;font-family:'Courier New',monospace;">{n_h3:,}</div>
+    <div style="font-size:6.5pt;color:#666;margin-top:0.5mm;">kasus perkara bisnis tergantung</div>
+  </div>
+  <div style="flex:1;text-align:center;padding:3mm;background:#F5F5F5;border-radius:5px;">
+    <div style="font-size:18pt;font-weight:900;color:#880E4F;font-family:'Courier New',monospace;">{or_h5:.1f}x</div>
+    <div style="font-size:6.5pt;color:#666;margin-top:0.5mm;">lebih memilih tidak investasi</div>
+  </div>
+</div>
+
+<!-- DIVIDER + INTRO -->
+<div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;
+            color:#888;border-bottom:1px solid #eee;padding-bottom:2mm;margin-bottom:4mm;">
+  5 Temuan Utama Riset
+</div>
+
+<!-- KARTU TEMUAN -->
+{all_cards}
+
+<!-- KESIMPULAN -->
+<div style="background:#111;color:#fff;padding:4mm 5mm;border-radius:5px;margin-top:1mm;">
+  <div style="font-size:7pt;font-weight:800;text-transform:uppercase;letter-spacing:1px;
+              color:#aaa;margin-bottom:1.5mm;">Apa yang Harus Berubah?</div>
+  <div style="display:flex;gap:4mm;">
+    <div style="flex:1;font-size:7pt;color:#ddd;line-height:1.5;">
+      <span style="color:#fff;font-weight:700;">Reformasi pengadilan</span> — percepat penyelesaian perkara bisnis agar tidak berlarut bertahun-tahun tanpa kepastian.
+    </div>
+    <div style="flex:1;font-size:7pt;color:#ddd;line-height:1.5;">
+      <span style="color:#fff;font-weight:700;">Stabilkan regulasi</span> — jangan ubah aturan main di tengah jalan. Investor butuh kepastian jangka panjang.
+    </div>
+    <div style="flex:1;font-size:7pt;color:#ddd;line-height:1.5;">
+      <span style="color:#fff;font-weight:700;">Hentikan kriminalisasi bisnis</span> — bedakan sengketa perdata dan pidana. Jangan jadikan pengusaha tersangka untuk perkara bisnis biasa.
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div style="display:flex;justify-content:space-between;margin-top:4mm;padding-top:2mm;
+            border-top:1px solid #eee;font-size:5.5pt;color:#bbb;">
+  <div>CELIOS — Legal Enforcement Uncertainty Index (LEUI) · celios.or.id</div>
+  <div>Sumber: BI, Transparency International, BKPM, SIPP MA · {gen_date}</div>
+</div>
+
+</body>
+</html>"""
+
+
+# ═══════════════════════════════════════════════════════════
 # RENDER — TABS
 # ═══════════════════════════════════════════════════════════
 st.markdown("## Infografis Poster A4 — CELIOS LEUI")
@@ -486,29 +652,29 @@ total_n  = sum(v["n"] for v in s.values())
 terbukti = sum(1 for v in s.values() if v["p"] < 0.05)
 st.info(f"**n = {total_n:,}** observasi · **{terbukti}/5** hipotesis terbukti · Zero hardcode")
 
-tab1, tab2 = st.tabs(["V1 — Lengkap (Berwarna)", "V2 — Minimalis (Akademik)"])
+tab1, tab2, tab3 = st.tabs([
+    "V1 — Lengkap (Berwarna)",
+    "V2 — Minimalis (Akademik)",
+    "V3 — Publik (Storytelling)"
+])
 
 with tab1:
     html_v1 = build_poster_html(s)
-    st.download_button(
-        label="⬇️ Download V1 (HTML → PDF)",
-        data=html_v1,
-        file_name="LEUI_Poster_V1.html",
-        mime="text/html",
-        key="dl_v1"
-    )
+    st.download_button(label="⬇️ Download V1", data=html_v1,
+        file_name="LEUI_Poster_V1.html", mime="text/html", key="dl_v1")
     st.markdown("---")
     components.html(html_v1, height=1200, scrolling=True)
 
 with tab2:
     html_v2 = build_poster_v2_html(s)
-    st.download_button(
-        label="⬇️ Download V2 (HTML → PDF)",
-        data=html_v2,
-        file_name="LEUI_Poster_V2.html",
-        mime="text/html",
-        key="dl_v2"
-    )
+    st.download_button(label="⬇️ Download V2", data=html_v2,
+        file_name="LEUI_Poster_V2.html", mime="text/html", key="dl_v2")
     st.markdown("---")
     components.html(html_v2, height=1100, scrolling=True)
 
+with tab3:
+    html_v3 = build_poster_v3_html(s)
+    st.download_button(label="⬇️ Download V3 (Publik)", data=html_v3,
+        file_name="LEUI_Poster_V3_Publik.html", mime="text/html", key="dl_v3")
+    st.markdown("---")
+    components.html(html_v3, height=1350, scrolling=True)
